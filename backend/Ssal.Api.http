@@ -1,0 +1,6 @@
+@Ssal.Api_HostAddress = http://localhost:5044
+
+GET {{Ssal.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

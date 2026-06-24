@@ -1,0 +1,25 @@
+# .NET
+backend/bin/
+backend/obj/
+backend/*.user
+backend/*.lscache
+*.lscache
+
+# React / Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# Variables de entorno (nunca commitear)
+.env
+.env.*
+!.env.example
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
