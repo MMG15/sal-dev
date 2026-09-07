@@ -1,0 +1,630 @@
+/* ── Layout principal ── */
+.root {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Panel lista ── */
+.panelLista {
+  width: 400px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--borde);
+  background: #fff;
+  overflow: hidden;
+}
+
+.listaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--borde);
+  flex-shrink: 0;
+}
+
+.titulo {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--texto);
+  margin: 0;
+}
+
+.listaHeaderAcciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.totalBadge {
+  font-size: 14px;
+  color: var(--texto-suave);
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 2px 10px;
+}
+
+.linkCatalogo {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--teal);
+  background: none;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.linkCatalogo:hover {
+  text-decoration: underline;
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--borde);
+  flex-shrink: 0;
+}
+
+.inputBusqueda {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 15px;
+  color: var(--texto);
+  background: var(--fondo);
+}
+
+.inputBusqueda:focus {
+  outline: none;
+  border-color: var(--azul);
+}
+
+.selectEstado {
+  padding: 6px 8px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 15px;
+  color: var(--texto);
+  background: var(--fondo);
+  flex-shrink: 0;
+}
+
+/* ── Filas ── */
+.tabla {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.fila {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--borde);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.fila:hover {
+  background: var(--azul-claro);
+}
+
+.filaActiva {
+  background: var(--azul-claro);
+  border-left: 3px solid var(--azul);
+}
+
+.filaCabeza {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.codigo {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: monospace;
+  color: var(--texto);
+}
+
+.codigoGrande {
+  font-size: 19px;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--texto);
+}
+
+.filaCliente {
+  font-size: 15.5px;
+  color: var(--texto);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filaMontos {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.montoUsd {
+  font-weight: 600;
+  color: var(--azul);
+  font-family: monospace;
+}
+
+.montoDivider {
+  color: var(--borde);
+}
+
+.montoArs {
+  color: var(--texto-suave);
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.fechaChip {
+  margin-left: auto;
+  font-size: 13.5px;
+  color: var(--texto-suave);
+}
+
+.filaConsulta {
+  font-size: 13.5px;
+  color: var(--texto-suave);
+}
+
+.consultaRef {
+  font-family: monospace;
+}
+
+.sinDato {
+  color: var(--texto-suave);
+  font-style: italic;
+  font-size: 15px;
+  margin: 0;
+}
+
+/* ── Badges ── */
+.badge {
+  font-size: 13px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badgeBorrador  { background: var(--fondo); color: var(--texto-suave); border: 1px solid var(--borde); }
+.badgeEnviado   { background: #e3f0ff; color: #1a56db; }
+.badgeAceptado  { background: var(--azul-claro); color: var(--azul); }
+.badgeRechazado { background: #fde8e8; color: var(--burdeo); }
+
+/* ── Cargando / vacío ── */
+.cargando {
+  padding: 24px;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 15px;
+}
+
+.vacio {
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ── Paginación ── */
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--borde);
+  font-size: 15px;
+  color: var(--texto-suave);
+  flex-shrink: 0;
+}
+
+.paginacion button {
+  background: none;
+  border: 1px solid var(--borde);
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--texto);
+}
+
+.paginacion button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Panel detalle ── */
+.panelDetalle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+}
+
+.detalleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--borde);
+  flex-shrink: 0;
+}
+
+.detalleTitulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detalleBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Acciones de estado ── */
+.accionesEstado {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btnAccion {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 15.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+.btnAccion:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btnAccion_primario {
+  background: var(--azul);
+  color: #fff;
+}
+
+.btnAccion_primario:hover:not(:disabled) {
+  background: var(--azul-oscuro);
+}
+
+.btnAccion_verde {
+  background: #166534;
+  color: #fff;
+}
+
+.btnAccion_verde:hover:not(:disabled) {
+  background: #14532d;
+}
+
+.btnAccion_rojo {
+  background: var(--burdeo);
+  color: #fff;
+}
+
+.btnAccion_rojo:hover:not(:disabled) {
+  background: #6b1414;
+}
+
+.btnAccion_email {
+  background: #fff;
+  color: #1a56db;
+  border: 1px solid #1a56db;
+}
+
+.btnAccion_email:hover:not(:disabled) {
+  background: #e3f0ff;
+}
+
+/* ── Totales ── */
+.totalesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.totalCard {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.totalCard span {
+  font-size: 13px;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.totalCard strong {
+  font-size: 17px;
+  color: var(--texto);
+  font-family: monospace;
+}
+
+.totalCardDestacado {
+  background: var(--azul-claro);
+  border-color: var(--azul);
+}
+
+.totalCardDestacado strong {
+  color: var(--azul);
+}
+
+/* ── Secciones ── */
+.section {
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.sectionTitulo {
+  font-size: 13.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--texto-suave);
+  margin: 0 0 10px;
+}
+
+/* ── Análisis ── */
+.analisisList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.analisisItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--borde);
+  font-size: 15px;
+}
+
+.analisisItem:last-child {
+  border-bottom: none;
+}
+
+.analisisNombre {
+  flex: 1;
+  color: var(--texto);
+}
+
+.analisisPrecio {
+  font-family: monospace;
+  font-size: 14.5px;
+  color: var(--texto-suave);
+  flex-shrink: 0;
+}
+
+.areaTag {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.areaMic {
+  background: #e3f0ff;
+  color: #1a56db;
+}
+
+.areaFq {
+  background: var(--dorado-claro);
+  color: var(--dorado);
+}
+
+.subtotalesDetalle {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--borde);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subtotalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14.5px;
+  color: var(--texto-suave);
+  font-family: monospace;
+}
+
+/* ── Campos clave/valor ── */
+.campo {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 15.5px;
+  align-items: baseline;
+}
+
+.campoLabel {
+  color: var(--texto-suave);
+  min-width: 90px;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+/* ── Otros ── */
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 15.5px;
+  color: var(--azul);
+  cursor: pointer;
+  font-family: monospace;
+  text-decoration: underline;
+}
+
+.linkBtn:hover {
+  color: var(--azul-oscuro);
+}
+
+.metaDato {
+  font-size: 14px;
+  color: var(--texto-suave);
+  text-align: right;
+  padding-top: 4px;
+}
+
+.btnCerrar {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--texto-suave);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.btnCerrar:hover {
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+/* ── Archivos adjuntos ── */
+.archivosHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.archivosHeader .sectionTitulo {
+  margin-bottom: 0;
+}
+
+.btnAdjuntar {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--azul);
+  border: 1px solid var(--azul);
+  border-radius: 5px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+
+.btnAdjuntar:hover {
+  background: var(--azul);
+  color: #fff;
+}
+
+.archivosList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.archivoItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+}
+
+.archivoIcono {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.archivoInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.archivoNombre {
+  font-size: 15px;
+  color: var(--texto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.archivoMeta {
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.btnDescargar {
+  background: none;
+  border: 1px solid var(--borde);
+  border-radius: 5px;
+  padding: 3px 9px;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--azul);
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+
+.btnDescargar:hover {
+  background: var(--azul-claro);
+}
+
+.btnEliminarArchivo {
+  background: none;
+  border: none;
+  padding: 3px 6px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--texto-suave);
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s;
+}
+
+.btnEliminarArchivo:hover:not(:disabled) {
+  background: #fde8e8;
+  color: var(--burdeo);
+}
+
+.btnEliminarArchivo:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+

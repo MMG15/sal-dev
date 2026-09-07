@@ -1,0 +1,155 @@
+.encabezado {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.bienvenida {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--texto);
+  margin: 0 0 4px;
+}
+
+.subtitulo {
+  font-size: 16px;
+  color: var(--texto-suave);
+  margin: 0;
+}
+
+.fecha {
+  font-size: 15px;
+  color: var(--texto-suave);
+  text-transform: capitalize;
+}
+
+.seccionTitulo {
+  font-size: 13.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--texto-suave);
+  margin: 0 0 12px;
+}
+
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+  max-width: 1080px;
+}
+
+.tarjeta {
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.tarjeta:hover:not(:disabled) {
+  border-color: var(--azul);
+  box-shadow: var(--sombra-md);
+  transform: translateY(-1px);
+}
+
+.tarjeta:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.icono {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--azul-claro);
+  color: var(--azul);
+}
+
+.icono svg {
+  width: 19px;
+  height: 19px;
+}
+
+.acentoAzul {
+  background: var(--azul-claro);
+  color: var(--azul);
+}
+
+.acentoDorado {
+  background: var(--dorado-claro);
+  color: var(--dorado);
+}
+
+.acentoTeal {
+  background: var(--teal-claro);
+  color: var(--teal);
+}
+
+.acentoInfo {
+  background: var(--azul-info-claro);
+  color: var(--azul-info);
+}
+
+.acentoBurdeo {
+  background: var(--burdeo-claro);
+  color: var(--burdeo);
+}
+
+.tarjetaTextos {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.tarjetaLabelFila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tarjetaLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--texto);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tarjetaDesc {
+  font-size: 14.5px;
+  color: var(--texto-suave);
+  line-height: 1.35;
+}
+
+.proximamente {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--texto-suave);
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
