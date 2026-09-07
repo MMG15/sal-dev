@@ -31,6 +31,20 @@ public class Analisis
     [Column("precio_usd")]
     public decimal PrecioUsd { get; set; }
 
+    [Column("unidad")]
+    [MaxLength(30)]
+    public string? Unidad { get; set; } // ej: mg/kg, UFC/g, %
+
+    [Column("rango_min")]
+    public decimal? RangoMin { get; set; }
+
+    [Column("rango_max")]
+    public decimal? RangoMax { get; set; }
+
+    [Column("valor_esperado")]
+    [MaxLength(100)]
+    public string? ValorEsperado { get; set; } // para resultados cualitativos, ej: "Ausencia", "Negativo"
+
     [Column("activo")]
     public bool Activo { get; set; } = true;
 

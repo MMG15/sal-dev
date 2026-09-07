@@ -54,6 +54,10 @@ public class AnalisisController(SsalDbContext db) : ControllerBase
                 a.Nombre,
                 a.Area,
                 a.PrecioUsd,
+                a.Unidad,
+                a.RangoMin,
+                a.RangoMax,
+                a.ValorEsperado,
                 a.Activo,
                 Grupo = new { a.Grupo.IdGrupo, a.Grupo.CodigoAgrupador, a.Grupo.Area }
             })
@@ -104,6 +108,10 @@ public class AnalisisController(SsalDbContext db) : ControllerBase
             Nombre = req.Nombre.Trim(),
             Area = req.Area,
             PrecioUsd = req.PrecioUsd,
+            Unidad = req.Unidad,
+            RangoMin = req.RangoMin,
+            RangoMax = req.RangoMax,
+            ValorEsperado = req.ValorEsperado,
             Activo = true
         };
 
@@ -143,6 +151,10 @@ public class AnalisisController(SsalDbContext db) : ControllerBase
         analisis.Nombre = req.Nombre.Trim();
         analisis.Area = req.Area;
         analisis.PrecioUsd = req.PrecioUsd;
+        analisis.Unidad = req.Unidad;
+        analisis.RangoMin = req.RangoMin;
+        analisis.RangoMax = req.RangoMax;
+        analisis.ValorEsperado = req.ValorEsperado;
         analisis.IdGrupo = idGrupo;
 
         await db.SaveChangesAsync();
@@ -184,4 +196,8 @@ public record GuardarAnalisisRequest(
     string Codigo,
     string Nombre,
     string Area,
-    decimal PrecioUsd);
+    decimal PrecioUsd,
+    string? Unidad,
+    decimal? RangoMin,
+    decimal? RangoMax,
+    string? ValorEsperado);

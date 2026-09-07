@@ -143,6 +143,7 @@ public class SseController(SsalDbContext db) : ControllerBase
                     .Select(a => new
                     {
                         a.IdAuditoria,
+                        a.Campo,
                         a.ValorAnterior,
                         a.ValorNuevo,
                         a.Motivo,
@@ -257,50 +258,95 @@ public class SseController(SsalDbContext db) : ControllerBase
         if (rotulo.Muestra is not null)
             return BadRequest(new { error = "Esta SSE ya tiene una muestra registrada." });
 
+        // Condición de la muestra al recibirla (PO 04):
+        // apta               -> se recibe normalmente
+        // no_apta_procesar   -> no está en condiciones pero el cliente pide procesarla igual
+        // rechazada          -> no está en condiciones y no se procesa (fin del servicio)
+        var rechazada = req.Condicion == "rechazada";
+        if (rechazada && string.IsNullOrWhiteSpace(req.Observacion))
+            return BadRequest(new { error = "Indicá el motivo del rechazo en la observación." });
+
         var muestra = new Muestra
         {
             IdRotulo = rotulo.IdRotulo,
             Tipo = req.Tipo,
             Observacion = req.Observacion,
-            Estado = "en_proceso",
+            Estado = rechazada ? "rechazada" : "en_proceso",
             FechaRecepcion = DateTime.UtcNow,
             RecibidoPor = UsuarioActual
         };
 
         db.Muestras.Add(muestra);
 
-        // Cambiar estado de la SSE a en_analisis
-        var sse = await db.Sses.FindAsync(id);
-        if (sse is not null) sse.Estado = "en_analisis";
+        var sse = await db.Sses
+            .Include(s => s.Presupuesto).ThenInclude(p => p!.Items)
+            .FirstOrDefaultAsync(s => s.IdSse == id);
+        if (sse is not null) sse.Estado = rechazada ? "rechazada" : "analizando";
+
+        // Al recibir la muestra (si no fue rechazada), se abre un resultado pendiente
+        // por cada análisis solicitado en el presupuesto vinculado.
+        if (!rechazada && sse?.Presupuesto is not null)
+        {
+            foreach (var item in sse.Presupuesto.Items)
+            {
+                db.Resultados.Add(new Resultado
+                {
+                    Muestra = muestra,
+                    IdAnalisis = item.IdAnalisis,
+                    Estado = "pendiente"
+                });
+            }
+        }
 
         await db.SaveChangesAsync();
         return Ok(new { muestra.IdMuestra });
     }
 
     // ─── PUT /api/sses/{id}/rotulo ────────────────────────────────────────
-    // Modifica descripcion/estado del rótulo con auditoría
+    // Corrige número/descripción/estado del rótulo. Operación crítica (RF-13/RF-14):
+    // exige motivo y audita cada campo modificado por separado.
     [HttpPut("{id}/rotulo")]
     public async Task<IActionResult> ActualizarRotulo(int id, [FromBody] ActualizarRotuloRequest req)
     {
         var rotulo = await db.RotulosInternos.FirstOrDefaultAsync(r => r.IdSse == id);
         if (rotulo is null) return NotFound();
 
+        var cambios = new List<AuditoriaRotulo>();
+
+        if (req.NumeroUnico is not null && req.NumeroUnico != rotulo.NumeroUnico)
+        {
+            var duplicado = await db.RotulosInternos.AnyAsync(r => r.IdRotulo != rotulo.IdRotulo && r.NumeroUnico == req.NumeroUnico);
+            if (duplicado) return BadRequest(new { error = $"El número de rótulo '{req.NumeroUnico}' ya existe." });
+
+            cambios.Add(new AuditoriaRotulo { Campo = "numero_unico", ValorAnterior = rotulo.NumeroUnico, ValorNuevo = req.NumeroUnico });
+            rotulo.NumeroUnico = req.NumeroUnico;
+        }
+
+        if (req.Descripcion is not null && req.Descripcion != rotulo.Descripcion)
+        {
+            cambios.Add(new AuditoriaRotulo { Campo = "descripcion", ValorAnterior = rotulo.Descripcion, ValorNuevo = req.Descripcion });
+            rotulo.Descripcion = req.Descripcion;
+        }
+
         if (req.Estado is not null && req.Estado != rotulo.Estado)
         {
-            db.AuditoriasRotulo.Add(new AuditoriaRotulo
-            {
-                IdRotulo = rotulo.IdRotulo,
-                IdUsuario = UsuarioActual,
-                ValorAnterior = rotulo.Estado,
-                ValorNuevo = req.Estado,
-                Motivo = req.Motivo,
-                FechaCambio = DateTime.UtcNow
-            });
+            cambios.Add(new AuditoriaRotulo { Campo = "estado", ValorAnterior = rotulo.Estado, ValorNuevo = req.Estado });
             rotulo.Estado = req.Estado;
         }
 
-        if (req.Descripcion is not null)
-            rotulo.Descripcion = req.Descripcion;
+        if (cambios.Count == 0) return NoContent();
+
+        if (string.IsNullOrWhiteSpace(req.Motivo))
+            return BadRequest(new { error = "Indicá el motivo de la corrección." });
+
+        foreach (var cambio in cambios)
+        {
+            cambio.IdRotulo = rotulo.IdRotulo;
+            cambio.IdUsuario = UsuarioActual;
+            cambio.Motivo = req.Motivo;
+            cambio.FechaCambio = DateTime.UtcNow;
+        }
+        db.AuditoriasRotulo.AddRange(cambios);
 
         await db.SaveChangesAsync();
         return NoContent();
@@ -338,6 +384,6 @@ public record CambiarEstadoSseRequest(string Estado);
 
 public record AsignarRotuloRequest(string? NumeroUnico, string? Descripcion);
 
-public record RegistrarMuestraRequest(string? Tipo, string? Observacion);
+public record RegistrarMuestraRequest(string? Tipo, string? Observacion, string Condicion);
 
-public record ActualizarRotuloRequest(string? Estado, string? Descripcion, string? Motivo);
+public record ActualizarRotuloRequest(string? NumeroUnico, string? Estado, string? Descripcion, string? Motivo);

@@ -40,4 +40,5 @@ public class Muestra
     public Usuario RecibidoPorUsuario { get; set; } = null!;
 
     public ICollection<Resultado> Resultados { get; set; } = [];
+    public Informe? Informe { get; set; }
 }

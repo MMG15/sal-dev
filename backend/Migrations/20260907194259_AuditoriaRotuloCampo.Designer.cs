@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Ssal.Api.Data;
@@ -11,9 +12,11 @@ using Ssal.Api.Data;
 namespace Ssal.Api.Migrations
 {
     [DbContext(typeof(SsalDbContext))]
-    partial class SsalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260907194259_AuditoriaRotuloCampo")]
+    partial class AuditoriaRotuloCampo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,24 +63,6 @@ namespace Ssal.Api.Migrations
                     b.Property<decimal>("PrecioUsd")
                         .HasColumnType("numeric")
                         .HasColumnName("precio_usd");
-
-                    b.Property<decimal?>("RangoMax")
-                        .HasColumnType("numeric")
-                        .HasColumnName("rango_max");
-
-                    b.Property<decimal?>("RangoMin")
-                        .HasColumnType("numeric")
-                        .HasColumnName("rango_min");
-
-                    b.Property<string>("Unidad")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("unidad");
-
-                    b.Property<string>("ValorEsperado")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("valor_esperado");
 
                     b.HasKey("IdAnalisis");
 
@@ -455,43 +440,6 @@ namespace Ssal.Api.Migrations
                     b.ToTable("grupos_analisis");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Informe", b =>
-                {
-                    b.Property<int>("IdInforme")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_informe");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdInforme"));
-
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("codigo");
-
-                    b.Property<DateTime>("FechaGeneracion")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fecha_generacion");
-
-                    b.Property<int>("GeneradoPor")
-                        .HasColumnType("integer")
-                        .HasColumnName("generado_por");
-
-                    b.Property<int>("IdMuestra")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_muestra");
-
-                    b.HasKey("IdInforme");
-
-                    b.HasIndex("GeneradoPor");
-
-                    b.HasIndex("IdMuestra")
-                        .IsUnique();
-
-                    b.ToTable("informes");
-                });
-
             modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
                 {
                     b.Property<int>("IdMuestra")
@@ -692,7 +640,7 @@ namespace Ssal.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdResultado"));
 
-                    b.Property<int?>("CargadoPor")
+                    b.Property<int>("CargadoPor")
                         .HasColumnType("integer")
                         .HasColumnName("cargado_por");
 
@@ -702,13 +650,9 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("estado");
 
-                    b.Property<DateTime?>("FechaCarga")
+                    b.Property<DateTime>("FechaCarga")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_carga");
-
-                    b.Property<DateTime?>("FechaValidacion")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fecha_validacion");
 
                     b.Property<int>("IdAnalisis")
                         .HasColumnType("integer")
@@ -717,15 +661,6 @@ namespace Ssal.Api.Migrations
                     b.Property<int>("IdMuestra")
                         .HasColumnType("integer")
                         .HasColumnName("id_muestra");
-
-                    b.Property<string>("MotivoRechazo")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("motivo_rechazo");
-
-                    b.Property<int?>("ValidadoPor")
-                        .HasColumnType("integer")
-                        .HasColumnName("validado_por");
 
                     b.Property<string>("Valor")
                         .HasMaxLength(500)
@@ -739,8 +674,6 @@ namespace Ssal.Api.Migrations
                     b.HasIndex("IdAnalisis");
 
                     b.HasIndex("IdMuestra");
-
-                    b.HasIndex("ValidadoPor");
 
                     b.ToTable("resultados");
                 });
@@ -1120,25 +1053,6 @@ namespace Ssal.Api.Migrations
                     b.Navigation("Firmante");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Informe", b =>
-                {
-                    b.HasOne("Ssal.Api.Models.Usuario", "GeneradoPorUsuario")
-                        .WithMany()
-                        .HasForeignKey("GeneradoPor")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Ssal.Api.Models.Muestra", "Muestra")
-                        .WithOne("Informe")
-                        .HasForeignKey("Ssal.Api.Models.Informe", "IdMuestra")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GeneradoPorUsuario");
-
-                    b.Navigation("Muestra");
-                });
-
             modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
                 {
                     b.HasOne("Ssal.Api.Models.RotuloInterno", "RotuloInterno")
@@ -1220,7 +1134,8 @@ namespace Ssal.Api.Migrations
                     b.HasOne("Ssal.Api.Models.Usuario", "CargadoPorUsuario")
                         .WithMany()
                         .HasForeignKey("CargadoPor")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Ssal.Api.Models.Analisis", "Analisis")
                         .WithMany("Resultados")
@@ -1234,18 +1149,11 @@ namespace Ssal.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Usuario", "ValidadoPorUsuario")
-                        .WithMany()
-                        .HasForeignKey("ValidadoPor")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Analisis");
 
                     b.Navigation("CargadoPorUsuario");
 
                     b.Navigation("Muestra");
-
-                    b.Navigation("ValidadoPorUsuario");
                 });
 
             modelBuilder.Entity("Ssal.Api.Models.RotuloInterno", b =>
@@ -1330,8 +1238,6 @@ namespace Ssal.Api.Migrations
 
             modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
                 {
-                    b.Navigation("Informe");
-
                     b.Navigation("Resultados");
                 });
 

@@ -18,12 +18,17 @@ public class AuditoriaRotulo
     [Column("id_usuario")]
     public int IdUsuario { get; set; }
 
+    [Required]
+    [Column("campo")]
+    [MaxLength(20)]
+    public string Campo { get; set; } = "estado"; // numero_unico | descripcion | estado
+
     [Column("valor_anterior")]
-    [MaxLength(50)]
+    [MaxLength(500)]
     public string? ValorAnterior { get; set; }
 
     [Column("valor_nuevo")]
-    [MaxLength(50)]
+    [MaxLength(500)]
     public string? ValorNuevo { get; set; }
 
     [Column("motivo")]

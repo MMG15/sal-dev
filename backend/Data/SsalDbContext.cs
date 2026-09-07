@@ -18,6 +18,7 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
     public DbSet<GrupoAnalisis> GruposAnalisis => Set<GrupoAnalisis>();
     public DbSet<Analisis> Analisis => Set<Analisis>();
     public DbSet<Resultado> Resultados => Set<Resultado>();
+    public DbSet<Informe> Informes => Set<Informe>();
     public DbSet<Factura> Facturas => Set<Factura>();
     public DbSet<FirmaDocumento> FirmasDocumento => Set<FirmaDocumento>();
     public DbSet<PresupuestoAnalisis> PresupuestosAnalisis => Set<PresupuestoAnalisis>();
@@ -70,6 +71,29 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
             .WithMany()
             .HasForeignKey(r => r.AsignadoPor)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Resultado>()
+            .HasOne(r => r.CargadoPorUsuario)
+            .WithMany()
+            .HasForeignKey(r => r.CargadoPor)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Resultado>()
+            .HasOne(r => r.ValidadoPorUsuario)
+            .WithMany()
+            .HasForeignKey(r => r.ValidadoPor)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Informe>()
+            .HasOne(i => i.GeneradoPorUsuario)
+            .WithMany()
+            .HasForeignKey(i => i.GeneradoPor)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Informe>()
+            .HasOne(i => i.Muestra)
+            .WithOne(m => m.Informe)
+            .HasForeignKey<Informe>(i => i.IdMuestra);
 
         // Seed: roles del sistema según el documento
         modelBuilder.Entity<Rol>().HasData(

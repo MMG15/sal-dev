@@ -80,6 +80,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
             ImportePesos = totalUsd * cotizacion,
             Cotizacion = cotizacion,
             AdicionalAsesoramiento = req.AdicionalAsesoramiento,
+            TipoAsesoramiento = req.AdicionalAsesoramiento > 0 ? req.TipoAsesoramiento : null,
             Estado = "borrador",
             Fecha = hoy,
             Items = items
@@ -167,6 +168,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
             p.ImportePesos,
             p.Cotizacion,
             p.AdicionalAsesoramiento,
+            p.TipoAsesoramiento,
             p.Fecha,
             Consulta = new
             {
@@ -325,6 +327,7 @@ public record GuardarPresupuestoRequest(
     int IdConsulta,
     List<ItemPresupuestoRequest> Items,
     decimal Cotizacion,
-    decimal AdicionalAsesoramiento);
+    decimal AdicionalAsesoramiento,
+    string? TipoAsesoramiento);
 
 public record CambiarEstadoRequest(string Estado);

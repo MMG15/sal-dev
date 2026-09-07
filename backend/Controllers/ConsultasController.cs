@@ -136,6 +136,7 @@ public class ConsultasController(SsalDbContext db) : ControllerBase
                 c.Presupuesto.ImportePesos,
                 c.Presupuesto.Cotizacion,
                 c.Presupuesto.AdicionalAsesoramiento,
+                c.Presupuesto.TipoAsesoramiento,
                 c.Presupuesto.Fecha,
                 Items = c.Presupuesto.Items.Select(i => new
                 {

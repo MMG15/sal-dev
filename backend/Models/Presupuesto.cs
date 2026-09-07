@@ -31,6 +31,10 @@ public class Presupuesto
     [Column("adicional_asesoramiento")]
     public decimal AdicionalAsesoramiento { get; set; } = 0;
 
+    [Column("tipo_asesoramiento")]
+    [MaxLength(20)]
+    public string? TipoAsesoramiento { get; set; } // consulta | terreno | proceso_completo
+
     [Column("cotizacion")]
     public decimal Cotizacion { get; set; } = 1;
 

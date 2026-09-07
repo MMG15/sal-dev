@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Ssal.Api.Data;
@@ -11,9 +12,11 @@ using Ssal.Api.Data;
 namespace Ssal.Api.Migrations
 {
     [DbContext(typeof(SsalDbContext))]
-    partial class SsalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260907201427_ResultadosCompleto")]
+    partial class ResultadosCompleto
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -453,43 +456,6 @@ namespace Ssal.Api.Migrations
                     b.HasKey("IdGrupo");
 
                     b.ToTable("grupos_analisis");
-                });
-
-            modelBuilder.Entity("Ssal.Api.Models.Informe", b =>
-                {
-                    b.Property<int>("IdInforme")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_informe");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdInforme"));
-
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("codigo");
-
-                    b.Property<DateTime>("FechaGeneracion")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fecha_generacion");
-
-                    b.Property<int>("GeneradoPor")
-                        .HasColumnType("integer")
-                        .HasColumnName("generado_por");
-
-                    b.Property<int>("IdMuestra")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_muestra");
-
-                    b.HasKey("IdInforme");
-
-                    b.HasIndex("GeneradoPor");
-
-                    b.HasIndex("IdMuestra")
-                        .IsUnique();
-
-                    b.ToTable("informes");
                 });
 
             modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
@@ -1120,25 +1086,6 @@ namespace Ssal.Api.Migrations
                     b.Navigation("Firmante");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Informe", b =>
-                {
-                    b.HasOne("Ssal.Api.Models.Usuario", "GeneradoPorUsuario")
-                        .WithMany()
-                        .HasForeignKey("GeneradoPor")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Ssal.Api.Models.Muestra", "Muestra")
-                        .WithOne("Informe")
-                        .HasForeignKey("Ssal.Api.Models.Informe", "IdMuestra")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GeneradoPorUsuario");
-
-                    b.Navigation("Muestra");
-                });
-
             modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
                 {
                     b.HasOne("Ssal.Api.Models.RotuloInterno", "RotuloInterno")
@@ -1330,8 +1277,6 @@ namespace Ssal.Api.Migrations
 
             modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
                 {
-                    b.Navigation("Informe");
-
                     b.Navigation("Resultados");
                 });
 
