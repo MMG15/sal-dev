@@ -49,7 +49,7 @@ interface SseDetalle {
       recibidoPor: { nombre: string; apellido: string }
     } | null
     auditorias: {
-      idAuditoria: number; valorAnterior: string | null; valorNuevo: string | null
+      idAuditoria: number; campo: string; valorAnterior: string | null; valorNuevo: string | null
       motivo: string | null; fechaCambio: string
       usuario: { nombre: string; apellido: string }
     }[]
@@ -67,13 +67,13 @@ interface PresupuestoOpcion {
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-const ESTADOS_SSE = ['activa', 'en_analisis', 'completada', 'cerrada']
+const ESTADOS_SSE = ['activa', 'analizando', 'completada', 'cerrada', 'rechazada']
 const AREAS = ['MIC', 'FQ', 'AMBAS']
 const AREAS_SELECCIONABLES = ['MIC', 'FQ']
 
 const BADGE_ESTADO: Record<string, string> = {
   activa: styles.badgeActiva,
-  en_analisis: styles.badgeEnAnalisis,
+  analizando: styles.badgeEnAnalisis,
   completada: styles.badgeCompletada,
   cerrada: styles.badgeCerrada,
   activo: styles.badgeActiva,
@@ -86,6 +86,12 @@ const AREA_BADGE: Record<string, string> = {
   MIC: styles.areaMic,
   FQ: styles.areaFq,
   AMBAS: styles.areaAmbas,
+}
+
+const CAMPO_AUDITORIA_LABEL: Record<string, string> = {
+  numero_unico: 'el número',
+  descripcion: 'la descripción',
+  estado: 'el estado',
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -105,6 +111,7 @@ export default function SsePage() {
   const [modalNueva, setModalNueva] = useState(false)
   const [modalRotulo, setModalRotulo] = useState(false)
   const [modalMuestra, setModalMuestra] = useState(false)
+  const [modalCorregirRotulo, setModalCorregirRotulo] = useState(false)
 
   const POR_PAGINA = 20
 
@@ -275,6 +282,9 @@ export default function SsePage() {
                         <span className={`${styles.badge} ${BADGE_ESTADO[seleccionada.rotulo.estado] ?? ''}`}>
                           {seleccionada.rotulo.estado}
                         </span>
+                        <button className={styles.btnCorregir} onClick={() => setModalCorregirRotulo(true)}>
+                          Corregir
+                        </button>
                       </div>
                       {seleccionada.rotulo.descripcion && (
                         <p className={styles.rotuloDesc}>{seleccionada.rotulo.descripcion}</p>
@@ -315,8 +325,8 @@ export default function SsePage() {
                             <div key={a.idAuditoria} className={styles.auditoriaItem}>
                               <span className={styles.auditoriaFecha}>{new Date(a.fechaCambio).toLocaleDateString('es-AR')}</span>
                               <span>
-                                {a.usuario.nombre} {a.usuario.apellido} cambió estado:
-                                {' '}<s>{a.valorAnterior}</s> → <strong>{a.valorNuevo}</strong>
+                                {a.usuario.nombre} {a.usuario.apellido} cambió {CAMPO_AUDITORIA_LABEL[a.campo] ?? a.campo}:
+                                {' '}<s>{a.valorAnterior || '—'}</s> → <strong>{a.valorNuevo || '—'}</strong>
                               </span>
                               {a.motivo && <span className={styles.auditoriaMotivo}>"{a.motivo}"</span>}
                             </div>
@@ -362,6 +372,15 @@ export default function SsePage() {
           onCerrar={() => setModalMuestra(false)}
         />
       )}
+
+      {modalCorregirRotulo && seleccionada?.rotulo && (
+        <ModalCorregirRotulo
+          idSse={seleccionada.idSse}
+          rotulo={seleccionada.rotulo}
+          onGuardado={async () => { setModalCorregirRotulo(false); await abrirDetalle(seleccionada.idSse); cargarLista() }}
+          onCerrar={() => setModalCorregirRotulo(false)}
+        />
+      )}
     </div>
   )
 }
@@ -396,8 +415,10 @@ function ModalNuevaSse({ onCreada, onCerrar }: {
   const [idPresupuesto, setIdPresupuesto] = useState<number | ''>('')
   const [areasSel, setAreasSel] = useState<string[]>(['MIC'])
   const [formaPago, setFormaPago] = useState('transferencia')
-  const [importeDolares, setImporteDolares] = useState(0)
-  const [importePesos, setImportePesos] = useState(0)
+  // Se guardan como texto y arrancan vacíos (no en "0") para que el usuario pueda
+  // escribir libremente sin que un cero inicial quede pegado a lo que va tipeando.
+  const [importeDolares, setImporteDolares] = useState('')
+  const [importePesos, setImportePesos] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
@@ -411,7 +432,7 @@ function ModalNuevaSse({ onCreada, onCerrar }: {
     setIdPresupuesto(id)
     const p = presupuestos.find(x => x.idPresupuesto === id)
     if (p) {
-      setImporteDolares(p.importeDolares)
+      setImporteDolares(String(p.importeDolares))
     }
   }
 
@@ -437,8 +458,8 @@ function ModalNuevaSse({ onCreada, onCerrar }: {
           idCliente: null,
           area,
           formaPago,
-          importeDolares,
-          importePesos
+          importeDolares: parseFloat(importeDolares) || 0,
+          importePesos: parseFloat(importePesos) || 0
         })
       })
       if (!res.ok) { setError('Error al crear la SSE.'); return }
@@ -500,13 +521,13 @@ function ModalNuevaSse({ onCreada, onCerrar }: {
           <div className={styles.montosForm}>
             <div>
               <label className={styles.formLabel}>Importe USD</label>
-              <input type="number" className={styles.formInput} min={0} step={0.01}
-                value={importeDolares} onChange={e => setImporteDolares(parseFloat(e.target.value) || 0)} />
+              <input type="number" className={styles.formInput} min={0} step={0.01} placeholder="0.00"
+                value={importeDolares} onChange={e => setImporteDolares(e.target.value)} />
             </div>
             <div>
               <label className={styles.formLabel}>Importe ARS</label>
-              <input type="number" className={styles.formInput} min={0} step={1}
-                value={importePesos} onChange={e => setImportePesos(parseFloat(e.target.value) || 0)} />
+              <input type="number" className={styles.formInput} min={0} step={1} placeholder="0"
+                value={importePesos} onChange={e => setImportePesos(e.target.value)} />
             </div>
           </div>
 
@@ -592,7 +613,147 @@ function ModalRotulo({ idSse, onGuardado, onCerrar }: {
   )
 }
 
+// ─── Modal: Corregir Rótulo (RF-13/RF-14: confirmación explícita + auditoría) ──
+
+const ESTADOS_ROTULO = ['activo', 'anulado']
+
+function ModalCorregirRotulo({ idSse, rotulo, onGuardado, onCerrar }: {
+  idSse: number
+  rotulo: { numeroUnico: string; descripcion: string | null; estado: string }
+  onGuardado: () => void
+  onCerrar: () => void
+}) {
+  const [paso, setPaso] = useState<'editar' | 'confirmar'>('editar')
+  const [numeroUnico, setNumeroUnico] = useState(rotulo.numeroUnico)
+  const [descripcion, setDescripcion] = useState(rotulo.descripcion ?? '')
+  const [estado, setEstado] = useState(rotulo.estado)
+  const [motivo, setMotivo] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState('')
+
+  const cambios = [
+    numeroUnico.trim() !== rotulo.numeroUnico && { campo: 'Número', antes: rotulo.numeroUnico, despues: numeroUnico.trim() },
+    descripcion.trim() !== (rotulo.descripcion ?? '') && { campo: 'Descripción', antes: rotulo.descripcion || '—', despues: descripcion.trim() || '—' },
+    estado !== rotulo.estado && { campo: 'Estado', antes: rotulo.estado, despues: estado },
+  ].filter((c): c is { campo: string; antes: string; despues: string } => Boolean(c))
+
+  function continuar() {
+    setError('')
+    if (cambios.length === 0) { setError('No hay cambios para guardar.'); return }
+    if (!numeroUnico.trim()) { setError('El número de rótulo no puede quedar vacío.'); return }
+    setPaso('confirmar')
+  }
+
+  async function confirmar() {
+    setGuardando(true)
+    setError('')
+    try {
+      const res = await apiFetch(`/api/sses/${idSse}/rotulo`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          numeroUnico: numeroUnico.trim(),
+          descripcion: descripcion.trim() || null,
+          estado,
+          motivo: motivo.trim()
+        })
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error ?? 'Error al guardar la corrección.')
+        setPaso('editar')
+        return
+      }
+      onGuardado()
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className={styles.overlay} onClick={onCerrar}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h2>Corregir Rótulo Interno</h2>
+          <button className={styles.btnCerrar} onClick={onCerrar}>✕</button>
+        </div>
+
+        {paso === 'editar' ? (
+          <>
+            <div className={styles.modalBody}>
+              <p className={styles.inputHint}>
+                Esta es una operación crítica: un error en el número de rótulo puede generar inconsistencias en el historial. Todo cambio queda auditado.
+              </p>
+
+              <label className={styles.formLabel}>Número de rótulo</label>
+              <input
+                className={styles.formInput}
+                value={numeroUnico}
+                onChange={e => setNumeroUnico(e.target.value)}
+              />
+
+              <label className={styles.formLabel}>Descripción / observaciones</label>
+              <textarea
+                className={styles.formTextarea}
+                rows={3}
+                value={descripcion}
+                onChange={e => setDescripcion(e.target.value)}
+              />
+
+              <label className={styles.formLabel}>Estado</label>
+              <select className={styles.formInput} value={estado} onChange={e => setEstado(e.target.value)}>
+                {ESTADOS_ROTULO.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+
+              <label className={styles.formLabel}>Motivo de la corrección *</label>
+              <textarea
+                className={styles.formTextarea}
+                rows={2}
+                value={motivo}
+                onChange={e => setMotivo(e.target.value)}
+                placeholder="Explicá por qué se corrige este rótulo..."
+              />
+              {error && <p className={styles.error}>{error}</p>}
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.btnSecundario} onClick={onCerrar}>Cancelar</button>
+              <button className={styles.btnPrimario} onClick={continuar} disabled={!motivo.trim()}>
+                Revisar cambios
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={styles.modalBody}>
+              <p className={styles.inputHint}>Confirmá que estos cambios son correctos antes de guardarlos.</p>
+              {cambios.map(c => (
+                <div key={c.campo} className={styles.confirmacionCambio}>
+                  <span className={styles.confirmacionCampo}>{c.campo}</span>
+                  <span><s>{c.antes}</s> → <strong>{c.despues}</strong></span>
+                </div>
+              ))}
+              <p className={styles.confirmacionMotivo}>Motivo: "{motivo.trim()}"</p>
+              {error && <p className={styles.error}>{error}</p>}
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.btnSecundario} onClick={() => setPaso('editar')} disabled={guardando}>Volver</button>
+              <button className={styles.btnAccionRojo} onClick={confirmar} disabled={guardando}>
+                {guardando ? 'Guardando...' : 'Confirmar cambio'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Modal: Registrar Muestra ─────────────────────────────────────────────────
+
+const CONDICIONES_MUESTRA: { value: string; label: string }[] = [
+  { value: 'apta', label: 'En condiciones' },
+  { value: 'no_apta_procesar', label: 'No en condiciones, pero el cliente pide procesarla igual' },
+  { value: 'rechazada', label: 'No en condiciones — se rechaza' },
+]
 
 function ModalMuestra({ idSse, onGuardado, onCerrar }: {
   idSse: number
@@ -601,16 +762,22 @@ function ModalMuestra({ idSse, onGuardado, onCerrar }: {
 }) {
   const [tipo, setTipo] = useState('')
   const [observacion, setObservacion] = useState('')
+  const [condicion, setCondicion] = useState('apta')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
   async function guardar() {
     setGuardando(true)
     setError('')
+    if (condicion !== 'apta' && !observacion.trim()) {
+      setError('Indicá el motivo en las observaciones.')
+      setGuardando(false)
+      return
+    }
     try {
       const res = await apiFetch(`/api/sses/${idSse}/muestra`, {
         method: 'POST',
-        body: JSON.stringify({ tipo: tipo || null, observacion: observacion || null })
+        body: JSON.stringify({ tipo: tipo || null, observacion: observacion || null, condicion })
       })
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
@@ -639,7 +806,17 @@ function ModalMuestra({ idSse, onGuardado, onCerrar }: {
             onChange={e => setTipo(e.target.value)}
           />
 
-          <label className={styles.formLabel}>Observaciones</label>
+          <label className={styles.formLabel}>Condición de la muestra</label>
+          <select className={styles.formInput} value={condicion} onChange={e => setCondicion(e.target.value)}>
+            {CONDICIONES_MUESTRA.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+          {condicion === 'rechazada' && (
+            <p className={styles.inputHint}>
+              Al rechazarla, la SSE se cierra como rechazada y no continúa el proceso de análisis.
+            </p>
+          )}
+
+          <label className={styles.formLabel}>Observaciones{condicion !== 'apta' ? ' *' : ''}</label>
           <textarea
             className={styles.formTextarea}
             rows={3}
@@ -651,8 +828,12 @@ function ModalMuestra({ idSse, onGuardado, onCerrar }: {
         </div>
         <div className={styles.modalFooter}>
           <button className={styles.btnSecundario} onClick={onCerrar}>Cancelar</button>
-          <button className={styles.btnPrimario} onClick={guardar} disabled={guardando}>
-            {guardando ? 'Registrando...' : 'Registrar muestra'}
+          <button
+            className={condicion === 'rechazada' ? styles.btnAccionRojo : styles.btnPrimario}
+            onClick={guardar}
+            disabled={guardando}
+          >
+            {guardando ? 'Registrando...' : condicion === 'rechazada' ? 'Rechazar y cerrar SSE' : 'Registrar muestra'}
           </button>
         </div>
       </div>

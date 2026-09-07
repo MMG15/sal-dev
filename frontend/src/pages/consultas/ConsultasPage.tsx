@@ -39,6 +39,7 @@ interface PresupuestoDetalle {
   importePesos: number
   cotizacion: number
   adicionalAsesoramiento: number
+  tipoAsesoramiento: string | null
   fecha: string
   items: ItemPresupuesto[]
 }
@@ -73,6 +74,15 @@ interface GrupoAnalisis {
 
 /** Debe coincidir con DiasParaPendiente en ConsultasController.cs */
 const DIAS_PENDIENTE = 2
+
+const TIPOS_ASESORAMIENTO: { value: string; label: string }[] = [
+  { value: 'consulta', label: 'Solo consulta' },
+  { value: 'terreno', label: 'Visita de terreno' },
+  { value: 'proceso_completo', label: 'Proceso completo (consulta + muestreo + entrega)' },
+]
+
+const TIPO_ASESORAMIENTO_LABEL: Record<string, string> =
+  Object.fromEntries(TIPOS_ASESORAMIENTO.map(t => [t.value, t.label]))
 
 const ESTADOS_CONSULTA = ['recibida', 'respondida', 'aceptada', 'tercerizada', 'eliminada']
 
@@ -353,6 +363,14 @@ export default function ConsultasPage() {
                             <span className={styles.analisisPrecio}>USD {i.precioUsdSnapshot.toFixed(2)}</span>
                           </div>
                         ))}
+                        {seleccionada.presupuesto.adicionalAsesoramiento > 0 && (
+                          <div className={styles.analisisItem}>
+                            <span className={styles.analisisNombre}>
+                              Asesoramiento — {TIPO_ASESORAMIENTO_LABEL[seleccionada.presupuesto.tipoAsesoramiento ?? ''] ?? seleccionada.presupuesto.tipoAsesoramiento}
+                            </span>
+                            <span className={styles.analisisPrecio}>USD {seleccionada.presupuesto.adicionalAsesoramiento.toFixed(2)}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -422,8 +440,25 @@ function NuevaConsultaModal({ onCreada, onCerrar }: {
 }) {
   const [canal, setCanal] = useState('mail')
   const [descripcion, setDescripcion] = useState('')
+  const [idCliente, setIdCliente] = useState<number | ''>('')
+  const [idEmpresa, setIdEmpresa] = useState<number | ''>('')
+  const [clientes, setClientes] = useState<{ idCliente: number; nombre: string; apellido: string; idEmpresa: number | null }[]>([])
+  const [empresas, setEmpresas] = useState<{ idEmpresa: number; razonSocial: string }[]>([])
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    apiFetch('/api/clientes').then(r => r.json()).then(setClientes)
+    apiFetch('/api/empresas').then(r => r.json()).then(setEmpresas)
+  }, [])
+
+  function onClienteChange(id: number | '') {
+    setIdCliente(id)
+    if (id === '') return
+    // Si el cliente tiene una empresa asociada, la preseleccionamos (se puede cambiar igual)
+    const c = clientes.find(x => x.idCliente === id)
+    if (c?.idEmpresa) setIdEmpresa(c.idEmpresa)
+  }
 
   async function guardar() {
     setGuardando(true)
@@ -431,7 +466,12 @@ function NuevaConsultaModal({ onCreada, onCerrar }: {
     try {
       const res = await apiFetch('/api/consultas', {
         method: 'POST',
-        body: JSON.stringify({ canal, descripcion: descripcion || null })
+        body: JSON.stringify({
+          canal,
+          descripcion: descripcion || null,
+          idCliente: idCliente || null,
+          idEmpresa: idEmpresa || null
+        })
       })
       if (!res.ok) { setError('Error al crear la consulta'); return }
       const data = await res.json()
@@ -455,6 +495,30 @@ function NuevaConsultaModal({ onCreada, onCerrar }: {
             <option value="whatsapp">WhatsApp</option>
             <option value="telefono">Teléfono</option>
             <option value="presencial">Presencial</option>
+          </select>
+
+          <label className={styles.formLabel}>Cliente (opcional)</label>
+          <select
+            className={styles.formInput}
+            value={idCliente}
+            onChange={e => onClienteChange(e.target.value ? Number(e.target.value) : '')}
+          >
+            <option value="">— Sin cliente asignado —</option>
+            {clientes.map(c => (
+              <option key={c.idCliente} value={c.idCliente}>{c.apellido}, {c.nombre}</option>
+            ))}
+          </select>
+
+          <label className={styles.formLabel}>Empresa responsable (opcional)</label>
+          <select
+            className={styles.formInput}
+            value={idEmpresa}
+            onChange={e => setIdEmpresa(e.target.value ? Number(e.target.value) : '')}
+          >
+            <option value="">— Sin empresa asignada —</option>
+            {empresas.map(e => (
+              <option key={e.idEmpresa} value={e.idEmpresa}>{e.razonSocial}</option>
+            ))}
           </select>
 
           <label className={styles.formLabel}>Descripción / notas iniciales</label>
@@ -488,8 +552,13 @@ function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
 }) {
   const [grupos, setGrupos] = useState<GrupoAnalisis[]>([])
   const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
-  const [cotizacion, setCotizacion] = useState(consulta.presupuesto?.cotizacion ?? 1300)
-  const [adicional, setAdicional] = useState(consulta.presupuesto?.adicionalAsesoramiento ?? 0)
+  // Se guardan como texto y arrancan vacíos (no en "0") para que el usuario pueda
+  // escribir libremente sin que un cero inicial quede pegado a lo que va tipeando.
+  const [cotizacion, setCotizacion] = useState(String(consulta.presupuesto?.cotizacion ?? 1300))
+  const [adicional, setAdicional] = useState(consulta.presupuesto?.adicionalAsesoramiento ? String(consulta.presupuesto.adicionalAsesoramiento) : '')
+  const cotizacionNum = parseFloat(cotizacion) || 1
+  const adicionalNum = parseFloat(adicional) || 0
+  const [tipoAsesoramiento, setTipoAsesoramiento] = useState(consulta.presupuesto?.tipoAsesoramiento ?? 'consulta')
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [filtroArea, setFiltroArea] = useState<'todos' | 'MIC' | 'FQ'>('todos')
@@ -519,8 +588,8 @@ function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
   }, {})
 
   const subtotalAnalisis = Array.from(seleccionados).reduce((sum, id) => sum + (analisisMap[id]?.precioUsd ?? 0), 0)
-  const totalUsd = subtotalAnalisis + adicional
-  const totalArs = totalUsd * cotizacion
+  const totalUsd = subtotalAnalisis + adicionalNum
+  const totalArs = totalUsd * cotizacionNum
 
   const gruposFiltrados = grupos.filter(g => filtroArea === 'todos' || g.area === filtroArea)
 
@@ -532,8 +601,9 @@ function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
         body: JSON.stringify({
           idConsulta: consulta.idConsulta,
           items: Array.from(seleccionados).map(id => ({ idAnalisis: id })),
-          cotizacion,
-          adicionalAsesoramiento: adicional
+          cotizacion: cotizacionNum,
+          adicionalAsesoramiento: adicionalNum,
+          tipoAsesoramiento: adicionalNum > 0 ? tipoAsesoramiento : null
         })
       })
       if (res.ok) onGuardado()
@@ -627,8 +697,24 @@ function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
                 value={adicional}
                 min={0}
                 step={0.01}
-                onChange={e => setAdicional(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+                onChange={e => setAdicional(e.target.value)}
               />
+
+              {adicionalNum > 0 && (
+                <>
+                  <label className={styles.formLabel}>Tipo de asesoramiento</label>
+                  <select
+                    className={styles.formInput}
+                    value={tipoAsesoramiento}
+                    onChange={e => setTipoAsesoramiento(e.target.value)}
+                  >
+                    {TIPOS_ASESORAMIENTO.map(t => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </>
+              )}
 
               <label className={styles.formLabel}>Cotización USD → ARS</label>
               <input
@@ -637,7 +723,7 @@ function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
                 value={cotizacion}
                 min={1}
                 step={1}
-                onChange={e => setCotizacion(parseFloat(e.target.value) || 1)}
+                onChange={e => setCotizacion(e.target.value)}
               />
             </div>
 
@@ -646,10 +732,10 @@ function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
                 <span>Subtotal análisis</span>
                 <strong>USD {subtotalAnalisis.toFixed(2)}</strong>
               </div>
-              {adicional > 0 && (
+              {adicionalNum > 0 && (
                 <div className={styles.totalRow}>
-                  <span>Asesoramiento</span>
-                  <strong>USD {adicional.toFixed(2)}</strong>
+                  <span>Asesoramiento · {TIPO_ASESORAMIENTO_LABEL[tipoAsesoramiento] ?? tipoAsesoramiento}</span>
+                  <strong>USD {adicionalNum.toFixed(2)}</strong>
                 </div>
               )}
               <div className={`${styles.totalRow} ${styles.totalDestacado}`}>

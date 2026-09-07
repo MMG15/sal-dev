@@ -47,6 +47,7 @@ interface PresupuestoDetalle {
   importePesos: number
   cotizacion: number
   adicionalAsesoramiento: number
+  tipoAsesoramiento: string | null
   fecha: string
   consulta: {
     idConsulta: number
@@ -83,6 +84,12 @@ const TRANSICIONES: Record<string, { label: string; siguienteEstado: string; var
   ],
   aceptado:  [],
   rechazado: [{ label: 'Reabrir como borrador', siguienteEstado: 'borrador', variante: 'primario' }],
+}
+
+const TIPO_ASESORAMIENTO_LABEL: Record<string, string> = {
+  consulta: 'Solo consulta',
+  terreno: 'Visita de terreno',
+  proceso_completo: 'Proceso completo (consulta + muestreo + entrega)',
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -229,7 +236,7 @@ export default function PresupuestosPage() {
       '',
       `Subtotal análisis:       USD ${p.items.reduce((s, i) => s + i.precioUsdSnapshot, 0).toFixed(2)}`,
       p.adicionalAsesoramiento > 0
-        ? `Asesoramiento técnico:   USD ${p.adicionalAsesoramiento.toFixed(2)}`
+        ? `Asesoramiento técnico (${p.tipoAsesoramiento ? TIPO_ASESORAMIENTO_LABEL[p.tipoAsesoramiento] ?? p.tipoAsesoramiento : 'sin especificar'}): USD ${p.adicionalAsesoramiento.toFixed(2)}`
         : '',
       `TOTAL USD:               USD ${p.importeDolares.toFixed(2)}`,
       `Cotización USD/ARS:      $ ${p.cotizacion.toFixed(0)}`,
@@ -412,7 +419,10 @@ export default function PresupuestosPage() {
                         </div>
                         {seleccionado.adicionalAsesoramiento > 0 && (
                           <div className={styles.subtotalRow}>
-                            <span>Asesoramiento</span>
+                            <span>
+                              Asesoramiento
+                              {seleccionado.tipoAsesoramiento && ` · ${TIPO_ASESORAMIENTO_LABEL[seleccionado.tipoAsesoramiento] ?? seleccionado.tipoAsesoramiento}`}
+                            </span>
                             <span>USD {seleccionado.adicionalAsesoramiento.toFixed(2)}</span>
                           </div>
                         )}

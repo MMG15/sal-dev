@@ -8,6 +8,10 @@ interface AnalisisItem {
   nombre: string
   area: string
   precioUsd: number
+  unidad: string | null
+  rangoMin: number | null
+  rangoMax: number | null
+  valorEsperado: string | null
   activo: boolean
   grupo: { idGrupo: number; codigoAgrupador: string; area: string }
 }
@@ -41,7 +45,12 @@ export default function AnalisisPage() {
     nombre: '',
     area: 'MIC',
     precioUsd: '',
+    unidad: '',
+    rangoMin: '',
+    rangoMax: '',
+    valorEsperado: '',
   })
+  const [tipoReferencia, setTipoReferencia] = useState<'ninguno' | 'rango' | 'esperado'>('ninguno')
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -71,7 +80,8 @@ export default function AnalisisPage() {
   }, [analisis, busqueda, filtroArea, filtroEstado])
 
   function abrirCrear() {
-    setForm({ idGrupo: 0, nuevoGrupo: '', codigo: '', nombre: '', area: 'MIC', precioUsd: '' })
+    setForm({ idGrupo: 0, nuevoGrupo: '', codigo: '', nombre: '', area: 'MIC', precioUsd: '', unidad: '', rangoMin: '', rangoMax: '', valorEsperado: '' })
+    setTipoReferencia('ninguno')
     setError('')
     setModal({ tipo: 'crear' })
   }
@@ -84,7 +94,12 @@ export default function AnalisisPage() {
       nombre: item.nombre,
       area: item.area,
       precioUsd: String(item.precioUsd),
+      unidad: item.unidad ?? '',
+      rangoMin: item.rangoMin?.toString() ?? '',
+      rangoMax: item.rangoMax?.toString() ?? '',
+      valorEsperado: item.valorEsperado ?? '',
     })
+    setTipoReferencia(item.valorEsperado ? 'esperado' : (item.rangoMin != null || item.rangoMax != null) ? 'rango' : 'ninguno')
     setError('')
     setModal({ tipo: 'editar', item })
   }
@@ -108,6 +123,10 @@ export default function AnalisisPage() {
         nombre: form.nombre,
         area: form.area,
         precioUsd: parseFloat(form.precioUsd),
+        unidad: form.unidad.trim() || null,
+        rangoMin: tipoReferencia === 'rango' && form.rangoMin ? parseFloat(form.rangoMin) : null,
+        rangoMax: tipoReferencia === 'rango' && form.rangoMax ? parseFloat(form.rangoMax) : null,
+        valorEsperado: tipoReferencia === 'esperado' ? form.valorEsperado.trim() || null : null,
       }
       const isEditar = modal?.tipo === 'editar'
       const res = await apiFetch(
@@ -204,6 +223,7 @@ export default function AnalisisPage() {
                 <th>Área</th>
                 <th>Grupo</th>
                 <th>Precio USD</th>
+                <th>Referencia</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -220,6 +240,13 @@ export default function AnalisisPage() {
                   </td>
                   <td className={styles.tdGrupo}>{a.grupo.codigoAgrupador}</td>
                   <td className={styles.tdPrecio}>USD {Number(a.precioUsd).toFixed(2)}</td>
+                  <td className={styles.tdReferencia}>
+                    {a.valorEsperado
+                      ? a.valorEsperado
+                      : a.rangoMin != null || a.rangoMax != null
+                        ? `${a.rangoMin ?? '—'} a ${a.rangoMax ?? '—'} ${a.unidad ?? ''}`
+                        : <span className={styles.sinDato}>—</span>}
+                  </td>
                   <td>
                     <button
                       className={`${styles.btnEstado} ${a.activo ? styles.btnEstadoActivo : styles.btnEstadoInactivo}`}
@@ -314,6 +341,65 @@ export default function AnalisisPage() {
                   onChange={e => setForm(f => ({ ...f, precioUsd: e.target.value }))}
                 />
               </div>
+
+              <div className={styles.campo}>
+                <label>Unidad de medida</label>
+                <input
+                  placeholder="Ej: mg/kg, UFC/g, %"
+                  value={form.unidad}
+                  onChange={e => setForm(f => ({ ...f, unidad: e.target.value }))}
+                />
+              </div>
+
+              <div className={styles.campo}>
+                <label>Valor de referencia (opcional)</label>
+                <div className={styles.radioGroup}>
+                  <label className={`${styles.radioOpt} ${tipoReferencia === 'ninguno' ? styles.radioActivo : ''}`}>
+                    <input type="radio" checked={tipoReferencia === 'ninguno'} onChange={() => setTipoReferencia('ninguno')} />
+                    Sin referencia
+                  </label>
+                  <label className={`${styles.radioOpt} ${tipoReferencia === 'rango' ? styles.radioActivo : ''}`}>
+                    <input type="radio" checked={tipoReferencia === 'rango'} onChange={() => setTipoReferencia('rango')} />
+                    Rango numérico
+                  </label>
+                  <label className={`${styles.radioOpt} ${tipoReferencia === 'esperado' ? styles.radioActivo : ''}`}>
+                    <input type="radio" checked={tipoReferencia === 'esperado'} onChange={() => setTipoReferencia('esperado')} />
+                    Valor esperado (cualitativo)
+                  </label>
+                </div>
+              </div>
+
+              {tipoReferencia === 'rango' && (
+                <div className={styles.fila2}>
+                  <div className={styles.campo}>
+                    <label>Mínimo</label>
+                    <input
+                      type="number" step="0.01"
+                      value={form.rangoMin}
+                      onChange={e => setForm(f => ({ ...f, rangoMin: e.target.value }))}
+                    />
+                  </div>
+                  <div className={styles.campo}>
+                    <label>Máximo</label>
+                    <input
+                      type="number" step="0.01"
+                      value={form.rangoMax}
+                      onChange={e => setForm(f => ({ ...f, rangoMax: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {tipoReferencia === 'esperado' && (
+                <div className={styles.campo}>
+                  <label>Valor esperado</label>
+                  <input
+                    placeholder="Ej: Ausencia, Negativo"
+                    value={form.valorEsperado}
+                    onChange={e => setForm(f => ({ ...f, valorEsperado: e.target.value }))}
+                  />
+                </div>
+              )}
 
               {error && <p className={styles.errorModal}>{error}</p>}
             </div>

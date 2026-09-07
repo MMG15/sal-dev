@@ -124,6 +124,27 @@
 .rotuloNumero { font-size: 17px; font-weight: 600; font-family: monospace; color: var(--texto); }
 .rotuloDesc { font-size: 15px; color: var(--texto-suave); margin: 4px 0 8px; font-style: italic; }
 
+.btnCorregir {
+  margin-left: auto; background: none; border: 1px solid var(--borde); border-radius: 5px;
+  padding: 3px 10px; font-size: 13px; color: var(--texto-suave); cursor: pointer; transition: all 0.1s;
+}
+.btnCorregir:hover { border-color: var(--burdeo); color: var(--burdeo); }
+
+/* ── Confirmación de corrección de rótulo ── */
+.confirmacionCambio {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--borde); font-size: 15px;
+}
+.confirmacionCambio:last-of-type { border-bottom: none; }
+.confirmacionCampo { font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--texto-suave); }
+.confirmacionMotivo { font-size: 14px; color: var(--texto-suave); font-style: italic; margin-top: 10px; }
+
+.btnAccionRojo {
+  background: var(--burdeo); color: #fff; border: none; border-radius: 6px;
+  padding: 7px 16px; font-size: 15.5px; font-weight: 500; cursor: pointer; transition: background 0.12s;
+}
+.btnAccionRojo:hover:not(:disabled) { background: #6b1414; }
+.btnAccionRojo:disabled { opacity: 0.55; cursor: default; }
+
 .sinRotuloDetalle { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 .sinRotuloDetalle p { margin: 0; font-size: 15px; color: var(--texto-suave); }
 

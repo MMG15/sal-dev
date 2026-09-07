@@ -61,10 +61,10 @@ export const MODULOS: ModuloConfig[] = [
   {
     id: 'resultados',
     label: 'Resultados',
-    descripcion: 'Carga e informes de resultados de análisis',
+    descripcion: 'Carga y validación de resultados de análisis',
     path: '/resultados',
     roles: ['ROL-01', 'ROL-07', 'ROL-08', 'ROL-09'],
-    listo: false,
+    listo: true,
   },
   {
     id: 'facturacion',

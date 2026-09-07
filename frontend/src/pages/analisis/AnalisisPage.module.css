@@ -152,6 +152,16 @@
   color: var(--texto-suave);
 }
 
+.tdReferencia {
+  font-size: 13.5px;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.sinDato {
+  color: var(--borde);
+}
+
 .tdPrecio {
   font-family: monospace;
   white-space: nowrap;
@@ -381,6 +391,12 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+.fila2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .campo label {
