@@ -10,25 +10,27 @@ public class Sse
     [Column("id_sse")]
     public int IdSse { get; set; }
 
-    [Required]
     [Column("id_presupuesto")]
-    public int IdPresupuesto { get; set; }
+    public int? IdPresupuesto { get; set; }
 
-    [Required]
     [Column("id_cliente")]
-    public int IdCliente { get; set; }
+    public int? IdCliente { get; set; }
 
     [Required]
     [Column("creado_por")]
     public int CreadoPor { get; set; }
 
+    [Column("codigo")]
+    [MaxLength(30)]
+    public string? Codigo { get; set; } // SSE-YYYYMMDD-NNN
+
     [Column("codigo_rpo")]
     [MaxLength(20)]
-    public string? CodigoRpo { get; set; } // RPO 01-09
+    public string? CodigoRpo { get; set; } // RPO vinculado del presupuesto
 
     [Column("area")]
     [MaxLength(10)]
-    public string Area { get; set; } = "MIC"; // MIC | FQ | AMBAS
+    public string Area { get; set; } = "MIC"; // MIC | FQ | AMBAS (ambas áreas seleccionadas a la vez)
 
     [Column("importe_pesos")]
     public decimal ImportePesos { get; set; }
@@ -49,10 +51,10 @@ public class Sse
 
     // Navegación
     [ForeignKey("IdPresupuesto")]
-    public Presupuesto Presupuesto { get; set; } = null!;
+    public Presupuesto? Presupuesto { get; set; }
 
     [ForeignKey("IdCliente")]
-    public Cliente Cliente { get; set; } = null!;
+    public Cliente? Cliente { get; set; }
 
     [ForeignKey("CreadoPor")]
     public Usuario CreadoPorUsuario { get; set; } = null!;

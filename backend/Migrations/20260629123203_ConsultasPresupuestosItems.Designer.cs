@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Ssal.Api.Data;
@@ -11,9 +12,11 @@ using Ssal.Api.Data;
 namespace Ssal.Api.Migrations
 {
     [DbContext(typeof(SsalDbContext))]
-    partial class SsalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260629123203_ConsultasPresupuestosItems")]
+    partial class ConsultasPresupuestosItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,19 +131,9 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("apellido");
 
-                    b.Property<string>("CondicionIva")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("condicion_iva");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
-
-                    b.Property<string>("Cuit")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("cuit");
 
                     b.Property<string>("Email")
                         .HasMaxLength(150)
@@ -249,11 +242,6 @@ namespace Ssal.Api.Migrations
                         .HasColumnName("id_empresa");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEmpresa"));
-
-                    b.Property<string>("CondicionIva")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("condicion_iva");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -565,58 +553,6 @@ namespace Ssal.Api.Migrations
                     b.ToTable("presupuesto_analisis");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.PresupuestoArchivo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IdPresupuesto")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_presupuesto");
-
-                    b.Property<string>("NombreAlmacenado")
-                        .IsRequired()
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)")
-                        .HasColumnName("nombre_almacenado");
-
-                    b.Property<string>("NombreOriginal")
-                        .IsRequired()
-                        .HasMaxLength(260)
-                        .HasColumnType("character varying(260)")
-                        .HasColumnName("nombre_original");
-
-                    b.Property<DateTime>("SubidoEn")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("subido_en");
-
-                    b.Property<int>("SubidoPor")
-                        .HasColumnType("integer")
-                        .HasColumnName("subido_por");
-
-                    b.Property<long>("TamañoBytes")
-                        .HasColumnType("bigint")
-                        .HasColumnName("tamaño_bytes");
-
-                    b.Property<string>("TipoMime")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("tipo_mime");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdPresupuesto");
-
-                    b.HasIndex("SubidoPor");
-
-                    b.ToTable("presupuesto_archivos");
-                });
-
             modelBuilder.Entity("Ssal.Api.Models.Resultado", b =>
                 {
                     b.Property<int>("IdResultado")
@@ -829,11 +765,6 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("area");
 
-                    b.Property<string>("Codigo")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("codigo");
-
                     b.Property<string>("CodigoRpo")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -858,11 +789,11 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("forma_pago");
 
-                    b.Property<int?>("IdCliente")
+                    b.Property<int>("IdCliente")
                         .HasColumnType("integer")
                         .HasColumnName("id_cliente");
 
-                    b.Property<int?>("IdPresupuesto")
+                    b.Property<int>("IdPresupuesto")
                         .HasColumnType("integer")
                         .HasColumnName("id_presupuesto");
 
@@ -1096,25 +1027,6 @@ namespace Ssal.Api.Migrations
                     b.Navigation("Presupuesto");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.PresupuestoArchivo", b =>
-                {
-                    b.HasOne("Ssal.Api.Models.Presupuesto", "Presupuesto")
-                        .WithMany("Archivos")
-                        .HasForeignKey("IdPresupuesto")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Ssal.Api.Models.Usuario", "SubidoPorUsuario")
-                        .WithMany()
-                        .HasForeignKey("SubidoPor")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Presupuesto");
-
-                    b.Navigation("SubidoPorUsuario");
-                });
-
             modelBuilder.Entity("Ssal.Api.Models.Resultado", b =>
                 {
                     b.HasOne("Ssal.Api.Models.Usuario", "CargadoPorUsuario")
@@ -1171,11 +1083,15 @@ namespace Ssal.Api.Migrations
 
                     b.HasOne("Ssal.Api.Models.Cliente", "Cliente")
                         .WithMany()
-                        .HasForeignKey("IdCliente");
+                        .HasForeignKey("IdCliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Ssal.Api.Models.Presupuesto", "Presupuesto")
                         .WithOne("Sse")
-                        .HasForeignKey("Ssal.Api.Models.Sse", "IdPresupuesto");
+                        .HasForeignKey("Ssal.Api.Models.Sse", "IdPresupuesto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Cliente");
 
@@ -1229,8 +1145,6 @@ namespace Ssal.Api.Migrations
 
             modelBuilder.Entity("Ssal.Api.Models.Presupuesto", b =>
                 {
-                    b.Navigation("Archivos");
-
                     b.Navigation("Items");
 
                     b.Navigation("Sse");

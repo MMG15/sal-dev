@@ -31,6 +31,14 @@ public class Cliente
     [MaxLength(50)]
     public string? Telefono { get; set; }
 
+    [Column("cuit")]
+    [MaxLength(20)]
+    public string? Cuit { get; set; }
+
+    [Column("condicion_iva")]
+    [MaxLength(30)]
+    public string? CondicionIva { get; set; }
+
     [Column("usuario_web")]
     [MaxLength(100)]
     public string? UsuarioWeb { get; set; }

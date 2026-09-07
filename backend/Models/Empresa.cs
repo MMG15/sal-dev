@@ -19,6 +19,10 @@ public class Empresa
     [MaxLength(20)]
     public string? Cuit { get; set; }
 
+    [Column("condicion_iva")]
+    [MaxLength(30)]
+    public string? CondicionIva { get; set; }
+
     [Column("email")]
     [MaxLength(150)]
     public string? Email { get; set; }

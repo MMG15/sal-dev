@@ -20,6 +20,10 @@ frontend/.env.local
 .idea/
 *.suo
 
+# Archivos subidos (presupuestos, etc.) - no versionar
+backend/storage/**
+!backend/storage/.gitkeep
+
 # OS
 .DS_Store
 Thumbs.db

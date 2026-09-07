@@ -20,6 +20,8 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
     public DbSet<Resultado> Resultados => Set<Resultado>();
     public DbSet<Factura> Facturas => Set<Factura>();
     public DbSet<FirmaDocumento> FirmasDocumento => Set<FirmaDocumento>();
+    public DbSet<PresupuestoAnalisis> PresupuestosAnalisis => Set<PresupuestoAnalisis>();
+    public DbSet<PresupuestoArchivo> PresupuestosArchivos => Set<PresupuestoArchivo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,6 +51,12 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
             .HasOne(p => p.CreadoPorUsuario)
             .WithMany()
             .HasForeignKey(p => p.CreadoPor)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<PresupuestoArchivo>()
+            .HasOne(a => a.SubidoPorUsuario)
+            .WithMany()
+            .HasForeignKey(a => a.SubidoPor)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Sse>()

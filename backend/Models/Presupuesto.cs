@@ -31,6 +31,9 @@ public class Presupuesto
     [Column("adicional_asesoramiento")]
     public decimal AdicionalAsesoramiento { get; set; } = 0;
 
+    [Column("cotizacion")]
+    public decimal Cotizacion { get; set; } = 1;
+
     [Column("estado")]
     [MaxLength(30)]
     public string Estado { get; set; } = "borrador"; // borrador | enviado | aceptado | rechazado
@@ -46,4 +49,7 @@ public class Presupuesto
     public Usuario CreadoPorUsuario { get; set; } = null!;
 
     public Sse? Sse { get; set; }
+
+    public ICollection<PresupuestoAnalisis> Items { get; set; } = [];
+    public ICollection<PresupuestoArchivo> Archivos { get; set; } = [];
 }

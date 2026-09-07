@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Ssal.Api.Data;
@@ -11,9 +12,11 @@ using Ssal.Api.Data;
 namespace Ssal.Api.Migrations
 {
     [DbContext(typeof(SsalDbContext))]
-    partial class SsalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260708124914_PresupuestoArchivos")]
+    partial class PresupuestoArchivos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,19 +131,9 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("apellido");
 
-                    b.Property<string>("CondicionIva")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("condicion_iva");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
-
-                    b.Property<string>("Cuit")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("cuit");
 
                     b.Property<string>("Email")
                         .HasMaxLength(150)
@@ -249,11 +242,6 @@ namespace Ssal.Api.Migrations
                         .HasColumnName("id_empresa");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEmpresa"));
-
-                    b.Property<string>("CondicionIva")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("condicion_iva");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -829,11 +817,6 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("area");
 
-                    b.Property<string>("Codigo")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("codigo");
-
                     b.Property<string>("CodigoRpo")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -858,11 +841,11 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("forma_pago");
 
-                    b.Property<int?>("IdCliente")
+                    b.Property<int>("IdCliente")
                         .HasColumnType("integer")
                         .HasColumnName("id_cliente");
 
-                    b.Property<int?>("IdPresupuesto")
+                    b.Property<int>("IdPresupuesto")
                         .HasColumnType("integer")
                         .HasColumnName("id_presupuesto");
 
@@ -1171,11 +1154,15 @@ namespace Ssal.Api.Migrations
 
                     b.HasOne("Ssal.Api.Models.Cliente", "Cliente")
                         .WithMany()
-                        .HasForeignKey("IdCliente");
+                        .HasForeignKey("IdCliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Ssal.Api.Models.Presupuesto", "Presupuesto")
                         .WithOne("Sse")
-                        .HasForeignKey("Ssal.Api.Models.Sse", "IdPresupuesto");
+                        .HasForeignKey("Ssal.Api.Models.Sse", "IdPresupuesto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Cliente");
 
