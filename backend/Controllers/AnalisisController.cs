@@ -8,7 +8,7 @@ namespace Ssal.Api.Controllers;
 
 [ApiController]
 [Route("api/analisis")]
-[Authorize]
+[Authorize(Roles = "ROL-01,ROL-02,ROL-03,ROL-07,ROL-08,ROL-09")]
 public class AnalisisController(SsalDbContext db) : ControllerBase
 {
     // ─── GET /api/analisis ────────────────────────────────────────────────

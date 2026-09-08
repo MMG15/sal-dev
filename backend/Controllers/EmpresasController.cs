@@ -8,7 +8,7 @@ namespace Ssal.Api.Controllers;
 
 [ApiController]
 [Route("api/empresas")]
-[Authorize]
+[Authorize(Roles = "ROL-01,ROL-02,ROL-07")]
 public class EmpresasController(SsalDbContext db) : ControllerBase
 {
     [HttpGet]

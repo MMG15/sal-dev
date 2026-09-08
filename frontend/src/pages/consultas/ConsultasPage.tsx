@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { apiFetch } from '../../lib/api'
+import { useSesion } from '../../context/SesionContext'
 import styles from './ConsultasPage.module.css'
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -75,6 +76,11 @@ interface GrupoAnalisis {
 /** Debe coincidir con DiasParaPendiente en ConsultasController.cs */
 const DIAS_PENDIENTE = 2
 
+/** Roles con acceso al módulo Presupuestos (debe coincidir con modulos.ts y con
+ * el [Authorize(Roles=...)] de PresupuestosController) — determina si se puede
+ * armar un presupuesto desde acá adentro. */
+const ROLES_PRESUPUESTOS = ['ROL-01', 'ROL-03']
+
 const TIPOS_ASESORAMIENTO: { value: string; label: string }[] = [
   { value: 'consulta', label: 'Solo consulta' },
   { value: 'terreno', label: 'Visita de terreno' },
@@ -117,6 +123,8 @@ const TRANSICIONES_CONSULTA: Record<string, { label: string; siguienteEstado: st
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export default function ConsultasPage() {
+  const { sesion } = useSesion()
+  const puedeGestionarPresupuestos = ROLES_PRESUPUESTOS.includes(sesion.rolCodigo)
   const [consultas, setConsultas] = useState<ConsultaResumen[]>([])
   const [total, setTotal] = useState(0)
   const [pagina, setPagina] = useState(1)
@@ -337,9 +345,11 @@ export default function ConsultasPage() {
                         <span className={`${styles.badge} ${BADGE_ESTADO[seleccionada.presupuesto.estado] ?? ''}`}>
                           {seleccionada.presupuesto.estado}
                         </span>
-                        <button className={styles.btnSecundario} onClick={() => setMostrarPresupuesto(true)}>
-                          Editar
-                        </button>
+                        {puedeGestionarPresupuestos && (
+                          <button className={styles.btnSecundario} onClick={() => setMostrarPresupuesto(true)}>
+                            Editar
+                          </button>
+                        )}
                       </div>
                       <div className={styles.presupuestoTotales}>
                         <div className={styles.totalCard}>
@@ -376,9 +386,11 @@ export default function ConsultasPage() {
                   ) : (
                     <div className={styles.sinPresupuesto}>
                       <p>No hay presupuesto para esta consulta.</p>
-                      <button className={styles.btnPrimario} onClick={() => setMostrarPresupuesto(true)}>
-                        Crear presupuesto
-                      </button>
+                      {puedeGestionarPresupuestos && (
+                        <button className={styles.btnPrimario} onClick={() => setMostrarPresupuesto(true)}>
+                          Crear presupuesto
+                        </button>
+                      )}
                     </div>
                   )}
                 </Section>

@@ -11,7 +11,7 @@ namespace Ssal.Api.Controllers;
 
 [ApiController]
 [Route("api/resultados")]
-[Authorize]
+[Authorize(Roles = "ROL-01,ROL-07,ROL-08,ROL-09")]
 public class ResultadosController(SsalDbContext db) : ControllerBase
 {
     int UsuarioActual => int.Parse(

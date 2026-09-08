@@ -13,9 +13,16 @@ namespace Ssal.Api.Controllers;
 [Authorize]
 public class PresupuestosController(SsalDbContext db) : ControllerBase
 {
+    // Roles con permiso de gestión (crear/editar/archivar) de presupuestos.
+    private const string RolesGestion = "ROL-01,ROL-03";
+    // Roles con permiso de lectura — se suma ROL-02 porque desde SSE (Administrativo)
+    // hace falta poder listar y consultar presupuestos aceptados para vincularlos.
+    private const string RolesLectura = "ROL-01,ROL-02,ROL-03";
+
     // ─── POST /api/presupuestos ───────────────────────────────────────────
     // Crea o reemplaza el presupuesto de una consulta
     [HttpPost]
+    [Authorize(Roles = RolesGestion)]
     public async Task<IActionResult> Crear([FromBody] GuardarPresupuestoRequest req)
     {
         // Verificar que la consulta existe
@@ -94,6 +101,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
 
     // ─── GET /api/presupuestos ────────────────────────────────────────────
     [HttpGet]
+    [Authorize(Roles = RolesLectura)]
     public async Task<IActionResult> Listar(
         [FromQuery] string? busqueda,
         [FromQuery] string? estado,
@@ -148,6 +156,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
 
     // ─── GET /api/presupuestos/{id} ───────────────────────────────────────
     [HttpGet("{id}")]
+    [Authorize(Roles = RolesLectura)]
     public async Task<IActionResult> Detalle(int id)
     {
         var p = await db.Presupuestos
@@ -208,6 +217,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
 
     // ─── PUT /api/presupuestos/{id}/estado ───────────────────────────────
     [HttpPut("{id}/estado")]
+    [Authorize(Roles = RolesGestion)]
     public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoRequest req)
     {
         var p = await db.Presupuestos.FindAsync(id);
@@ -219,6 +229,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
 
     // ─── GET /api/presupuestos/{id}/archivos ─────────────────────────────
     [HttpGet("{id}/archivos")]
+    [Authorize(Roles = RolesLectura)]
     public async Task<IActionResult> ListarArchivos(int id)
     {
         var archivos = await db.PresupuestosArchivos
@@ -241,6 +252,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
     // ─── POST /api/presupuestos/{id}/archivos ────────────────────────────
     [HttpPost("{id}/archivos")]
     [RequestSizeLimit(20 * 1024 * 1024)] // 20 MB
+    [Authorize(Roles = RolesGestion)]
     public async Task<IActionResult> SubirArchivo(int id, IFormFile archivo, IConfiguration config)
     {
         if (archivo is null || archivo.Length == 0)
@@ -286,6 +298,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
 
     // ─── GET /api/presupuestos/{id}/archivos/{archivoId} ─────────────────
     [HttpGet("{id}/archivos/{archivoId}")]
+    [Authorize(Roles = RolesLectura)]
     public async Task<IActionResult> DescargarArchivo(int id, int archivoId, IConfiguration config)
     {
         var archivo = await db.PresupuestosArchivos
@@ -303,6 +316,7 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
 
     // ─── DELETE /api/presupuestos/{id}/archivos/{archivoId} ──────────────
     [HttpDelete("{id}/archivos/{archivoId}")]
+    [Authorize(Roles = RolesGestion)]
     public async Task<IActionResult> EliminarArchivo(int id, int archivoId, IConfiguration config)
     {
         var archivo = await db.PresupuestosArchivos

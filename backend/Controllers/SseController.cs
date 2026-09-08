@@ -10,7 +10,7 @@ namespace Ssal.Api.Controllers;
 
 [ApiController]
 [Route("api/sses")]
-[Authorize]
+[Authorize(Roles = "ROL-01,ROL-02,ROL-07")]
 public class SseController(SsalDbContext db) : ControllerBase
 {
     int UsuarioActual => int.Parse(

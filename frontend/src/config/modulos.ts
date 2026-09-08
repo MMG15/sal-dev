@@ -23,7 +23,7 @@ export const MODULOS: ModuloConfig[] = [
     label: 'Clientes y empresas',
     descripcion: 'Datos de clientes, empresas y contactos',
     path: '/clientes',
-    roles: ['ROL-01', 'ROL-02'],
+    roles: ['ROL-01', 'ROL-02', 'ROL-07'],
     listo: true,
   },
   {
@@ -31,7 +31,7 @@ export const MODULOS: ModuloConfig[] = [
     label: 'Consultas',
     descripcion: 'Seguimiento de consultas y cotizaciones',
     path: '/consultas',
-    roles: ['ROL-01', 'ROL-02', 'ROL-03'],
+    roles: ['ROL-01', 'ROL-02', 'ROL-03', 'ROL-07'],
     listo: true,
   },
   {
@@ -47,7 +47,7 @@ export const MODULOS: ModuloConfig[] = [
     label: 'SSE / Rótulos',
     descripcion: 'Solicitudes de servicio y rótulos internos',
     path: '/sse',
-    roles: ['ROL-01', 'ROL-02'],
+    roles: ['ROL-01', 'ROL-02', 'ROL-07'],
     listo: true,
   },
   {

@@ -8,7 +8,7 @@ namespace Ssal.Api.Controllers;
 
 [ApiController]
 [Route("api/consultas")]
-[Authorize]
+[Authorize(Roles = "ROL-01,ROL-02,ROL-03,ROL-07")]
 public class ConsultasController(SsalDbContext db) : ControllerBase
 {
     /// <summary>Días sin respuesta a partir de los cuales una consulta "recibida" se considera pendiente/demorada.</summary>
