@@ -30,17 +30,20 @@ ser común a todos. Los módulos marcados 🔒 todavía son placeholder — el r
 está habilitado para el día que se construya la pantalla real, pero hoy no hay
 nada que ver ahí.
 
-| Rol | Clientes | Consultas | Presupuestos | SSE/Rótulos | Análisis | Resultados | Facturación 🔒 | Firma digital 🔒 | Usuarios 🔒 | Portal 🔒 |
+| Rol | Clientes | Consultas | Presupuestos | SSE/Rótulos | Análisis | Resultados | Facturación | Firma digital | Usuarios | Portal (cuentas de cliente) |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | ROL-01 Admin general | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | ROL-02 Administrativo | ✅ | ✅ | 👁️¹ | ✅ | ✅ | — | — | — | — | — |
 | ROL-03 Presupuestos | — | ✅ | ✅ | — | ✅ | — | — | — | — | — |
-| ROL-04 Cobranzas | — | — | — | — | — | — | ✅ | — | — | — |
-| ROL-05 Cliente externo | — | — | — | — | — | — | — | — | — | ✅ |
-| ROL-06 Admin de sistema | — | — | — | — | — | — | — | — | ✅ | — |
+| ROL-04 Cobranzas | — | — | — | — | — | — | 👁️² | — | — | — |
+| ROL-05 Cliente externo⁴ | — | — | — | — | — | — | — | — | — | ✅ |
+| ROL-06 Admin de sistema | — | — | — | — | — | — | — | — | 👁️⁵ | — |
 | ROL-07 Analista | ✅ | ✅ | — | ✅ | ✅ | ✅ | — | — | — | — |
-| ROL-08 Resp. área MIC | — | — | — | — | ✅ | ✅ | — | ✅ | — | — |
-| ROL-09 Resp. área FQ | — | — | — | — | ✅ | ✅ | — | ✅ | — | — |
+| ROL-08 Resp. área MIC | — | — | — | — | ✅ | ✅ | ✅³ | ✅ | — | — |
+| ROL-09 Resp. área FQ | — | — | — | — | ✅ | ✅ | ✅³ | ✅ | — | — |
+
+² Cobranzas ve facturas y registra cobros (marcar pagada), pero no emite.
+³ Emite la factura en TANGO y la registra en SAL (paso 10 del flujo PO-01).
 
 ¹ Administrativo puede **ver** presupuestos aceptados (para vincularlos a una
 SSE) pero no puede crearlos ni modificarlos — queda exclusivo de ROL-01/03.
@@ -52,3 +55,7 @@ SSE) pero no puede crearlos ni modificarlos — queda exclusivo de ROL-01/03.
   `[Authorize(Roles = "...")]` en cada controller de `backend/Controllers/`.
   `PresupuestosController` es el único con permisos separados por acción
   (lectura vs. gestión), el resto restringe el controller completo.
+
+⁴ El cliente externo no usa el menú interno. Ingresa por el portal con una cuenta propia (tabla `portal_usuarios`), creada desde la ficha del cliente. El usuario `cliente@ssal` sembrado con ROL-05 no tiene uso y puede eliminarse.
+
+⁵ El Administrador de sistema solo consulta el registro de auditoría. No crea ni modifica usuarios.

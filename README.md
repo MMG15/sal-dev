@@ -1,4 +1,4 @@
-# SSAL — Sistema de Seguimiento de Análisis de Laboratorio
+# SAL — Sistema de Seguimiento de Análisis de Laboratorio
 
 > ⚠️ **Documento temporal de trabajo.** Resume el estado del proyecto a la fecha para
 > facilitar el seguimiento y la puesta en marcha local. No reemplaza una documentación
@@ -88,14 +88,18 @@ Usuario administrador de prueba (sembrado automáticamente):
 - **Análisis** — catálogo por grupos y área (MIC/FQ), con unidad de medida y rango o valor de referencia para detectar resultados fuera de rango.
 - **SSE / Rótulos** — alta de la solicitud de servicio, asignación de rótulo interno con detección de duplicados, registro de muestra (incluyendo rechazo de muestra si no llega en condiciones), corrección de rótulo con confirmación obligatoria y auditoría completa de cambios.
 - **Resultados** — carga de resultados por análisis, alerta automática de valores fuera de rango, validación o rechazo por el responsable de área, y generación de un informe en PDF una vez validados todos los resultados de una muestra.
+- **Facturación** — registro de la factura emitida en TANGO (número y fecha) vinculada a la SSE, con importes tomados de la SSE; listado de facturas adeudadas agrupadas por cliente y marca de cobro. La emisión la hacen los responsables de área y el administrador; Cobranzas controla los cobros. La anulación queda pendiente.
+- **Firma digital** — doble validación sobre informes y presupuestos: firma del responsable de cada área (con contraseña, MIC y FQ si el documento tiene ambas) y aprobación final del administrador. Rechazo con motivo y reenvío. Los informes sin aprobación salen en PDF marcados como borrador.
+- **Usuarios** — alta, modificación, activación y desactivación de cuentas del personal, con contraseña temporal que el usuario cambia al ingresar. Cada usuario puede cambiar su contraseña desde "Mi cuenta". Registro de auditoría de accesos y acciones críticas, consultable por el Administrador de sistema. Una cuenta desactivada pierde el acceso de inmediato.
+- **Portal del cliente** — el personal da acceso desde la ficha del cliente con una contraseña temporal (se muestra una sola vez). El cliente cambia la contraseña en su primer ingreso, ve sus rótulos con el estado de análisis y descarga solo los informes aprobados.
 
 ### Rediseño visual
 Identidad visual propia del laboratorio (paleta institucional, marca en el sidebar, dashboard
 de inicio por módulo) y ajustes generales de legibilidad.
 
 ### Pendiente
-- Facturación
-- Firma digital (doble validación)
-- Gestión de usuarios desde la interfaz (hoy solo existe el seed inicial)
+- Anulación de facturas con motivo (RF-25)
+- Facturación centralizada de varias SSE (RF-28)
+
 - Portal del cliente externo
 - Autorización por rol a nivel de backend (hoy el control de acceso por rol es solo del lado del frontend)
