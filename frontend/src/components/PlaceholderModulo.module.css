@@ -9,7 +9,7 @@
   color: #92400e;
   border: 1px solid #fcd34d;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   padding: 2px 8px;
   text-transform: uppercase;
@@ -18,7 +18,7 @@
 }
 
 .titulo {
-  font-size: 24px;
+  font-size: 27.5px;
   font-weight: 600;
   color: var(--texto);
   margin: 0 0 8px;
@@ -26,7 +26,7 @@
 
 .desc {
   color: var(--texto-suave);
-  font-size: 16px;
+  font-size: 18.5px;
   margin: 0 0 24px;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .listaTitle {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -57,7 +57,7 @@
 }
 
 .lista li {
-  font-size: 15.5px;
+  font-size: 18px;
   color: var(--texto);
   padding-left: 16px;
   position: relative;

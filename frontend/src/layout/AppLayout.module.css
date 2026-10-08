@@ -1,241 +1,134 @@
-.layout {
-  display: grid;
-  grid-template-columns: 232px 1fr;
-  grid-template-rows: 60px 1fr;
-  grid-template-areas:
-    "sidebar header"
-    "sidebar contenido";
-  height: 100dvh;
-  overflow: hidden;
-}
-
-/* ── Sidebar ── */
+/* Barra lateral: teal institucional oscuro */
 .sidebar {
-  grid-area: sidebar;
-  grid-row: 1 / -1;
-  background: #fff;
-  border-right: 1px solid var(--borde);
+  background: linear-gradient(180deg, #0b4f56 0%, #0b5f67 100%);
+  color: #fff;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-}
-
-.logoArea {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  padding: 0 18px;
-  border-bottom: 1px solid var(--borde);
-  flex-shrink: 0;
-  gap: 10px;
+  border-right: none;
 }
 
 .marca {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-}
-
-.logoTextos {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-
-.logoTexto {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  color: var(--azul-oscuro);
-}
-
-.logoSub {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--teal);
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-}
-
-.nav {
-  padding: 12px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  color: var(--texto-suave);
-  font-size: 15.5px;
-  border-left: 3px solid transparent;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-  position: relative;
-}
-
-.navItem:hover {
-  background: var(--azul-claro);
-  color: var(--azul);
-}
-
-.activo {
-  background: var(--azul-claro);
-  color: var(--azul);
-  font-weight: 600;
-  border-left-color: var(--azul);
-}
-
-.pendiente {
-  opacity: 0.6;
-}
-
-.icono {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  display: flex;
-}
-
-.icono svg {
-  width: 18px;
-  height: 18px;
-}
-
-.label {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.badgePronto {
-  font-size: 12px;
-  background: var(--borde);
-  color: var(--texto-suave);
-  padding: 1px 5px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-
-/* ── Header ── */
-.header {
-  grid-area: header;
   background: #fff;
-  border-bottom: 1px solid var(--borde);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  box-shadow: var(--sombra-sm);
-  z-index: 1;
-}
-
-.headerTitulo {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  min-width: 0;
-}
-
-.headerTitulo h1 {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--texto);
-  margin: 0;
-  white-space: nowrap;
-}
-
-.headerTitulo span {
-  font-size: 14.5px;
-  color: var(--texto-suave);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.headerUsuario {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--azul-claro);
-  color: var(--azul-oscuro);
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 18px;
+}
+
+.logo {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+}
+
+.grupoTitulo {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0 12px 6px;
+  margin: 0;
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 18px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  font-size: 16.5px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.itemActivo {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 600;
+}
+
+.iconoItem {
+  display: flex;
+  opacity: 0.9;
+}
+
+.usuario {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 12px;
+}
+
+.usuarioBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  color: #fff;
+  text-align: left;
+}
+
+.usuarioBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.usuarioNombre {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.usuarioRol {
   font-size: 14px;
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.2;
+}
+
+/* Barra superior del área de contenido */
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 56px;
+  padding: 0 20px;
+  background: #fff;
+  border-bottom: 1px solid var(--borde-suave);
   flex-shrink: 0;
 }
 
-.headerUsuarioTextos {
+
+.buscar {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  line-height: 1.1;
-}
-
-.nombreUsuario {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--texto);
-}
-
-.badgeRol {
-  font-size: 12.5px;
-  background: var(--dorado-claro);
-  color: var(--dorado);
-  padding: 1px 7px;
-  border-radius: 4px;
-  white-space: nowrap;
-  max-width: 260px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.btnSalir {
-  background: none;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
   border: 1px solid var(--borde);
-  border-radius: 6px;
-  padding: 5px 14px;
-  font-size: 15px;
+  border-radius: 8px;
+  background: #fff;
   color: var(--texto-suave);
-  margin-left: 4px;
-  transition: border-color 0.12s, color 0.12s, background 0.12s;
+  font-size: 16px;
+  cursor: pointer;
+  min-width: 260px;
 }
 
-.btnSalir:hover {
-  border-color: var(--burdeo);
-  color: var(--burdeo);
-  background: var(--burdeo-claro);
-}
-
-/* ── Contenido ── */
-.panelPrincipal {
-  grid-area: header;
-  grid-row: 1 / -1;
-  grid-column: 2;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.contenido {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-  background: var(--fondo);
+.buscar:hover {
+  border-color: var(--teal);
 }

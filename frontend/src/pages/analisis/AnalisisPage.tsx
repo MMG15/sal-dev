@@ -37,6 +37,7 @@ export default function AnalisisPage() {
   const [confirmEliminar, setConfirmEliminar] = useState<AnalisisItem | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
+  const [errorCarga, setErrorCarga] = useState('')
 
   const [form, setForm] = useState({
     idGrupo: 0,
@@ -54,13 +55,24 @@ export default function AnalisisPage() {
 
   const cargar = useCallback(async () => {
     setCargando(true)
+    setErrorCarga('')
     try {
       const [resA, resG] = await Promise.all([
         apiFetch('/api/analisis/todos'),
         apiFetch('/api/analisis/grupos'),
       ])
+      if (!resA.ok || !resG.ok) {
+        setAnalisis([])
+        setGrupos([])
+        setErrorCarga(`No se pudo cargar el catálogo (error ${resA.ok ? resG.status : resA.status}).`)
+        return
+      }
       setAnalisis(await resA.json())
       setGrupos(await resG.json())
+    } catch {
+      setAnalisis([])
+      setGrupos([])
+      setErrorCarga('No se pudo conectar con el servidor.')
     } finally {
       setCargando(false)
     }
@@ -204,6 +216,8 @@ export default function AnalisisPage() {
           <option value="inactivos">Solo inactivos</option>
         </select>
       </div>
+
+      {errorCarga && <p className={styles.errorModal}>{errorCarga}</p>}
 
       {cargando ? (
         <div className={styles.cargando}>Cargando...</div>

@@ -27,7 +27,7 @@
 }
 
 .titulo {
-  font-size: 20px;
+  font-size: 23px;
   font-weight: 600;
   color: var(--texto);
   margin: 0;
@@ -46,7 +46,7 @@
   padding: 6px 10px;
   border: 1px solid var(--borde);
   border-radius: 6px;
-  font-size: 15px;
+  font-size: 17.5px;
   color: var(--texto);
   background: var(--fondo);
 }
@@ -60,7 +60,7 @@
   padding: 6px 8px;
   border: 1px solid var(--borde);
   border-radius: 6px;
-  font-size: 15px;
+  font-size: 17.5px;
   color: var(--texto);
   background: var(--fondo);
   flex-shrink: 0;
@@ -96,14 +96,14 @@
 }
 
 .codigo {
-  font-size: 15px;
+  font-size: 17.5px;
   font-weight: 600;
   color: var(--texto);
   font-family: monospace;
 }
 
 .filaCliente {
-  font-size: 15.5px;
+  font-size: 18px;
   color: var(--texto);
   margin-bottom: 3px;
   white-space: nowrap;
@@ -115,7 +115,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 13.5px;
+  font-size: 15.5px;
   color: var(--texto-suave);
 }
 
@@ -129,7 +129,7 @@
   border: none;
   border-bottom: 1px solid var(--borde);
   color: #9a3412;
-  font-size: 13.5px;
+  font-size: 15.5px;
   font-weight: 500;
   cursor: pointer;
   flex-shrink: 0;
@@ -144,7 +144,7 @@
 }
 
 .badgePendiente {
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
@@ -162,7 +162,7 @@
 
 /* ── Badges de estado ── */
 .badge {
-  font-size: 13px;
+  font-size: 15px;
   padding: 1px 7px;
   border-radius: 4px;
   white-space: nowrap;
@@ -182,20 +182,20 @@
   padding: 24px;
   text-align: center;
   color: var(--texto-suave);
-  font-size: 15px;
+  font-size: 17.5px;
 }
 
 .vacio {
   padding: 24px;
   text-align: center;
   color: var(--texto-suave);
-  font-size: 15px;
+  font-size: 17.5px;
 }
 
 .sinCliente {
   color: var(--texto-suave);
   font-style: italic;
-  font-size: 15px;
+  font-size: 17.5px;
   margin: 0;
 }
 
@@ -206,7 +206,7 @@
   justify-content: space-between;
   padding: 8px 16px;
   border-top: 1px solid var(--borde);
-  font-size: 15px;
+  font-size: 17.5px;
   color: var(--texto-suave);
   flex-shrink: 0;
 }
@@ -216,7 +216,7 @@
   border: 1px solid var(--borde);
   border-radius: 5px;
   padding: 3px 10px;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   color: var(--texto);
 }
@@ -245,7 +245,7 @@
 }
 
 .detallecodigo {
-  font-size: 18px;
+  font-size: 20.5px;
   font-weight: 600;
   font-family: monospace;
   color: var(--texto);
@@ -269,7 +269,7 @@
 }
 
 .sectionTitulo {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -281,7 +281,7 @@
   display: flex;
   gap: 8px;
   padding: 4px 0;
-  font-size: 15.5px;
+  font-size: 18px;
 }
 
 .campoLabel {
@@ -323,12 +323,12 @@
 }
 
 .totalCard span {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--texto-suave);
 }
 
 .totalCard strong {
-  font-size: 16px;
+  font-size: 18.5px;
   color: var(--texto);
 }
 
@@ -344,7 +344,7 @@
   gap: 8px;
   padding: 4px 0;
   border-bottom: 1px solid var(--borde);
-  font-size: 15px;
+  font-size: 17.5px;
 }
 
 .analisisItem:last-child {
@@ -358,13 +358,13 @@
 
 .analisisPrecio {
   color: var(--texto-suave);
-  font-size: 14px;
+  font-size: 16px;
   font-family: monospace;
   flex-shrink: 0;
 }
 
 .areaTag {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
@@ -390,7 +390,7 @@
 
 .sinPresupuesto p {
   margin: 0;
-  font-size: 15px;
+  font-size: 17.5px;
   color: var(--texto-suave);
 }
 
@@ -401,7 +401,7 @@
   border: none;
   border-radius: 6px;
   padding: 7px 16px;
-  font-size: 15.5px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.12s;
@@ -421,7 +421,7 @@
   border: 1px solid var(--borde);
   border-radius: 6px;
   padding: 5px 12px;
-  font-size: 15px;
+  font-size: 17.5px;
   color: var(--texto);
   cursor: pointer;
   transition: border-color 0.12s;
@@ -435,7 +435,7 @@
 .btnCerrar {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 20.5px;
   color: var(--texto-suave);
   cursor: pointer;
   padding: 2px 6px;
@@ -484,7 +484,7 @@
 }
 
 .modalHeader h2 {
-  font-size: 18px;
+  font-size: 20.5px;
   font-weight: 600;
   margin: 0;
   color: var(--texto);
@@ -509,7 +509,7 @@
 }
 
 .formLabel {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--texto-suave);
   margin-top: 8px;
@@ -519,7 +519,7 @@
   padding: 7px 10px;
   border: 1px solid var(--borde);
   border-radius: 6px;
-  font-size: 15.5px;
+  font-size: 18px;
   color: var(--texto);
   background: #fff;
   width: 100%;
@@ -535,7 +535,7 @@
   padding: 8px 10px;
   border: 1px solid var(--borde);
   border-radius: 6px;
-  font-size: 15.5px;
+  font-size: 18px;
   color: var(--texto);
   background: #fff;
   width: 100%;
@@ -551,7 +551,7 @@
 
 .error {
   color: var(--burdeo);
-  font-size: 15px;
+  font-size: 17.5px;
   margin: 4px 0 0;
 }
 
@@ -583,7 +583,7 @@
   border: 1px solid var(--borde);
   border-radius: 5px;
   padding: 4px 12px;
-  font-size: 14.5px;
+  font-size: 16.5px;
   cursor: pointer;
   color: var(--texto-suave);
   transition: all 0.1s;
@@ -609,7 +609,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -626,7 +626,7 @@
   padding: 5px 2px;
   cursor: pointer;
   border-radius: 4px;
-  font-size: 15px;
+  font-size: 17.5px;
 }
 
 .checkItem:hover {
@@ -647,7 +647,7 @@
 
 .checkPrecio {
   font-family: monospace;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--texto-suave);
   flex-shrink: 0;
 }
@@ -676,7 +676,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 0;
-  font-size: 14.5px;
+  font-size: 16.5px;
   border-bottom: 1px solid var(--borde);
 }
 
@@ -690,7 +690,7 @@
   color: var(--texto-suave);
   cursor: pointer;
   padding: 1px 4px;
-  font-size: 14px;
+  font-size: 16px;
   flex-shrink: 0;
   border-radius: 3px;
 }
@@ -719,7 +719,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 15px;
+  font-size: 17.5px;
   color: var(--texto);
 }
 
@@ -734,6 +734,6 @@
 }
 
 .totalDestacado strong {
-  font-size: 16px;
+  font-size: 18.5px;
   color: var(--azul);
 }

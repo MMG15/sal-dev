@@ -1,114 +1,151 @@
-.fondo {
-  min-height: 100dvh;
+/* Pantalla de ingreso: la marca arriba, el formulario debajo (se puede scrollear) */
+.pagina {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: #f4f5f3;
+}
+
+/* ── Panel de marca (franja superior) ── */
+.panelMarca {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(150deg, #1a4a1a 0%, #2d6b2d 60%, #3d7a3d 100%);
-  padding: 24px;
+  padding: 40px 24px 34px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.08) 0, transparent 40%),
+    radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.07) 0, transparent 35%),
+    linear-gradient(160deg, #083f45 0%, #0b5f67 55%, #0f7c86 100%);
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.tarjeta {
-  background: var(--blanco);
-  border-radius: 12px;
-  padding: 40px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-}
-
-.encabezado {
+.marcaContenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  margin-bottom: 32px;
+  gap: 12px;
+  max-width: 520px;
 }
 
-.logoImg {
-  width: 100%;
-  max-width: 300px;
-  height: auto;
+.logoTarjeta {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px 32px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+  margin-bottom: 10px;
+}
+
+.logo {
   display: block;
-  margin: 0 auto 16px;
+  width: 100%;
+  max-width: 380px;
+  height: auto;
 }
 
-.divisor {
-  width: 40px;
-  height: 2px;
-  background: var(--borde);
-  margin: 0 auto 12px;
-  border-radius: 2px;
+.titulo {
+  font-size: 38px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  color: #fff !important;
+  margin: 4px 0 0 !important;
 }
 
-.sistemaLabel {
-  font-size: 14px;
-  color: var(--texto-suave);
-  letter-spacing: 0.3px;
+.subtitulo {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.88);
   margin: 0;
 }
 
-.formulario {
+.pie {
+  margin-top: 18px !important;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Formulario (debajo de la marca) ── */
+.panelFormulario {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 56px;
   gap: 20px;
+  flex: 1;
 }
 
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.tarjeta {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(17, 24, 39, 0.1) !important;
+  border-top: 4px solid var(--teal);
 }
 
-.campo label {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--texto);
-}
-
-.campo input {
-  padding: 10px 14px;
-  border: 1px solid var(--borde);
-  border-radius: 8px;
-  font-size: 17px;
-  color: var(--texto);
-  background: var(--blanco);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  outline: none;
-}
-
-.campo input:focus {
-  border-color: var(--azul);
-  box-shadow: 0 0 0 3px rgba(45, 107, 45, 0.2);
-}
-
-.campo input:disabled {
-  background: var(--fondo);
-  color: var(--texto-suave);
+.bienvenida {
+  font-size: 30px !important;
+  font-weight: 700 !important;
+  color: var(--texto) !important;
 }
 
 .error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background: var(--error-bg);
   border: 1px solid #fca5a5;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   font-size: 16px;
   color: var(--error);
 }
 
 .boton {
-  padding: 11px 0;
-  background: var(--azul);
-  color: var(--blanco);
-  border: none;
-  border-radius: 8px;
-  font-size: 17px;
-  font-weight: 600;
-  transition: background 0.15s, opacity 0.15s;
   margin-top: 4px;
+  height: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  background: var(--teal) !important;
 }
 
-.boton:hover:not(:disabled) {
-  background: var(--azul-oscuro);
+.boton:hover {
+  background: var(--teal-oscuro) !important;
 }
 
-.boton:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+.separador {
+  height: 1px;
+  background: var(--borde-suave);
+  margin: 26px 0 18px;
+}
+
+.derechos {
+  font-size: 14px !important;
+}
+
+/* En pantallas angostas, la franja de marca ocupa menos lugar */
+@media (max-width: 600px) {
+  .panelMarca {
+    padding: 28px 20px 24px;
+  }
+
+  .logoTarjeta {
+    padding: 16px 20px;
+  }
+
+  .logo {
+    max-width: 260px;
+  }
+
+  .titulo {
+    font-size: 30px !important;
+  }
+
+  .panelFormulario {
+    padding: 28px 16px 40px;
+  }
 }

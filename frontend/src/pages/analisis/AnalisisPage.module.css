@@ -7,14 +7,14 @@
 }
 
 .titulo {
-  font-size: 22px;
+  font-size: 25.5px;
   font-weight: 600;
   color: var(--texto);
   margin: 0 0 2px;
 }
 
 .subtitulo {
-  font-size: 15px;
+  font-size: 17.5px;
   color: var(--texto-suave);
   margin: 0;
 }
@@ -38,7 +38,7 @@
   padding: 6px 16px;
   background: #fff;
   border: none;
-  font-size: 15.5px;
+  font-size: 18px;
   color: var(--texto-suave);
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
@@ -61,7 +61,7 @@
   padding: 7px 12px;
   border: 1px solid var(--borde);
   border-radius: 7px;
-  font-size: 15.5px;
+  font-size: 18px;
   color: var(--texto);
   background: #fff;
   outline: none;
@@ -76,19 +76,19 @@
   padding: 7px 10px;
   border: 1px solid var(--borde);
   border-radius: 7px;
-  font-size: 15.5px;
+  font-size: 18px;
   color: var(--texto);
   background: #fff;
 }
 
 .cargando {
   color: var(--texto-suave);
-  font-size: 16px;
+  font-size: 18.5px;
 }
 
 .vacio {
   color: var(--texto-suave);
-  font-size: 16px;
+  font-size: 18.5px;
   padding: 32px 0;
   text-align: center;
 }
@@ -105,14 +105,14 @@
 .tabla {
   width: 100%;
   border-collapse: collapse;
-  font-size: 15.5px;
+  font-size: 18px;
 }
 
 .tabla th {
   background: var(--fondo);
   padding: 10px 14px;
   text-align: left;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -148,12 +148,12 @@
 }
 
 .tdGrupo {
-  font-size: 15px;
+  font-size: 17.5px;
   color: var(--texto-suave);
 }
 
 .tdReferencia {
-  font-size: 13.5px;
+  font-size: 15.5px;
   color: var(--texto-suave);
   white-space: nowrap;
 }
@@ -180,7 +180,7 @@
 }
 
 .areaTag {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 3px;
@@ -198,7 +198,7 @@
 }
 
 .btnEstado {
-  font-size: 14px;
+  font-size: 16px;
   padding: 2px 10px;
   border-radius: 12px;
   border: 1px solid;
@@ -238,7 +238,7 @@
   color: #fff;
   border: none;
   border-radius: 7px;
-  font-size: 15.5px;
+  font-size: 18px;
   font-weight: 500;
   transition: background 0.12s, opacity 0.12s;
   white-space: nowrap;
@@ -259,7 +259,7 @@
   color: var(--texto);
   border: 1px solid var(--borde);
   border-radius: 7px;
-  font-size: 15.5px;
+  font-size: 18px;
   transition: border-color 0.12s;
 }
 
@@ -273,7 +273,7 @@
   color: var(--teal);
   border: 1px solid var(--teal-claro);
   border-radius: 5px;
-  font-size: 14.5px;
+  font-size: 16.5px;
   transition: background 0.1s;
 }
 
@@ -287,7 +287,7 @@
   color: var(--texto);
   border: 1px solid var(--borde);
   border-radius: 5px;
-  font-size: 14.5px;
+  font-size: 16.5px;
   transition: all 0.1s;
 }
 
@@ -303,7 +303,7 @@
   color: #fff;
   border: none;
   border-radius: 7px;
-  font-size: 15.5px;
+  font-size: 18px;
   font-weight: 500;
   transition: background 0.12s;
 }
@@ -349,7 +349,7 @@
 }
 
 .modalTitulo {
-  font-size: 18px;
+  font-size: 20.5px;
   font-weight: 600;
   margin: 0;
   color: var(--texto);
@@ -358,7 +358,7 @@
 .btnCerrar {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 20.5px;
   color: var(--texto-suave);
   padding: 4px 8px;
   border-radius: 4px;
@@ -400,7 +400,7 @@
 }
 
 .campo label {
-  font-size: 15px;
+  font-size: 17.5px;
   font-weight: 500;
   color: var(--texto);
 }
@@ -410,7 +410,7 @@
   padding: 8px 12px;
   border: 1px solid var(--borde);
   border-radius: 7px;
-  font-size: 16px;
+  font-size: 18.5px;
   color: var(--texto);
   background: #fff;
   outline: none;
@@ -434,7 +434,7 @@
   border: 1px solid var(--borde);
   border-radius: 6px;
   padding: 5px 14px;
-  font-size: 15px;
+  font-size: 17.5px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -454,7 +454,7 @@
 
 .errorModal {
   color: var(--error);
-  font-size: 15px;
+  font-size: 17.5px;
   background: var(--error-bg);
   border: 1px solid #fca5a5;
   border-radius: 6px;
@@ -464,12 +464,12 @@
 
 .confirmTexto {
   margin: 0;
-  font-size: 16px;
+  font-size: 18.5px;
   color: var(--texto);
 }
 
 .confirmNota {
   margin: 8px 0 0;
-  font-size: 14.5px;
+  font-size: 16.5px;
   color: var(--texto-suave);
 }

@@ -1,0 +1,321 @@
+/* ── Layout ── */
+.root {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.titulo {
+  font-size: 23px;
+  font-weight: 600;
+  color: var(--texto);
+  margin: 0;
+}
+
+.subtitulo {
+  font-size: 16px;
+  color: var(--texto-suave);
+  margin: 4px 0 0;
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inputBusqueda {
+  flex: 1 1 320px;
+  padding: 7px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 17.5px;
+  color: var(--texto);
+  background: var(--fondo);
+}
+
+.inputBusqueda:focus,
+.select:focus,
+.input:focus,
+.inputFecha:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+.select,
+.input,
+.inputFecha {
+  padding: 7px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 16px;
+  color: var(--texto);
+  background: var(--fondo);
+}
+
+.input,
+.select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.error {
+  background: #fdecec;
+  color: #a12626;
+  border: 1px solid #f1b8b8;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 16px;
+}
+
+.vacio,
+.cargando {
+  color: var(--texto-suave);
+  font-size: 17.5px;
+  padding: 24px 0;
+}
+
+/* ── Botones ── */
+.btnPrimario {
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnPrimario:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btnSecundario {
+  background: #fff;
+  color: var(--texto);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnDeshabilitado {
+  background: #f4f4f4;
+  color: #aaa;
+  border: 1px dashed var(--borde);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 15px;
+  cursor: not-allowed;
+  white-space: nowrap;
+}
+
+/* ── Grupos por cliente ── */
+.grupo {
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.grupoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--fondo);
+  border-bottom: 1px solid var(--borde);
+  flex-wrap: wrap;
+}
+
+.grupoNombre {
+  font-weight: 600;
+  color: var(--texto);
+  font-size: 17.5px;
+}
+
+.grupoTotal {
+  font-size: 15px;
+  color: var(--texto-suave);
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 2fr 1.4fr 1.3fr 1.2fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.fila:last-child {
+  border-bottom: none;
+}
+
+.filaPrincipal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.numero {
+  font-family: monospace;
+  font-size: 17.5px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.meta {
+  font-size: 14.5px;
+  color: var(--texto-suave);
+}
+
+.filaImportes {
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  color: var(--texto);
+  text-align: right;
+}
+
+.filaEstado {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.filaAcciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.cobro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.badgeEmitida {
+  background: #fff4e0;
+  color: #9a5b00;
+}
+
+.badgePagada {
+  background: #e4f6ec;
+  color: #1d6b3a;
+}
+
+.badgeAnulada {
+  background: #ececec;
+  color: #666;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 16px;
+  color: var(--texto-suave);
+}
+
+/* ── Modal ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 22px 24px;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modalTitulo {
+  font-size: 19.5px;
+  font-weight: 600;
+  color: var(--texto);
+  margin: 0;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 15px;
+  color: var(--texto-suave);
+}
+
+.resumenSse {
+  background: var(--teal-claro);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 16px;
+  color: var(--texto);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modalAcciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .fila {
+    grid-template-columns: 1fr;
+  }
+
+  .filaImportes {
+    text-align: left;
+  }
+
+  .filaAcciones {
+    justify-content: flex-start;
+  }
+}

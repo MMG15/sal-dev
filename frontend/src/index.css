@@ -6,9 +6,9 @@
 
 :root {
   /* Paleta institucional (logo Laboratorio Graffigna) */
-  --azul: #2d6b2d;
-  --azul-oscuro: #1a4a1a;
-  --azul-claro: #ebf5eb;
+  --azul: #0f7c86;
+  --azul-oscuro: #0b5f67;
+  --azul-claro: #e3f4f5;
   --dorado: #c97d09;
   --dorado-claro: #fef6e4;
   --burdeo: #8b1a1a;
@@ -35,7 +35,7 @@
   --sombra-lg: 0 12px 32px rgba(17, 24, 39, 0.14);
 
   font-family: 'Segoe UI', system-ui, Roboto, sans-serif;
-  font-size: 18px;
+  font-size: 20.5px;
   color: var(--texto);
   background: var(--fondo);
   -webkit-font-smoothing: antialiased;

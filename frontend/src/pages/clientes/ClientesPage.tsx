@@ -332,6 +332,12 @@ export default function ClientesPage() {
               </button>
             </div>
           </form>
+          {editandoCliente !== null && (
+            <AccesoPortal
+              idCliente={editandoCliente}
+              emailCliente={clientes.find(c => c.idCliente === editandoCliente)?.email ?? null}
+            />
+          )}
         </Modal>
       )}
 
@@ -479,6 +485,91 @@ function Campo({ label, children }: { label: string, children: React.ReactNode }
     <div className={styles.campo}>
       <label>{label}</label>
       {children}
+    </div>
+  )
+}
+
+/* ── Acceso del cliente al portal de resultados ── */
+interface EstadoAcceso {
+  existe: boolean
+  email?: string
+  activo?: boolean
+  ultimoAcceso?: string | null
+}
+
+function AccesoPortal({ idCliente, emailCliente }: { idCliente: number; emailCliente: string | null }) {
+  const [estado, setEstado] = useState<EstadoAcceso | null>(null)
+  const [email, setEmail] = useState(emailCliente ?? '')
+  const [temporal, setTemporal] = useState<{ email: string; passwordTemporal: string } | null>(null)
+  const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
+
+  useEffect(() => {
+    apiFetch(`/api/clientes/${idCliente}/acceso-portal`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(setEstado)
+      .catch(() => setEstado(null))
+  }, [idCliente])
+
+  async function generar() {
+    setError('')
+    setTemporal(null)
+    setEnviando(true)
+    try {
+      const res = await apiFetch(`/api/clientes/${idCliente}/acceso-portal`, {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim() || null }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(data.error ?? 'No se pudo generar el acceso.')
+        return
+      }
+      setTemporal(data)
+      setEstado({ existe: true, email: data.email, activo: true, ultimoAcceso: estado?.ultimoAcceso ?? null })
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <div className={styles.accesoPortal}>
+      <h3 className={styles.accesoTitulo}>Acceso al portal de resultados</h3>
+
+      {estado?.existe ? (
+        <p className={styles.accesoTexto}>
+          Acceso activo para <strong>{estado.email}</strong>.{' '}
+          {estado.ultimoAcceso
+            ? `Último ingreso: ${new Date(estado.ultimoAcceso).toLocaleString('es-AR')}.`
+            : 'Todavía no ingresó.'}
+        </p>
+      ) : (
+        <p className={styles.accesoTexto}>Este cliente todavía no tiene acceso al portal.</p>
+      )}
+
+      <label className={styles.accesoCampo}>
+        <span>Correo de acceso</span>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
+      </label>
+
+      <button
+        type="button"
+        className={styles.btnSecundario}
+        onClick={generar}
+        disabled={enviando || !email.trim()}
+      >
+        {estado?.existe ? 'Restablecer contraseña' : 'Generar acceso'}
+      </button>
+
+      {error && <p className={styles.errorModal}>{error}</p>}
+
+      {temporal && (
+        <div className={styles.accesoTemporal}>
+          <p>Entregá estos datos al cliente. La contraseña temporal se muestra solo esta vez, y el cliente la cambia en su primer ingreso.</p>
+          <p>Usuario: <strong>{temporal.email}</strong></p>
+          <p>Contraseña temporal: <code>{temporal.passwordTemporal}</code></p>
+        </div>
+      )}
     </div>
   )
 }
