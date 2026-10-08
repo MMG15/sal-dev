@@ -191,13 +191,23 @@ public class ResultadosController(SsalDbContext db) : ControllerBase
     {
         var informe = await db.Informes
             .Include(i => i.Muestra).ThenInclude(m => m.RotuloInterno).ThenInclude(r => r.Sse).ThenInclude(s => s.Cliente!.Empresa)
+            .Include(i => i.Muestra).ThenInclude(m => m.RotuloInterno).ThenInclude(r => r.Sse).ThenInclude(s => s.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
             .Include(i => i.Muestra).ThenInclude(m => m.Resultados).ThenInclude(r => r.Analisis).ThenInclude(a => a.Grupo)
             .Include(i => i.GeneradoPorUsuario)
             .FirstOrDefaultAsync(i => i.IdInforme == id);
 
         if (informe is null) return NotFound();
 
-        var pdfBytes = InformePdfBuilder.Generar(informe);
+        // Estado de firma del informe: el PDF muestra las firmas del ciclo vigente y marca borrador si no está aprobado
+        var eventos = await db.FirmasDocumento
+            .Include(f => f.Firmante)
+            .Where(f => f.TipoDocumento == "informe" && f.IdDocumento == id)
+            .OrderBy(f => f.IdFirma)
+            .ToListAsync();
+        var areas = informe.Muestra.Resultados.Select(r => r.Analisis.Area).Distinct().ToList();
+        var estado = CicloFirma.Calcular(eventos, areas).Estado;
+
+        var pdfBytes = InformePdfBuilder.Generar(informe, estado, CicloFirma.EventosCicloActual(eventos));
         return File(pdfBytes, "application/pdf", $"{informe.Codigo}.pdf");
     }
 

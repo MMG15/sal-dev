@@ -23,6 +23,8 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
     public DbSet<FirmaDocumento> FirmasDocumento => Set<FirmaDocumento>();
     public DbSet<PresupuestoAnalisis> PresupuestosAnalisis => Set<PresupuestoAnalisis>();
     public DbSet<PresupuestoArchivo> PresupuestosArchivos => Set<PresupuestoArchivo>();
+    public DbSet<PortalUsuario> PortalUsuarios => Set<PortalUsuario>();
+    public DbSet<AuditoriaSistema> Auditoria => Set<AuditoriaSistema>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +38,45 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
         modelBuilder.Entity<RotuloInterno>()
             .HasIndex(r => r.NumeroUnico)
             .IsUnique();
+
+        modelBuilder.Entity<AuditoriaSistema>()
+            .HasIndex(a => a.Fecha);
+
+        // Portal del cliente: un acceso por cliente y email único
+        modelBuilder.Entity<PortalUsuario>()
+            .HasIndex(p => p.Email)
+            .IsUnique();
+
+        modelBuilder.Entity<PortalUsuario>()
+            .HasIndex(p => p.IdCliente)
+            .IsUnique();
+
+        modelBuilder.Entity<PortalUsuario>()
+            .HasOne(p => p.Cliente)
+            .WithMany()
+            .HasForeignKey(p => p.IdCliente)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Historial de firmas: cada evento queda ligado a su firmante (RF-35)
+        modelBuilder.Entity<FirmaDocumento>()
+            .HasOne(f => f.Firmante)
+            .WithMany()
+            .HasForeignKey(f => f.IdFirmante)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<FirmaDocumento>()
+            .HasIndex(f => new { f.TipoDocumento, f.IdDocumento });
+
+        // El número de factura (TANGO) no puede repetirse
+        modelBuilder.Entity<Factura>()
+            .HasIndex(f => f.Numero)
+            .IsUnique();
+
+        // Una SSE tiene una sola factura activa. Las anuladas no cuentan (cuando exista la anulación)
+        modelBuilder.Entity<Factura>()
+            .HasIndex(f => f.IdSse)
+            .IsUnique()
+            .HasFilter("estado <> 'anulada'");
 
         modelBuilder.Entity<Rol>()
             .HasIndex(r => r.Codigo)

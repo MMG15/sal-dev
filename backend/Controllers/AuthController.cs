@@ -21,9 +21,24 @@ public class AuthController(SsalDbContext db, IConfiguration config) : Controlle
             .FirstOrDefaultAsync(u => u.Email == req.Email && u.Activo);
 
         if (usuario is null || !BCrypt.Net.BCrypt.Verify(req.Password, usuario.PasswordHash))
+        {
+            db.Auditoria.Add(new AuditoriaSistema
+            {
+                Accion = "login_fallido",
+                Objetivo = req.Email,
+                Detalle = "Credenciales incorrectas"
+            });
+            await db.SaveChangesAsync();
             return Unauthorized(new { mensaje = "Credenciales incorrectas." });
+        }
 
         usuario.UltimoAcceso = DateTime.UtcNow;
+        db.Auditoria.Add(new AuditoriaSistema
+        {
+            IdUsuario = usuario.IdUsuario,
+            Accion = "login_ok",
+            Objetivo = usuario.Email
+        });
         await db.SaveChangesAsync();
 
         return Ok(new LoginResponse(
@@ -36,6 +51,31 @@ public class AuthController(SsalDbContext db, IConfiguration config) : Controlle
             RolNombre: usuario.Rol.Nombre,
             ForzarCambioPwd: usuario.ForzarCambioPwd
         ));
+    }
+
+    // ─── POST /api/auth/cambiar-password ──────────────────────────────────
+    // Cambio de la propia contraseña (también obligatorio tras un alta o restablecimiento)
+    [HttpPost("cambiar-password")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<IActionResult> CambiarPassword([FromBody] CambiarPasswordRequest req)
+    {
+        var id = int.Parse(
+            User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+            ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var usuario = await db.Usuarios.FindAsync(id);
+        if (usuario is null) return NotFound();
+
+        if (!BCrypt.Net.BCrypt.Verify(req.PasswordActual, usuario.PasswordHash))
+            return BadRequest(new { error = "La contraseña actual no es correcta." });
+
+        if (string.IsNullOrEmpty(req.PasswordNueva) || req.PasswordNueva.Length < 8)
+            return BadRequest(new { error = "La nueva contraseña debe tener al menos 8 caracteres." });
+
+        usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.PasswordNueva);
+        usuario.ForzarCambioPwd = false;
+        db.Auditoria.Add(new AuditoriaSistema { IdUsuario = id, Accion = "cambio_password", Objetivo = usuario.Email });
+        await db.SaveChangesAsync();
+        return NoContent();
     }
 
     private string GenerarToken(Usuario usuario)
@@ -65,6 +105,8 @@ public class AuthController(SsalDbContext db, IConfiguration config) : Controlle
 }
 
 public record LoginRequest(string Email, string Password);
+
+public record CambiarPasswordRequest(string PasswordActual, string? PasswordNueva);
 
 public record LoginResponse(
     string Token,

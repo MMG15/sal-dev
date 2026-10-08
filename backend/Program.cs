@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
 using Ssal.Api.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 QuestPDF.Settings.License = LicenseType.Community;
@@ -29,6 +31,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+
+        // Una cuenta desactivada pierde el acceso de inmediato, aunque el token todavía no haya vencido
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async ctx =>
+            {
+                var db = ctx.HttpContext.RequestServices.GetRequiredService<SsalDbContext>();
+                var sub = ctx.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? ctx.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var rol = ctx.Principal?.FindFirst(ClaimTypes.Role)?.Value;
+                if (!int.TryParse(sub, out var id))
+                {
+                    ctx.Fail("Token inválido.");
+                    return;
+                }
+
+                var activo = rol == "PORTAL"
+                    ? await db.PortalUsuarios.AnyAsync(p => p.IdPortalUsuario == id && p.Activo)
+                    : await db.Usuarios.AnyAsync(u => u.IdUsuario == id && u.Activo);
+
+                if (!activo) ctx.Fail("Cuenta desactivada.");
+            }
         };
     });
 

@@ -137,6 +137,48 @@ namespace Ssal.Api.Migrations
                     b.ToTable("auditorias_rotulo");
                 });
 
+            modelBuilder.Entity("Ssal.Api.Models.AuditoriaSistema", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("accion");
+
+                    b.Property<string>("Detalle")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("detalle");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha");
+
+                    b.Property<int?>("IdUsuario")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_usuario");
+
+                    b.Property<string>("Objetivo")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("objetivo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Fecha");
+
+                    b.HasIndex("IdUsuario");
+
+                    b.ToTable("auditoria_sistema");
+                });
+
             modelBuilder.Entity("Ssal.Api.Models.Cliente", b =>
                 {
                     b.Property<int>("IdCliente")
@@ -347,6 +389,10 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha");
 
+                    b.Property<DateTime?>("FechaPago")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_pago");
+
                     b.Property<int>("IdSse")
                         .HasColumnType("integer")
                         .HasColumnName("id_sse");
@@ -359,6 +405,11 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("importe_pesos");
 
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("motivo_anulacion");
+
                     b.Property<string>("Numero")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
@@ -369,6 +420,10 @@ namespace Ssal.Api.Migrations
                     b.HasIndex("CreadoPor");
 
                     b.HasIndex("IdSse")
+                        .IsUnique()
+                        .HasFilter("estado <> 'anulada'");
+
+                    b.HasIndex("Numero")
                         .IsUnique();
 
                     b.ToTable("facturas");
@@ -382,6 +437,11 @@ namespace Ssal.Api.Migrations
                         .HasColumnName("id_firma");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdFirma"));
+
+                    b.Property<string>("Area")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("area");
 
                     b.Property<string>("Estado")
                         .IsRequired()
@@ -420,6 +480,8 @@ namespace Ssal.Api.Migrations
                     b.HasKey("IdFirma");
 
                     b.HasIndex("IdFirmante");
+
+                    b.HasIndex("TipoDocumento", "IdDocumento");
 
                     b.ToTable("firmas_documento");
                 });
@@ -536,6 +598,61 @@ namespace Ssal.Api.Migrations
                     b.HasIndex("RecibidoPor");
 
                     b.ToTable("muestras");
+                });
+
+            modelBuilder.Entity("Ssal.Api.Models.PortalUsuario", b =>
+                {
+                    b.Property<int>("IdPortalUsuario")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id_portal_usuario");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPortalUsuario"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activo");
+
+                    b.Property<int>("CreadoPor")
+                        .HasColumnType("integer")
+                        .HasColumnName("creado_por");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("ForzarCambioPwd")
+                        .HasColumnType("boolean")
+                        .HasColumnName("forzar_cambio_pwd");
+
+                    b.Property<int>("IdCliente")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_cliente");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
+
+                    b.Property<DateTime?>("UltimoAcceso")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ultimo_acceso");
+
+                    b.HasKey("IdPortalUsuario");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("IdCliente")
+                        .IsUnique();
+
+                    b.ToTable("portal_usuarios");
                 });
 
             modelBuilder.Entity("Ssal.Api.Models.Presupuesto", b =>
@@ -1059,6 +1176,15 @@ namespace Ssal.Api.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Ssal.Api.Models.AuditoriaSistema", b =>
+                {
+                    b.HasOne("Ssal.Api.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("IdUsuario");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Ssal.Api.Models.Cliente", b =>
                 {
                     b.HasOne("Ssal.Api.Models.Empresa", "Empresa")
@@ -1114,7 +1240,7 @@ namespace Ssal.Api.Migrations
                     b.HasOne("Ssal.Api.Models.Usuario", "Firmante")
                         .WithMany()
                         .HasForeignKey("IdFirmante")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Firmante");
@@ -1156,6 +1282,17 @@ namespace Ssal.Api.Migrations
                     b.Navigation("RecibidoPorUsuario");
 
                     b.Navigation("RotuloInterno");
+                });
+
+            modelBuilder.Entity("Ssal.Api.Models.PortalUsuario", b =>
+                {
+                    b.HasOne("Ssal.Api.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("IdCliente")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
                 });
 
             modelBuilder.Entity("Ssal.Api.Models.Presupuesto", b =>

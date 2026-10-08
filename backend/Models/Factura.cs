@@ -30,10 +30,18 @@ public class Factura
 
     [Column("estado")]
     [MaxLength(20)]
-    public string Estado { get; set; } = "emitida"; // emitida | anulada | pagada
+    public string Estado { get; set; } = "emitida"; // emitida | pagada | anulada (anulada: pendiente, ver RF-25)
 
     [Column("fecha")]
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = DateTime.UtcNow; // fecha de emisión (la informa el usuario según TANGO)
+
+    [Column("fecha_pago")]
+    public DateTime? FechaPago { get; set; }
+
+    // Reservado para la anulación (RF-25). Todavía no se usa.
+    [Column("motivo_anulacion")]
+    [MaxLength(500)]
+    public string? MotivoAnulacion { get; set; }
 
     // Navegación
     [ForeignKey("IdSse")]

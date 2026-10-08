@@ -23,13 +23,19 @@ public class FirmaDocumento
     [Column("id_documento")]
     public int IdDocumento { get; set; }
 
+    // Cada fila es un evento del ciclo de firma: responsable | aprobacion | rechazo | reenvio
     [Column("tipo_firma")]
     [MaxLength(20)]
-    public string TipoFirma { get; set; } = "responsable"; // responsable | aprobacion
+    public string TipoFirma { get; set; } = "responsable";
+
+    // Área que firma (MIC | FQ). Solo aplica a las firmas de responsable.
+    [Column("area")]
+    [MaxLength(10)]
+    public string? Area { get; set; }
 
     [Column("estado")]
     [MaxLength(20)]
-    public string Estado { get; set; } = "firmado"; // firmado | rechazado
+    public string Estado { get; set; } = "firmado"; // firmado | aprobado | rechazado | reenviado
 
     [Column("motivo_rechazo")]
     public string? MotivoRechazo { get; set; }

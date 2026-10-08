@@ -7,12 +7,13 @@ namespace Ssal.Api.Services;
 
 public static class InformePdfBuilder
 {
-    public static byte[] Generar(Informe informe)
+    public static byte[] Generar(Informe informe, string estadoFirma, IReadOnlyList<FirmaDocumento> firmas)
     {
         var muestra = informe.Muestra;
         var sse = muestra.RotuloInterno.Sse;
         var cliente = sse.Cliente;
-        var empresa = cliente?.Empresa;
+        // La empresa puede venir por el cliente de la SSE o por la consulta del presupuesto
+        var empresa = cliente?.Empresa ?? sse.Presupuesto?.Consulta.Empresa;
 
         string nombreDestinatario = cliente is not null
             ? $"{cliente.Nombre} {cliente.Apellido}"
@@ -42,6 +43,12 @@ public static class InformePdfBuilder
                 page.Content().PaddingVertical(12).Column(col =>
                 {
                     col.Spacing(10);
+
+                    if (estadoFirma != CicloFirma.Aprobado)
+                    {
+                        col.Item().Text("BORRADOR: sin firma y aprobación final. No válido para entrega al cliente.")
+                            .FontSize(9).SemiBold().FontColor(Colors.Red.Medium);
+                    }
 
                     col.Item().Row(row =>
                     {
@@ -107,6 +114,24 @@ public static class InformePdfBuilder
                     col.Item().PaddingTop(6).Text(
                         $"Todos los análisis listados fueron validados por el Responsable de Área correspondiente antes de la emisión de este informe."
                     ).FontSize(8.5f).Italic().FontColor(Colors.Grey.Darken1);
+
+                    if (firmas.Count > 0)
+                    {
+                        col.Item().PaddingTop(8).Text("Firmas digitales").FontSize(10).SemiBold();
+                        foreach (var f in firmas)
+                        {
+                            var rol = f.TipoFirma switch
+                            {
+                                "responsable" => $"Responsable de área {f.Area}",
+                                "aprobacion" => "Administrador general / Director Técnico (aprobación)",
+                                _ => null
+                            };
+                            if (rol is null) continue;
+
+                            var quien = $"{f.Firmante.Nombre} {f.Firmante.Apellido}";
+                            col.Item().Text($"{rol}: {quien} · {f.FechaFirma.ToLocalTime():dd/MM/yyyy HH:mm}").FontSize(9);
+                        }
+                    }
                 });
 
                 page.Footer().Column(col =>
