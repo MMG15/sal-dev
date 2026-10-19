@@ -40,6 +40,18 @@ public class Consulta
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // Preparado para la futura vinculación automática de consultas por mail o WhatsApp (RF-06).
+    // Hoy nadie los completa: toda consulta cargada desde el sistema queda en "manual" / sin externo_id.
+    [Column("origen")]
+    [MaxLength(20)]
+    public string Origen { get; set; } = "manual"; // manual | automatico
+
+    // Identificador del mensaje de origen (Message-ID del mail, id del mensaje de WhatsApp, etc.)
+    // Sirve para no crear la misma consulta dos veces si el canal reintenta o se vuelve a leer.
+    [Column("externo_id")]
+    [MaxLength(150)]
+    public string? ExternoId { get; set; }
+
     // Navegación
     [ForeignKey("IdCliente")]
     public Cliente? Cliente { get; set; }

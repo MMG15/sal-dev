@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ActionIcon, Badge, Button, Divider, FileButton, Group, Paper, Pill, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core'
-import { IconArrowLeft, IconDownload, IconFileSpreadsheet, IconInfoCircle, IconMail, IconPaperclip, IconTrash, IconUser } from '@tabler/icons-react'
+import { ActionIcon, Alert, Badge, Button, Divider, FileButton, Group, Paper, Pill, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core'
+import { IconArrowLeft, IconDownload, IconFileSpreadsheet, IconFileTypePdf, IconInfoCircle, IconMail, IconPaperclip, IconTrash, IconUser } from '@tabler/icons-react'
 import { apiFetch } from '../../lib/api'
 import {
   TIPO_ASESORAMIENTO_LABEL,
   TRANSICIONES,
-  construirMailto,
+  datosEnvioPresupuesto,
   formatBytes,
   iconoMime,
   type Archivo,
@@ -33,6 +33,8 @@ export default function PresupuestoDetallePage() {
   const [cambiandoEstado, setCambiandoEstado] = useState(false)
   const [subiendo, setSubiendo] = useState(false)
   const [error, setError] = useState('')
+  const [avisoEmail, setAvisoEmail] = useState(false)
+  const [enviandoEmail, setEnviandoEmail] = useState(false)
 
   const cargarArchivos = useCallback(async () => {
     const res = await apiFetch(`/api/presupuestos/${id}/archivos`)
@@ -61,11 +63,44 @@ export default function PresupuestoDetallePage() {
     }
   }
 
-  async function enviarPorEmail(p: PresupuestoDetalle) {
-    if (p.estado === 'borrador') {
-      await cambiarEstado('enviado')
+  async function descargarPdfPresupuesto(p: PresupuestoDetalle) {
+    const res = await apiFetch(`/api/presupuestos/${id}/pdf`)
+    if (!res.ok) {
+      setError('No se pudo generar el PDF del presupuesto.')
+      return
     }
-    window.location.href = construirMailto(p, archivos)
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${p.codigoRpo ?? 'presupuesto'}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function enviarPorEmail(p: PresupuestoDetalle) {
+    const { destinatario, asunto, cuerpo } = datosEnvioPresupuesto(p, archivos)
+    if (!destinatario) {
+      setError('El cliente/empresa de esta consulta no tiene un email registrado. Cargalo en su ficha para poder enviar el presupuesto.')
+      return
+    }
+    setEnviandoEmail(true)
+    setError('')
+    try {
+      const res = await apiFetch(`/api/presupuestos/${id}/enviar`, {
+        method: 'POST',
+        body: JSON.stringify({ destinatario, asunto, cuerpo }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error ?? 'No se pudo enviar el presupuesto por email.')
+        return
+      }
+      setAvisoEmail(true)
+      await cargar()
+    } finally {
+      setEnviandoEmail(false)
+    }
   }
 
   async function subirArchivo(file: File | null) {
@@ -156,18 +191,45 @@ export default function PresupuestoDetallePage() {
               {t.label}
             </Button>
           ))}
+          <Button
+            variant="default"
+            leftSection={<IconFileTypePdf size={16} />}
+            onClick={() => descargarPdfPresupuesto(presupuesto)}
+            title="Descarga el PDF del presupuesto"
+          >
+            Descargar PDF
+          </Button>
           {puedeEnviar && (
             <Button
               leftSection={<IconMail size={16} />}
               disabled={cambiandoEstado}
+              loading={enviandoEmail}
               onClick={() => enviarPorEmail(presupuesto)}
-              title="Abre tu cliente de correo con el presupuesto completo"
+              title="Manda el presupuesto por mail, con el PDF adjunto, desde la casilla del laboratorio"
             >
               Enviar por email
             </Button>
           )}
         </Group>
       </Group>
+
+      {avisoEmail && (
+        <Alert
+          color="blue"
+          variant="light"
+          withCloseButton
+          onClose={() => setAvisoEmail(false)}
+          style={{ flexShrink: 0 }}
+        >
+          Se envió el presupuesto por email, con el PDF adjunto, desde la casilla del laboratorio.
+        </Alert>
+      )}
+
+      {error && (
+        <Alert color="red" variant="light" withCloseButton onClose={() => setError('')} style={{ flexShrink: 0 }}>
+          {error}
+        </Alert>
+      )}
 
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
         <Paper withBorder radius="md" p="md" bg="gray.0">
@@ -298,8 +360,6 @@ export default function PresupuestoDetallePage() {
                 {props => <Button {...props} leftSection={<IconPaperclip size={16} />} loading={subiendo}>Adjuntar archivo</Button>}
               </FileButton>
             </Group>
-
-            {error && <Text c="red" size="sm" mb="sm">{error}</Text>}
 
             {archivos.length === 0 ? (
               <Text c="dimmed" size="sm" ta="center" py="lg">Todavía no hay documentos adjuntos.</Text>

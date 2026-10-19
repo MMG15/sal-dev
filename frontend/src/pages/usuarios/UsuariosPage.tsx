@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, type FormEvent } from 'react'
 import { apiFetch } from '../../lib/api'
 import { useSesion } from '../../context/SesionContext'
+import CuentasCorreoTab from './CuentasCorreoTab'
 import styles from './UsuariosPage.module.css'
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -60,16 +61,25 @@ function fechaHora(iso: string) {
 
 export default function UsuariosPage() {
   const { sesion } = useSesion()
-  // ROL-01 gestiona usuarios. ROL-06 solo consulta el registro de auditoría.
-  const puedeGestionar = sesion.rolCodigo === 'ROL-01'
-  const [pestana, setPestana] = useState<'usuarios' | 'auditoria'>(puedeGestionar ? 'usuarios' : 'auditoria')
+  // ROL-01 gestiona usuarios. ROL-01 y ROL-06 administran las cuentas de correo
+  // (es, en los hechos, una integración externa) y consultan la auditoría.
+  const puedeGestionarUsuarios = sesion.rolCodigo === 'ROL-01'
+  const puedeGestionarCorreo = sesion.rolCodigo === 'ROL-01' || sesion.rolCodigo === 'ROL-06'
+  const [pestana, setPestana] = useState<'usuarios' | 'correos' | 'auditoria'>(
+    puedeGestionarUsuarios ? 'usuarios' : puedeGestionarCorreo ? 'correos' : 'auditoria'
+  )
 
   return (
     <div className={styles.root}>
       <div className={styles.pestanas}>
-        {puedeGestionar && (
+        {puedeGestionarUsuarios && (
           <button className={`${styles.pestana} ${pestana === 'usuarios' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('usuarios')}>
             Usuarios
+          </button>
+        )}
+        {puedeGestionarCorreo && (
+          <button className={`${styles.pestana} ${pestana === 'correos' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('correos')}>
+            Cuentas de correo
           </button>
         )}
         <button className={`${styles.pestana} ${pestana === 'auditoria' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('auditoria')}>
@@ -77,7 +87,9 @@ export default function UsuariosPage() {
         </button>
       </div>
 
-      {pestana === 'usuarios' && puedeGestionar ? <TablaUsuarios /> : <RegistroAuditoria />}
+      {pestana === 'usuarios' && puedeGestionarUsuarios && <TablaUsuarios />}
+      {pestana === 'correos' && puedeGestionarCorreo && <CuentasCorreoTab />}
+      {pestana === 'auditoria' && <RegistroAuditoria />}
     </div>
   )
 }

@@ -10,6 +10,7 @@ import {
   IconReceipt,
   IconSignature,
   IconUserShield,
+  IconInbox,
 } from '@tabler/icons-react'
 
 // Grupos del menú lateral. El orden de los grupos es el orden en pantalla.
@@ -20,7 +21,7 @@ export interface GrupoNavegacion {
 
 export const GRUPOS_NAVEGACION: GrupoNavegacion[] = [
   { titulo: null, moduloIds: ['inicio'] },
-  { titulo: 'Atención al cliente', moduloIds: ['clientes', 'consultas', 'presupuestos', 'sse'] },
+  { titulo: 'Atención al cliente', moduloIds: ['clientes', 'correos', 'consultas', 'presupuestos', 'sse'] },
   { titulo: 'Laboratorio', moduloIds: ['analisis', 'resultados', 'firma'] },
   { titulo: 'Administración', moduloIds: ['facturacion', 'usuarios'] },
 ]
@@ -29,6 +30,7 @@ export const GRUPOS_NAVEGACION: GrupoNavegacion[] = [
 export const ICONO_MODULO: Record<string, ReactNode> = {
   inicio: <IconLayoutDashboard size={18} stroke={1.6} />,
   clientes: <IconUsers size={18} stroke={1.6} />,
+  correos: <IconInbox size={18} stroke={1.6} />,
   consultas: <IconMessages size={18} stroke={1.6} />,
   presupuestos: <IconFileSpreadsheet size={18} stroke={1.6} />,
   sse: <IconTag size={18} stroke={1.6} />,

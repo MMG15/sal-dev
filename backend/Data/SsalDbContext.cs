@@ -25,6 +25,8 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
     public DbSet<PresupuestoArchivo> PresupuestosArchivos => Set<PresupuestoArchivo>();
     public DbSet<PortalUsuario> PortalUsuarios => Set<PortalUsuario>();
     public DbSet<AuditoriaSistema> Auditoria => Set<AuditoriaSistema>();
+    public DbSet<CorreoEntrante> CorreosEntrantes => Set<CorreoEntrante>();
+    public DbSet<CuentaCorreo> CuentasCorreo => Set<CuentaCorreo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +43,41 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
 
         modelBuilder.Entity<AuditoriaSistema>()
             .HasIndex(a => a.Fecha);
+
+        // Evita duplicar una consulta si el futuro canal automático (mail/WhatsApp) reintenta
+        // o vuelve a leer el mismo mensaje. Nulo en todas las consultas cargadas a mano.
+        modelBuilder.Entity<Consulta>()
+            .HasIndex(c => c.ExternoId)
+            .IsUnique();
+
+        // Bandeja de correo: el Message-Id no se puede repetir (evita reimportar el mismo mail)
+        modelBuilder.Entity<CorreoEntrante>()
+            .HasIndex(c => c.ExternoId)
+            .IsUnique();
+
+        modelBuilder.Entity<CorreoEntrante>()
+            .HasOne(c => c.ConsultaGenerada)
+            .WithMany()
+            .HasForeignKey(c => c.IdConsultaGenerada)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<CorreoEntrante>()
+            .HasOne(c => c.UsuarioAccion)
+            .WithMany()
+            .HasForeignKey(c => c.IdUsuarioAccion)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<CorreoEntrante>()
+            .HasOne(c => c.CuentaCorreo)
+            .WithMany()
+            .HasForeignKey(c => c.IdCuentaCorreo)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<CorreoEntrante>()
+            .HasOne(c => c.ConsultaRelacionada)
+            .WithMany()
+            .HasForeignKey(c => c.IdConsultaRelacionada)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Portal del cliente: un acceso por cliente y email único
         modelBuilder.Entity<PortalUsuario>()

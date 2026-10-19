@@ -8,6 +8,8 @@ import Login from './pages/Login'
 import AppLayout from './layout/AppLayout'
 import InicioPage from './pages/InicioPage'
 import ClientesPage from './pages/clientes/ClientesPage'
+import CorreosPage from './pages/correos/CorreosPage'
+import CorreoDetallePage from './pages/correos/CorreoDetallePage'
 import ConsultasPage from './pages/consultas/ConsultasPage'
 import ConsultaDetallePage from './pages/consultas/ConsultaDetallePage'
 import PresupuestoDetallePage from './pages/presupuestos/PresupuestoDetallePage'
@@ -30,6 +32,7 @@ const SESION_KEY = 'ssal_sesion'
 const PAGINAS: Record<string, ReactNode> = {
   inicio: <InicioPage />,
   clientes: <ClientesPage />,
+  correos: <CorreosPage />,
   consultas: <ConsultasPage />,
   presupuestos: <PresupuestosPage />,
   sse: <SsePage />,
@@ -42,6 +45,7 @@ const PAGINAS: Record<string, ReactNode> = {
 
 // Vistas de detalle dentro de un módulo (ruta /modulo/:id)
 const PAGINAS_DETALLE: Record<string, ReactNode> = {
+  correos: <CorreoDetallePage />,
   consultas: <ConsultaDetallePage />,
   presupuestos: <PresupuestoDetallePage />,
   sse: <SseDetallePage />,

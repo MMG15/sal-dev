@@ -27,6 +27,14 @@ export const MODULOS: ModuloConfig[] = [
     listo: true,
   },
   {
+    id: 'correos',
+    label: 'Correo entrante',
+    descripcion: 'Bandeja del mail de consultas: filtrar y convertir en Consulta',
+    path: '/correos',
+    roles: ['ROL-01', 'ROL-02', 'ROL-03', 'ROL-07'],
+    listo: true,
+  },
+  {
     id: 'consultas',
     label: 'Consultas',
     descripcion: 'Seguimiento de consultas y cotizaciones',

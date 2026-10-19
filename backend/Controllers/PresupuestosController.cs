@@ -5,19 +5,23 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Ssal.Api.Data;
 using Ssal.Api.Models;
+using Ssal.Api.Services;
 
 namespace Ssal.Api.Controllers;
 
 [ApiController]
 [Route("api/presupuestos")]
 [Authorize]
-public class PresupuestosController(SsalDbContext db) : ControllerBase
+public class PresupuestosController(SsalDbContext db, IConfiguration config, EnvioCorreos envio) : ControllerBase
 {
     // Roles con permiso de gestión (crear/editar/archivar) de presupuestos.
     private const string RolesGestion = "ROL-01,ROL-03";
     // Roles con permiso de lectura — se suma ROL-02 porque desde SSE (Administrativo)
     // hace falta poder listar y consultar presupuestos aceptados para vincularlos.
     private const string RolesLectura = "ROL-01,ROL-02,ROL-03";
+
+    private string ClaveCifrado => config["MailImport:ClaveCifrado"]
+        ?? throw new InvalidOperationException("MailImport:ClaveCifrado no está configurada.");
 
     // ─── POST /api/presupuestos ───────────────────────────────────────────
     // Crea o reemplaza el presupuesto de una consulta
@@ -193,10 +197,10 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
                     p.Consulta.Cliente.Email,
                     p.Consulta.Cliente.Telefono,
                     Empresa = p.Consulta.Cliente.Empresa == null ? null
-                        : new { p.Consulta.Cliente.Empresa.IdEmpresa, p.Consulta.Cliente.Empresa.RazonSocial }
+                        : new { p.Consulta.Cliente.Empresa.IdEmpresa, p.Consulta.Cliente.Empresa.RazonSocial, p.Consulta.Cliente.Empresa.Email }
                 },
                 Empresa = p.Consulta.Empresa == null ? null
-                    : new { p.Consulta.Empresa.IdEmpresa, p.Consulta.Empresa.RazonSocial }
+                    : new { p.Consulta.Empresa.IdEmpresa, p.Consulta.Empresa.RazonSocial, p.Consulta.Empresa.Email }
             },
             CreadoPor = new { p.CreadoPorUsuario.Nombre, p.CreadoPorUsuario.Apellido },
             Items = p.Items
@@ -213,6 +217,83 @@ public class PresupuestosController(SsalDbContext db) : ControllerBase
                     GrupoNombre = i.Analisis.Grupo.CodigoAgrupador
                 })
         });
+    }
+
+    // ─── GET /api/presupuestos/{id}/pdf ──────────────────────────────────
+    [HttpGet("{id}/pdf")]
+    [Authorize(Roles = RolesLectura)]
+    public async Task<IActionResult> DescargarPdf(int id)
+    {
+        var p = await db.Presupuestos
+            .Include(x => x.Consulta).ThenInclude(c => c.Cliente).ThenInclude(cl => cl!.Empresa)
+            .Include(x => x.Consulta).ThenInclude(c => c.Empresa)
+            .Include(x => x.CreadoPorUsuario)
+            .Include(x => x.Items).ThenInclude(i => i.Analisis)
+            .FirstOrDefaultAsync(x => x.IdPresupuesto == id);
+
+        if (p is null) return NotFound();
+
+        var pdfBytes = PresupuestoPdfBuilder.Generar(p);
+        return File(pdfBytes, "application/pdf", $"{p.CodigoRpo ?? "presupuesto"}.pdf");
+    }
+
+    // ─── POST /api/presupuestos/{id}/enviar ──────────────────────────────
+    // Manda el presupuesto por mail de verdad (SMTP, con el PDF adjunto), desde la casilla
+    // por la que entró la consulta original (si vino de un correo) o la primera habilitada.
+    // Así la respuesta del cliente (aceptando o no) vuelve a esa misma casilla y el
+    // importador la puede reconocer y vincular a esta consulta.
+    [HttpPost("{id:int}/enviar")]
+    [Authorize(Roles = RolesGestion)]
+    public async Task<IActionResult> Enviar(int id, [FromBody] EnviarPresupuestoRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.Destinatario))
+            return BadRequest(new { error = "El destinatario no tiene un email registrado." });
+
+        var p = await db.Presupuestos
+            .Include(x => x.Consulta)
+            .FirstOrDefaultAsync(x => x.IdPresupuesto == id);
+        if (p is null) return NotFound();
+
+        var idCuentaOrigen = await db.CorreosEntrantes
+            .Where(c => c.IdConsultaGenerada == p.IdConsulta)
+            .Select(c => c.IdCuentaCorreo)
+            .FirstOrDefaultAsync();
+
+        var cuenta = idCuentaOrigen is not null
+            ? await db.CuentasCorreo.FindAsync(idCuentaOrigen.Value)
+            : null;
+        cuenta ??= await db.CuentasCorreo.Where(c => c.Habilitada).OrderBy(c => c.IdCuenta).FirstOrDefaultAsync();
+        if (cuenta is null)
+            return BadRequest(new { error = "No hay ninguna cuenta de correo configurada para enviar presupuestos." });
+
+        var pFull = await db.Presupuestos
+            .Include(x => x.Consulta).ThenInclude(c => c.Cliente).ThenInclude(cl => cl!.Empresa)
+            .Include(x => x.Consulta).ThenInclude(c => c.Empresa)
+            .Include(x => x.CreadoPorUsuario)
+            .Include(x => x.Items).ThenInclude(i => i.Analisis)
+            .FirstAsync(x => x.IdPresupuesto == id);
+        var pdfBytes = PresupuestoPdfBuilder.Generar(pFull);
+        var nombreArchivo = $"{p.CodigoRpo ?? "presupuesto"}.pdf";
+
+        string messageId;
+        try
+        {
+            var passwordPlano = Cifrado.Desencriptar(cuenta.PasswordCifrada, ClaveCifrado);
+            messageId = await envio.EnviarAsync(
+                cuenta, passwordPlano, req.Destinatario, req.Asunto, req.Cuerpo,
+                p.Consulta.ExternoId,
+                [new AdjuntoCorreo(nombreArchivo, pdfBytes, "application/pdf")],
+                HttpContext.RequestAborted);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway, new { error = $"No se pudo enviar el presupuesto por email: {ex.Message}" });
+        }
+
+        p.MessageIdEnviado = messageId;
+        if (p.Estado == "borrador") p.Estado = "enviado";
+        await db.SaveChangesAsync();
+        return Ok(new { ok = true });
     }
 
     // ─── PUT /api/presupuestos/{id}/estado ───────────────────────────────
@@ -345,3 +426,4 @@ public record GuardarPresupuestoRequest(
     string? TipoAsesoramiento);
 
 public record CambiarEstadoRequest(string Estado);
+public record EnviarPresupuestoRequest(string Destinatario, string Asunto, string Cuerpo);

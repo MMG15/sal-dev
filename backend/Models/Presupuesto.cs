@@ -45,6 +45,12 @@ public class Presupuesto
     [Column("fecha")]
     public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
+    // Message-Id del último mail enviado con este presupuesto, para reconocer la respuesta
+    // del cliente (aceptación/rechazo por mail) y vincularla a esta consulta automáticamente.
+    [Column("message_id_enviado")]
+    [MaxLength(250)]
+    public string? MessageIdEnviado { get; set; }
+
     // Navegación
     [ForeignKey("IdConsulta")]
     public Consulta Consulta { get; set; } = null!;

@@ -54,9 +54,9 @@ export interface PresupuestoDetalle {
     cliente: {
       idCliente: number; nombre: string; apellido: string
       email: string | null; telefono: string | null
-      empresa: { idEmpresa: number; razonSocial: string } | null
+      empresa: { idEmpresa: number; razonSocial: string; email: string | null } | null
     } | null
-    empresa: { idEmpresa: number; razonSocial: string } | null
+    empresa: { idEmpresa: number; razonSocial: string; email: string | null } | null
   }
   creadoPor: { nombre: string; apellido: string }
   items: ItemPresupuesto[]
@@ -83,10 +83,10 @@ export const TIPO_ASESORAMIENTO_LABEL: Record<string, string> = {
   proceso_completo: 'Proceso completo (consulta + muestreo + entrega)',
 }
 
-export function construirMailto(p: PresupuestoDetalle, archivos: Archivo[]): string {
+export function datosEnvioPresupuesto(p: PresupuestoDetalle, archivos: Archivo[]): { destinatario: string; asunto: string; cuerpo: string } {
     const cliente = p.consulta.cliente
     const empresa = p.consulta.empresa ?? p.consulta.cliente?.empresa
-    const destinatario = cliente?.email ?? ''
+    const destinatario = cliente?.email ?? empresa?.email ?? ''
 
     const nombreDestinatario = cliente
       ? `${cliente.nombre} ${cliente.apellido}`
@@ -134,8 +134,7 @@ export function construirMailto(p: PresupuestoDetalle, archivos: Archivo[]): str
 
     const asunto = `Presupuesto ${p.codigoRpo ?? ''} — Laboratorio Graffigna UCCuyo`
 
-    const mailto = `mailto:${encodeURIComponent(destinatario)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`
-  return mailto
+    return { destinatario, asunto, cuerpo }
 }
 
 export function formatBytes(bytes: number): string {

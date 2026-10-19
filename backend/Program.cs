@@ -70,6 +70,12 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 
+// Bandeja de correo del laboratorio: lee el buzón en segundo plano (apagado por defecto
+// hasta tener credenciales reales, ver MailImport:Habilitado en appsettings).
+builder.Services.AddScoped<Ssal.Api.Services.ImportadorCorreos>();
+builder.Services.AddHostedService<Ssal.Api.Services.ImportadorCorreosBackgroundService>();
+builder.Services.AddScoped<Ssal.Api.Services.EnvioCorreos>();
+
 var app = builder.Build();
 
 // Aplica migraciones y seed inicial
