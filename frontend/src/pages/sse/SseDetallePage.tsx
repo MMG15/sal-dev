@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Badge, Button, Divider, Group, Paper, Pill, SimpleGrid, Stack, Table, Tabs, Text, ThemeIcon, Title } from '@mantine/core'
-import { IconArrowLeft, IconClipboardText, IconHistory, IconTag, IconTestPipe, IconUser } from '@tabler/icons-react'
+import { IconArrowLeft, IconClipboardText, IconFileTypePdf, IconHistory, IconTag, IconTestPipe, IconUser } from '@tabler/icons-react'
 import { apiFetch } from '../../lib/api'
 import { etiquetaArea } from '../../lib/areas'
 import {
   CAMPO_AUDITORIA_LABEL,
+  ModalAsignarCliente,
   ModalCorregirRotulo,
   ModalMuestra,
   ModalRotulo,
@@ -35,7 +36,19 @@ export default function SseDetallePage() {
   const [sse, setSse] = useState<SseDetalle | null>(null)
   const [noEncontrada, setNoEncontrada] = useState(false)
   const [pestana, setPestana] = useState<string | null>('servicio')
-  const [modal, setModal] = useState<'rotulo' | 'muestra' | 'corregir' | null>(null)
+  const [modal, setModal] = useState<'rotulo' | 'muestra' | 'corregir' | 'cliente' | null>(null)
+
+  async function descargarPdf() {
+    const res = await apiFetch(`/api/sses/${id}/pdf`)
+    if (!res.ok) return
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${sse?.codigo ?? 'sse'}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const cargar = useCallback(async () => {
     const res = await apiFetch(`/api/sses/${id}`)
@@ -64,6 +77,7 @@ export default function SseDetallePage() {
   }
 
   const cliente = sse.cliente
+  const empresa = sse.empresa
   const rotulo = sse.rotulo
   const analisis = sse.presupuesto?.analisis ?? []
 
@@ -81,20 +95,30 @@ export default function SseDetallePage() {
             <Badge color={COLOR_ESTADO[sse.estado] ?? 'gray'} variant="light" size="lg" radius="sm">{sse.estado}</Badge>
           </Group>
           <Text c="dimmed" size="sm" mt={4}>
-            {cliente ? `${cliente.nombre} ${cliente.apellido}` : sse.presupuesto ? 'Sin cliente asignado' : '—'}
+            {cliente ? `${cliente.nombre} ${cliente.apellido}` : empresa ? empresa.razonSocial : 'Sin cliente ni empresa asignados'}
             {' · '}Registrada el {new Date(sse.fecha).toLocaleDateString('es-AR')}
             {' · '}por {sse.creadoPor.nombre} {sse.creadoPor.apellido}
           </Text>
         </div>
-        {rotulo && (
-          <Paper withBorder radius="md" px="md" py="sm">
-            <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Rótulo interno</Text>
-            <Group gap="xs" mt={2}>
-              <IconTag size={16} />
-              <Text ff="monospace" fw={700} fz={18}>{rotulo.numeroUnico}</Text>
-            </Group>
-          </Paper>
-        )}
+        <Group gap="sm" align="flex-start">
+          {rotulo && (
+            <Paper withBorder radius="md" px="md" py="sm">
+              <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Rótulo interno</Text>
+              <Group gap="xs" mt={2}>
+                <IconTag size={16} />
+                <Text ff="monospace" fw={700} fz={18}>{rotulo.numeroUnico}</Text>
+              </Group>
+            </Paper>
+          )}
+          <Button
+            variant="default"
+            leftSection={<IconFileTypePdf size={16} />}
+            onClick={descargarPdf}
+            title="Descarga el PDF de esta SSE, para el laboratorio o para el cliente"
+          >
+            Descargar PDF
+          </Button>
+        </Group>
       </Group>
 
       <Tabs value={pestana} onChange={setPestana} keepMounted={false}>
@@ -130,19 +154,24 @@ export default function SseDetallePage() {
 
             <Stack gap="lg">
               <Paper withBorder radius="md" p="lg">
-                <Group gap="xs" mb="md">
-                  <IconUser size={18} />
-                  <Text fw={600}>Cliente</Text>
+                <Group justify="space-between" mb="md">
+                  <Group gap="xs">
+                    <IconUser size={18} />
+                    <Text fw={600}>Cliente / empresa</Text>
+                  </Group>
+                  <Button size="xs" variant="default" onClick={() => setModal('cliente')}>
+                    {cliente || empresa ? 'Cambiar' : 'Asignar'}
+                  </Button>
                 </Group>
-                {cliente ? (
+                {cliente || empresa ? (
                   <Stack gap="sm">
-                    <Dato label="Nombre" valor={`${cliente.nombre} ${cliente.apellido}`} />
-                    {cliente.email && <Dato label="Email" valor={cliente.email} />}
-                    {cliente.telefono && <Dato label="Teléfono" valor={cliente.telefono} />}
-                    {cliente.empresa && <Dato label="Empresa" valor={cliente.empresa.razonSocial} />}
+                    {cliente && <Dato label="Cliente" valor={`${cliente.nombre} ${cliente.apellido}`} />}
+                    {cliente?.email && <Dato label="Email" valor={cliente.email} />}
+                    {cliente?.telefono && <Dato label="Teléfono" valor={cliente.telefono} />}
+                    {empresa && <Dato label="Empresa" valor={empresa.razonSocial} />}
                   </Stack>
                 ) : (
-                  <Text c="dimmed" size="sm">Sin cliente asignado a esta SSE.</Text>
+                  <Text c="dimmed" size="sm">Sin cliente ni empresa asignados a esta SSE.</Text>
                 )}
               </Paper>
 
@@ -257,6 +286,15 @@ export default function SseDetallePage() {
         </Tabs.Panel>
       </Tabs>
 
+      {modal === 'cliente' && (
+        <ModalAsignarCliente
+          idSse={sse.idSse}
+          idClienteActual={cliente?.idCliente ?? null}
+          idEmpresaActual={empresa?.idEmpresa ?? null}
+          onGuardado={async () => { setModal(null); await cargar() }}
+          onCerrar={() => setModal(null)}
+        />
+      )}
       {modal === 'rotulo' && (
         <ModalRotulo
           idSse={sse.idSse}

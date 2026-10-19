@@ -280,6 +280,11 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("estado");
 
+                    b.Property<string>("ExternoId")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("externo_id");
+
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha");
@@ -296,7 +301,16 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("id_responsable");
 
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("origen");
+
                     b.HasKey("IdConsulta");
+
+                    b.HasIndex("ExternoId")
+                        .IsUnique();
 
                     b.HasIndex("IdCliente");
 
@@ -305,6 +319,172 @@ namespace Ssal.Api.Migrations
                     b.HasIndex("IdResponsable");
 
                     b.ToTable("consultas");
+                });
+
+            modelBuilder.Entity("Ssal.Api.Models.CorreoEntrante", b =>
+                {
+                    b.Property<int>("IdCorreo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id_correo");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCorreo"));
+
+                    b.Property<string>("Asunto")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("asunto");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Cuerpo")
+                        .HasColumnType("text")
+                        .HasColumnName("cuerpo");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<string>("ExternoId")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("externo_id");
+
+                    b.Property<DateTime?>("FechaAccion")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_accion");
+
+                    b.Property<DateTime>("FechaRecibido")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_recibido");
+
+                    b.Property<int?>("IdConsultaGenerada")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_consulta_generada");
+
+                    b.Property<int?>("IdConsultaRelacionada")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_consulta_relacionada");
+
+                    b.Property<int?>("IdCuentaCorreo")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_cuenta_correo");
+
+                    b.Property<int?>("IdUsuarioAccion")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_usuario_accion");
+
+                    b.Property<string>("MessageIdEnviado")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("message_id_enviado");
+
+                    b.Property<string>("Remitente")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("remitente");
+
+                    b.Property<string>("RemitenteNombre")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("remitente_nombre");
+
+                    b.HasKey("IdCorreo");
+
+                    b.HasIndex("ExternoId")
+                        .IsUnique();
+
+                    b.HasIndex("IdConsultaGenerada");
+
+                    b.HasIndex("IdConsultaRelacionada");
+
+                    b.HasIndex("IdCuentaCorreo");
+
+                    b.HasIndex("IdUsuarioAccion");
+
+                    b.ToTable("correos_entrantes");
+                });
+
+            modelBuilder.Entity("Ssal.Api.Models.CuentaCorreo", b =>
+                {
+                    b.Property<int>("IdCuenta")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id_cuenta");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdCuenta"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("Habilitada")
+                        .HasColumnType("boolean")
+                        .HasColumnName("habilitada");
+
+                    b.Property<int>("IntervaloMinutos")
+                        .HasColumnType("integer")
+                        .HasColumnName("intervalo_minutos");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("PasswordCifrada")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("password_cifrada");
+
+                    b.Property<int>("Puerto")
+                        .HasColumnType("integer")
+                        .HasColumnName("puerto");
+
+                    b.Property<int>("PuertoSmtp")
+                        .HasColumnType("integer")
+                        .HasColumnName("puerto_smtp");
+
+                    b.Property<string>("Servidor")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("servidor");
+
+                    b.Property<string>("ServidorSmtp")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("servidor_smtp");
+
+                    b.Property<DateTime?>("UltimaRevision")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ultima_revision");
+
+                    b.Property<string>("UltimoError")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ultimo_error");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("usuario");
+
+                    b.HasKey("IdCuenta");
+
+                    b.ToTable("cuentas_correo");
                 });
 
             modelBuilder.Entity("Ssal.Api.Models.Empresa", b =>
@@ -703,6 +883,11 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("importe_pesos");
 
+                    b.Property<string>("MessageIdEnviado")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
+                        .HasColumnName("message_id_enviado");
+
                     b.Property<string>("TipoAsesoramiento")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -1060,6 +1245,10 @@ namespace Ssal.Api.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("id_cliente");
 
+                    b.Property<int?>("IdEmpresa")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_empresa");
+
                     b.Property<int?>("IdPresupuesto")
                         .HasColumnType("integer")
                         .HasColumnName("id_presupuesto");
@@ -1077,6 +1266,8 @@ namespace Ssal.Api.Migrations
                     b.HasIndex("CreadoPor");
 
                     b.HasIndex("IdCliente");
+
+                    b.HasIndex("IdEmpresa");
 
                     b.HasIndex("IdPresupuesto")
                         .IsUnique();
@@ -1214,6 +1405,37 @@ namespace Ssal.Api.Migrations
                     b.Navigation("Empresa");
 
                     b.Navigation("Responsable");
+                });
+
+            modelBuilder.Entity("Ssal.Api.Models.CorreoEntrante", b =>
+                {
+                    b.HasOne("Ssal.Api.Models.Consulta", "ConsultaGenerada")
+                        .WithMany()
+                        .HasForeignKey("IdConsultaGenerada")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Ssal.Api.Models.Consulta", "ConsultaRelacionada")
+                        .WithMany()
+                        .HasForeignKey("IdConsultaRelacionada")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Ssal.Api.Models.CuentaCorreo", "CuentaCorreo")
+                        .WithMany()
+                        .HasForeignKey("IdCuentaCorreo")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Ssal.Api.Models.Usuario", "UsuarioAccion")
+                        .WithMany()
+                        .HasForeignKey("IdUsuarioAccion")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ConsultaGenerada");
+
+                    b.Navigation("ConsultaRelacionada");
+
+                    b.Navigation("CuentaCorreo");
+
+                    b.Navigation("UsuarioAccion");
                 });
 
             modelBuilder.Entity("Ssal.Api.Models.Factura", b =>
@@ -1416,6 +1638,10 @@ namespace Ssal.Api.Migrations
                         .WithMany()
                         .HasForeignKey("IdCliente");
 
+                    b.HasOne("Ssal.Api.Models.Empresa", "Empresa")
+                        .WithMany()
+                        .HasForeignKey("IdEmpresa");
+
                     b.HasOne("Ssal.Api.Models.Presupuesto", "Presupuesto")
                         .WithOne("Sse")
                         .HasForeignKey("Ssal.Api.Models.Sse", "IdPresupuesto");
@@ -1423,6 +1649,8 @@ namespace Ssal.Api.Migrations
                     b.Navigation("Cliente");
 
                     b.Navigation("CreadoPorUsuario");
+
+                    b.Navigation("Empresa");
 
                     b.Navigation("Presupuesto");
                 });

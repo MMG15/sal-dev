@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Ssal.Api.Data;
 using Ssal.Api.Models;
+using Ssal.Api.Services;
 
 namespace Ssal.Api.Controllers;
 
@@ -28,6 +29,7 @@ public class SseController(SsalDbContext db) : ControllerBase
     {
         var q = db.Sses
             .Include(s => s.Cliente)
+            .Include(s => s.Empresa)
             .Include(s => s.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
             .Include(s => s.RotuloInterno)
             .AsQueryable();
@@ -65,9 +67,9 @@ public class SseController(SsalDbContext db) : ControllerBase
                 s.ImporteDolares,
                 s.ImportePesos,
                 Cliente = s.Cliente == null ? null : new { s.Cliente.Nombre, s.Cliente.Apellido, s.Cliente.Email },
-                Empresa = s.Presupuesto == null ? null
-                    : s.Presupuesto.Consulta.Empresa == null ? null
-                    : new { s.Presupuesto.Consulta.Empresa.RazonSocial },
+                Empresa = s.Empresa != null ? new { s.Empresa.RazonSocial }
+                    : s.Presupuesto != null && s.Presupuesto.Consulta.Empresa != null ? new { s.Presupuesto.Consulta.Empresa.RazonSocial }
+                    : null,
                 Rotulo = s.RotuloInterno == null ? null : new { s.RotuloInterno.IdRotulo, s.RotuloInterno.NumeroUnico, s.RotuloInterno.Estado }
             })
             .ToListAsync();
@@ -81,6 +83,7 @@ public class SseController(SsalDbContext db) : ControllerBase
     {
         var s = await db.Sses
             .Include(x => x.Cliente).ThenInclude(c => c!.Empresa)
+            .Include(x => x.Empresa)
             .Include(x => x.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Cliente)
             .Include(x => x.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
             .Include(x => x.Presupuesto).ThenInclude(p => p!.Items).ThenInclude(i => i.Analisis)
@@ -113,6 +116,7 @@ public class SseController(SsalDbContext db) : ControllerBase
                 s.Cliente.Telefono,
                 Empresa = s.Cliente.Empresa == null ? null : new { s.Cliente.Empresa.RazonSocial }
             },
+            Empresa = s.Empresa == null ? null : new { s.Empresa.IdEmpresa, s.Empresa.RazonSocial, s.Empresa.Email, s.Empresa.Telefono },
             Presupuesto = s.Presupuesto == null ? null : new
             {
                 s.Presupuesto.IdPresupuesto,
@@ -202,6 +206,44 @@ public class SseController(SsalDbContext db) : ControllerBase
         db.Sses.Add(sse);
         await db.SaveChangesAsync();
         return CreatedAtAction(nameof(Detalle), new { id = sse.IdSse }, new { sse.IdSse, sse.Codigo });
+    }
+
+    // ─── PUT /api/sses/{id}/cliente ───────────────────────────────────────
+    // La SSE es un documento que le queda tanto al laboratorio como al cliente: hace falta
+    // poder asignarle (o corregirle) el cliente aunque ya esté creada.
+    [HttpPut("{id}/cliente")]
+    public async Task<IActionResult> AsignarCliente(int id, [FromBody] AsignarClienteSseRequest req)
+    {
+        var s = await db.Sses.FindAsync(id);
+        if (s is null) return NotFound();
+
+        if (req.IdCliente is not null && !await db.Clientes.AnyAsync(c => c.IdCliente == req.IdCliente))
+            return BadRequest(new { error = "El cliente indicado no existe." });
+        if (req.IdEmpresa is not null && !await db.Empresas.AnyAsync(e => e.IdEmpresa == req.IdEmpresa))
+            return BadRequest(new { error = "La empresa indicada no existe." });
+
+        s.IdCliente = req.IdCliente;
+        s.IdEmpresa = req.IdEmpresa;
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // ─── GET /api/sses/{id}/pdf ───────────────────────────────────────────
+    [HttpGet("{id}/pdf")]
+    public async Task<IActionResult> DescargarPdf(int id)
+    {
+        var s = await db.Sses
+            .Include(x => x.Cliente).ThenInclude(c => c!.Empresa)
+            .Include(x => x.Empresa)
+            .Include(x => x.Presupuesto).ThenInclude(p => p!.Items).ThenInclude(i => i.Analisis)
+            .Include(x => x.CreadoPorUsuario)
+            .Include(x => x.RotuloInterno).ThenInclude(r => r!.Muestra)
+            .FirstOrDefaultAsync(x => x.IdSse == id);
+
+        if (s is null) return NotFound();
+
+        var pdfBytes = SsePdfBuilder.Generar(s);
+        return File(pdfBytes, "application/pdf", $"{s.Codigo ?? "sse"}.pdf");
     }
 
     // ─── PUT /api/sses/{id}/estado ────────────────────────────────────────
@@ -381,6 +423,8 @@ public record CrearSseRequest(
     decimal ImportePesos);
 
 public record CambiarEstadoSseRequest(string Estado);
+
+public record AsignarClienteSseRequest(int? IdCliente, int? IdEmpresa);
 
 public record AsignarRotuloRequest(string? NumeroUnico, string? Descripcion);
 

@@ -16,6 +16,9 @@ public class Sse
     [Column("id_cliente")]
     public int? IdCliente { get; set; }
 
+    [Column("id_empresa")]
+    public int? IdEmpresa { get; set; }
+
     [Required]
     [Column("creado_por")]
     public int CreadoPor { get; set; }
@@ -55,6 +58,9 @@ public class Sse
 
     [ForeignKey("IdCliente")]
     public Cliente? Cliente { get; set; }
+
+    [ForeignKey("IdEmpresa")]
+    public Empresa? Empresa { get; set; }
 
     [ForeignKey("CreadoPor")]
     public Usuario CreadoPorUsuario { get; set; } = null!;

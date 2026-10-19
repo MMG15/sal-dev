@@ -34,6 +34,7 @@ export interface SseDetalle {
     email: string | null; telefono: string | null
     empresa: { razonSocial: string } | null
   } | null
+  empresa: { idEmpresa: number; razonSocial: string; email: string | null; telefono: string | null } | null
   presupuesto: {
     idPresupuesto: number; codigoRpo: string | null
     importeDolares: number; importePesos: number
@@ -410,6 +411,97 @@ export function ModalCorregirRotulo({ idSse, rotulo, onGuardado, onCerrar }: {
             </div>
           </>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Modal: Asignar cliente y/o empresa ────────────────────────────────────────
+
+export function ModalAsignarCliente({ idSse, idClienteActual, idEmpresaActual, onGuardado, onCerrar }: {
+  idSse: number
+  idClienteActual: number | null
+  idEmpresaActual: number | null
+  onGuardado: () => void
+  onCerrar: () => void
+}) {
+  const [clientes, setClientes] = useState<{ idCliente: number; nombre: string; apellido: string }[]>([])
+  const [empresas, setEmpresas] = useState<{ idEmpresa: number; razonSocial: string }[]>([])
+  const [idCliente, setIdCliente] = useState<number | ''>(idClienteActual ?? '')
+  const [idEmpresa, setIdEmpresa] = useState<number | ''>(idEmpresaActual ?? '')
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    apiFetch('/api/clientes').then(r => r.json()).then(setClientes).catch(() => {})
+    apiFetch('/api/empresas').then(r => r.json()).then(setEmpresas).catch(() => {})
+  }, [])
+
+  async function guardar() {
+    setGuardando(true)
+    setError('')
+    try {
+      const res = await apiFetch(`/api/sses/${idSse}/cliente`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          idCliente: idCliente !== '' ? idCliente : null,
+          idEmpresa: idEmpresa !== '' ? idEmpresa : null,
+        })
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error ?? 'Error al asignar el cliente/empresa.')
+        return
+      }
+      onGuardado()
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className={styles.overlay} onClick={onCerrar}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h2>Asignar cliente / empresa</h2>
+          <button className={styles.btnCerrar} onClick={onCerrar}>✕</button>
+        </div>
+        <div className={styles.modalBody}>
+          <label className={styles.formLabel}>Cliente</label>
+          <select
+            className={styles.formInput}
+            value={idCliente}
+            onChange={e => setIdCliente(e.target.value ? Number(e.target.value) : '')}
+          >
+            <option value="">— Sin cliente —</option>
+            {clientes.map(c => (
+              <option key={c.idCliente} value={c.idCliente}>{c.apellido}, {c.nombre}</option>
+            ))}
+          </select>
+
+          <label className={styles.formLabel}>Empresa</label>
+          <select
+            className={styles.formInput}
+            value={idEmpresa}
+            onChange={e => setIdEmpresa(e.target.value ? Number(e.target.value) : '')}
+          >
+            <option value="">— Sin empresa —</option>
+            {empresas.map(e => (
+              <option key={e.idEmpresa} value={e.idEmpresa}>{e.razonSocial}</option>
+            ))}
+          </select>
+
+          <p className={styles.inputHint}>
+            Podés asignar cliente, empresa, o ambos. La SSE es un comprobante que le queda tanto al laboratorio como al cliente: asignalos para poder descargar el PDF con esos datos.
+          </p>
+          {error && <p className={styles.error}>{error}</p>}
+        </div>
+        <div className={styles.modalFooter}>
+          <button className={styles.btnSecundario} onClick={onCerrar}>Cancelar</button>
+          <button className={styles.btnPrimario} onClick={guardar} disabled={guardando}>
+            {guardando ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
       </div>
     </div>
   )
