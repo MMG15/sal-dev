@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Ssal.Api.csproj" />
+  <Project Path="Ssal.Application/Ssal.Application.csproj" />
+  <Project Path="Ssal.Domain/Ssal.Domain.csproj" />
+  <Project Path="Ssal.Infrastructure/Ssal.Infrastructure.csproj" />
+</Solution>

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
-using Ssal.Api.Data;
+using Ssal.Infrastructure.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -72,9 +72,152 @@ builder.Services.AddControllers();
 
 // Bandeja de correo del laboratorio: lee el buzón en segundo plano (apagado por defecto
 // hasta tener credenciales reales, ver MailImport:Habilitado en appsettings).
-builder.Services.AddScoped<Ssal.Api.Services.ImportadorCorreos>();
-builder.Services.AddHostedService<Ssal.Api.Services.ImportadorCorreosBackgroundService>();
-builder.Services.AddScoped<Ssal.Api.Services.EnvioCorreos>();
+builder.Services.AddScoped<Ssal.Infrastructure.ImportadorCorreos>();
+builder.Services.AddHostedService<Ssal.Infrastructure.ImportadorCorreosBackgroundService>();
+
+// Análisis: primer módulo migrado a Arquitectura Limpia (Fase 2). El controller ya no
+// conoce SsalDbContext — depende de los casos de uso, que a su vez dependen de la interfaz
+// del repositorio; la implementación real (EF Core) se resuelve acá, en el punto de entrada.
+builder.Services.AddScoped<Ssal.Application.Analisis.IAnalisisRepository, Ssal.Infrastructure.Repositorios.AnalisisRepository>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ListarAnalisisActivos>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ListarTodosLosAnalisis>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ListarGruposDeAnalisis>();
+builder.Services.AddScoped<Ssal.Application.Analisis.CrearAnalisis>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ActualizarAnalisis>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ToggleActivoAnalisis>();
+builder.Services.AddScoped<Ssal.Application.Analisis.EliminarAnalisis>();
+
+// Auditoría: segundo módulo migrado (lectura pura, sin reglas de negocio que mutan nada).
+builder.Services.AddScoped<Ssal.Application.Auditoria.IAuditoriaRepository, Ssal.Infrastructure.Repositorios.AuditoriaRepository>();
+builder.Services.AddScoped<Ssal.Application.Auditoria.ListarAuditoria>();
+
+// Empresas
+builder.Services.AddScoped<Ssal.Application.Empresas.IEmpresaRepository, Ssal.Infrastructure.Repositorios.EmpresaRepository>();
+builder.Services.AddScoped<Ssal.Application.Empresas.ListarEmpresas>();
+builder.Services.AddScoped<Ssal.Application.Empresas.ObtenerEmpresa>();
+builder.Services.AddScoped<Ssal.Application.Empresas.CrearEmpresa>();
+builder.Services.AddScoped<Ssal.Application.Empresas.ActualizarEmpresa>();
+
+// Clientes
+builder.Services.AddScoped<Ssal.Application.Clientes.IClienteRepository, Ssal.Infrastructure.Repositorios.ClienteRepository>();
+builder.Services.AddScoped<Ssal.Application.Clientes.ListarClientes>();
+builder.Services.AddScoped<Ssal.Application.Clientes.ObtenerCliente>();
+builder.Services.AddScoped<Ssal.Application.Clientes.CrearCliente>();
+builder.Services.AddScoped<Ssal.Application.Clientes.ActualizarCliente>();
+
+// Consultas
+builder.Services.AddScoped<Ssal.Application.Consultas.IConsultaRepository, Ssal.Infrastructure.Repositorios.ConsultaRepository>();
+builder.Services.AddScoped<Ssal.Application.Consultas.ListarConsultas>();
+builder.Services.AddScoped<Ssal.Application.Consultas.ObtenerConsulta>();
+builder.Services.AddScoped<Ssal.Application.Consultas.CrearConsulta>();
+builder.Services.AddScoped<Ssal.Application.Consultas.ActualizarConsulta>();
+
+// Facturas
+builder.Services.AddScoped<Ssal.Application.Facturas.IFacturaRepository, Ssal.Infrastructure.Repositorios.FacturaRepository>();
+builder.Services.AddScoped<Ssal.Application.Facturas.ListarFacturas>();
+builder.Services.AddScoped<Ssal.Application.Facturas.ListarSsesDisponibles>();
+builder.Services.AddScoped<Ssal.Application.Facturas.RegistrarFactura>();
+builder.Services.AddScoped<Ssal.Application.Facturas.MarcarFacturaPagada>();
+
+// Usuarios
+builder.Services.AddScoped<Ssal.Application.Comun.IHashDeContrasenas, Ssal.Infrastructure.HashDeContrasenasBCrypt>();
+builder.Services.AddScoped<Ssal.Application.Usuarios.IUsuarioRepository, Ssal.Infrastructure.Repositorios.UsuarioRepository>();
+builder.Services.AddScoped<Ssal.Application.Usuarios.ListarRoles>();
+builder.Services.AddScoped<Ssal.Application.Usuarios.ListarUsuarios>();
+builder.Services.AddScoped<Ssal.Application.Usuarios.CrearUsuario>();
+builder.Services.AddScoped<Ssal.Application.Usuarios.ActualizarUsuario>();
+builder.Services.AddScoped<Ssal.Application.Usuarios.DesactivarUsuario>();
+builder.Services.AddScoped<Ssal.Application.Usuarios.ActivarUsuario>();
+builder.Services.AddScoped<Ssal.Application.Usuarios.RestablecerPassword>();
+
+// Auth
+builder.Services.AddScoped<Ssal.Application.Auth.IAuthRepository, Ssal.Infrastructure.Repositorios.AuthRepository>();
+builder.Services.AddScoped<Ssal.Application.Auth.IGeneradorToken, Ssal.Infrastructure.GeneradorTokenJwt>();
+builder.Services.AddScoped<Ssal.Application.Auth.IniciarSesion>();
+builder.Services.AddScoped<Ssal.Application.Auth.CambiarPassword>();
+
+// Acceso al portal del cliente (lo administra el personal desde la ficha del cliente)
+builder.Services.AddScoped<Ssal.Application.PortalAccesos.IPortalAccesoRepository, Ssal.Infrastructure.Repositorios.PortalAccesoRepository>();
+builder.Services.AddScoped<Ssal.Application.PortalAccesos.ObtenerEstadoAcceso>();
+builder.Services.AddScoped<Ssal.Application.PortalAccesos.GenerarOrestablecerAcceso>();
+
+// Infraestructura compartida de correo (ahora en Ssal.Infrastructure)
+builder.Services.AddScoped<Ssal.Application.Comun.ICifradoContrasenas, Ssal.Infrastructure.CifradoContrasenasAes>();
+builder.Services.AddScoped<Ssal.Application.Comun.IEnvioCorreos, Ssal.Infrastructure.EnvioCorreos>();
+
+// Presupuestos
+builder.Services.AddScoped<Ssal.Application.Presupuestos.IPresupuestoRepository, Ssal.Infrastructure.Repositorios.PresupuestoRepository>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.IPresupuestoPdfGenerator, Ssal.Infrastructure.PresupuestoPdfGenerator>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.ListarPresupuestos>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.ObtenerPresupuesto>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.CrearPresupuesto>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.DescargarPresupuestoPdf>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.EnviarPresupuesto>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.CambiarEstadoPresupuesto>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.ListarArchivosPresupuesto>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.SubirArchivoPresupuesto>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.DescargarArchivoPresupuesto>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.EliminarArchivoPresupuesto>();
+
+// SSE / Rótulos
+builder.Services.AddScoped<Ssal.Application.Sse.ISseRepository, Ssal.Infrastructure.Repositorios.SseRepository>();
+builder.Services.AddScoped<Ssal.Application.Sse.ISsePdfGenerator, Ssal.Infrastructure.SsePdfGenerator>();
+builder.Services.AddScoped<Ssal.Application.Sse.ListarSse>();
+builder.Services.AddScoped<Ssal.Application.Sse.ObtenerSse>();
+builder.Services.AddScoped<Ssal.Application.Sse.CrearSse>();
+builder.Services.AddScoped<Ssal.Application.Sse.AsignarClienteSse>();
+builder.Services.AddScoped<Ssal.Application.Sse.DescargarSsePdf>();
+builder.Services.AddScoped<Ssal.Application.Sse.CambiarEstadoSse>();
+builder.Services.AddScoped<Ssal.Application.Sse.AsignarRotulo>();
+builder.Services.AddScoped<Ssal.Application.Sse.RegistrarMuestra>();
+builder.Services.AddScoped<Ssal.Application.Sse.ActualizarRotulo>();
+
+// Resultados
+builder.Services.AddScoped<Ssal.Application.Resultados.IResultadoRepository, Ssal.Infrastructure.Repositorios.ResultadoRepository>();
+builder.Services.AddScoped<Ssal.Application.Resultados.IInformePdfGenerator, Ssal.Infrastructure.InformePdfGenerator>();
+builder.Services.AddScoped<Ssal.Application.Resultados.ListarMuestras>();
+builder.Services.AddScoped<Ssal.Application.Resultados.ObtenerMuestra>();
+builder.Services.AddScoped<Ssal.Application.Resultados.GuardarInforme>();
+builder.Services.AddScoped<Ssal.Application.Resultados.DescargarInformePdf>();
+builder.Services.AddScoped<Ssal.Application.Resultados.CargarValorResultado>();
+builder.Services.AddScoped<Ssal.Application.Resultados.ValidarResultado>();
+
+// Firmas
+builder.Services.AddScoped<Ssal.Application.Firmas.IFirmaRepository, Ssal.Infrastructure.Repositorios.FirmaRepository>();
+builder.Services.AddScoped<Ssal.Application.Firmas.CargadorEstadoDocumento>();
+builder.Services.AddScoped<Ssal.Application.Firmas.VerificadorPasswordUsuario>();
+builder.Services.AddScoped<Ssal.Application.Firmas.ListarFirmas>();
+builder.Services.AddScoped<Ssal.Application.Firmas.ObtenerFirma>();
+builder.Services.AddScoped<Ssal.Application.Firmas.FirmarDocumento>();
+builder.Services.AddScoped<Ssal.Application.Firmas.AprobarDocumento>();
+builder.Services.AddScoped<Ssal.Application.Firmas.RechazarDocumento>();
+builder.Services.AddScoped<Ssal.Application.Firmas.ReenviarDocumento>();
+
+// Correo entrante
+builder.Services.AddScoped<Ssal.Application.Correos.ICorreoEntranteRepository, Ssal.Infrastructure.Repositorios.CorreoEntranteRepository>();
+builder.Services.AddScoped<Ssal.Application.Correos.ListarCorreos>();
+builder.Services.AddScoped<Ssal.Application.Correos.ObtenerCorreo>();
+builder.Services.AddScoped<Ssal.Application.Correos.ResponderCorreo>();
+builder.Services.AddScoped<Ssal.Application.Correos.DescartarCorreo>();
+builder.Services.AddScoped<Ssal.Application.Correos.ConvertirCorreo>();
+
+// Cuentas de correo
+builder.Services.AddScoped<Ssal.Application.CuentasCorreo.ICuentaCorreoRepository, Ssal.Infrastructure.Repositorios.CuentaCorreoRepository>();
+builder.Services.AddScoped<Ssal.Application.CuentasCorreo.IRevisorDeCuentaCorreo, Ssal.Infrastructure.RevisorDeCuentaCorreo>();
+builder.Services.AddScoped<Ssal.Application.CuentasCorreo.ListarCuentasCorreo>();
+builder.Services.AddScoped<Ssal.Application.CuentasCorreo.CrearCuentaCorreo>();
+builder.Services.AddScoped<Ssal.Application.CuentasCorreo.ActualizarCuentaCorreo>();
+builder.Services.AddScoped<Ssal.Application.CuentasCorreo.RevisarCuentaAhora>();
+builder.Services.AddScoped<Ssal.Application.CuentasCorreo.EliminarCuentaCorreo>();
+
+// Portal del cliente externo
+builder.Services.AddScoped<Ssal.Application.Portal.IPortalRepository, Ssal.Infrastructure.Repositorios.PortalRepository>();
+builder.Services.AddScoped<Ssal.Application.Portal.IGeneradorTokenPortal, Ssal.Infrastructure.GeneradorTokenJwtPortal>();
+builder.Services.AddScoped<Ssal.Application.Portal.IniciarSesionPortal>();
+builder.Services.AddScoped<Ssal.Application.Portal.CambiarPasswordPortal>();
+builder.Services.AddScoped<Ssal.Application.Portal.ListarPedidos>();
+builder.Services.AddScoped<Ssal.Application.Portal.ObtenerInformeDetalle>();
+builder.Services.AddScoped<Ssal.Application.Portal.DescargarInformePortalPdf>();
 
 var app = builder.Build();
 
@@ -101,7 +244,7 @@ using (var scope = app.Services.CreateScope())
     {
         if (!db.Usuarios.Any(x => x.Email == u.Email))
         {
-            db.Usuarios.Add(new Ssal.Api.Models.Usuario
+            db.Usuarios.Add(new Ssal.Domain.Usuario
             {
                 IdRol = u.IdRol,
                 Nombre = u.Nombre,
@@ -119,7 +262,7 @@ using (var scope = app.Services.CreateScope())
     {
         var gruposMic = new[]
         {
-            new Ssal.Api.Models.GrupoAnalisis
+            new Ssal.Domain.GrupoAnalisis
             {
                 CodigoAgrupador = "Recuentos generales",
                 Descripcion = "Recuentos microbiológicos de rutina",
@@ -135,7 +278,7 @@ using (var scope = app.Services.CreateScope())
                     new() { Codigo = "MIC-007", Nombre = "Anaerobios esporulados sulfito-reductores", Area = "MIC", PrecioUsd = 11.00m },
                 ]
             },
-            new Ssal.Api.Models.GrupoAnalisis
+            new Ssal.Domain.GrupoAnalisis
             {
                 CodigoAgrupador = "Patógenos específicos",
                 Descripcion = "Detección e identificación de patógenos de interés sanitario",
@@ -152,7 +295,7 @@ using (var scope = app.Services.CreateScope())
 
         var gruposFq = new[]
         {
-            new Ssal.Api.Models.GrupoAnalisis
+            new Ssal.Domain.GrupoAnalisis
             {
                 CodigoAgrupador = "Composición proximal",
                 Descripcion = "Determinaciones de composición nutricional",
@@ -167,7 +310,7 @@ using (var scope = app.Services.CreateScope())
                     new() { Codigo = "FQ-006", Nombre = "Hidratos de carbono — por diferencia (%)", Area = "FQ", PrecioUsd = 5.00m },
                 ]
             },
-            new Ssal.Api.Models.GrupoAnalisis
+            new Ssal.Domain.GrupoAnalisis
             {
                 CodigoAgrupador = "Parámetros fisicoquímicos",
                 Descripcion = "Determinaciones fisicoquímicas de proceso y calidad",
@@ -183,7 +326,7 @@ using (var scope = app.Services.CreateScope())
                     new() { Codigo = "FQ-107", Nombre = "Sólidos totales (%)", Area = "FQ", PrecioUsd = 7.00m },
                 ]
             },
-            new Ssal.Api.Models.GrupoAnalisis
+            new Ssal.Domain.GrupoAnalisis
             {
                 CodigoAgrupador = "Minerales",
                 Descripcion = "Determinación de minerales por espectroscopía",
@@ -196,7 +339,7 @@ using (var scope = app.Services.CreateScope())
                     new() { Codigo = "FQ-204", Nombre = "Hierro (mg/100 g)", Area = "FQ", PrecioUsd = 13.00m },
                 ]
             },
-            new Ssal.Api.Models.GrupoAnalisis
+            new Ssal.Domain.GrupoAnalisis
             {
                 CodigoAgrupador = "Contaminantes inorgánicos",
                 Descripcion = "Metales pesados y contaminantes por ICP-OES",

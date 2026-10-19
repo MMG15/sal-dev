@@ -9,14 +9,32 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
-    <PackageReference Include="MailKit" Version="4.18.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <!-- Fija la misma version de EF Core que usa Ssal.Infrastructure: el SDK Web trae su propia
+         version mas vieja via el shared framework, y sin esto hay conflicto de ensamblados
+         porque los controllers todavia llaman metodos de EF Core directo (ver Fase 2). -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
+    <!-- Las herramientas de EF Core (dotnet ef) exigen esta referencia en el proyecto de
+         arranque, aunque el DbContext viva en Ssal.Infrastructure. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="QuestPDF" Version="2026.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Ssal.Domain\Ssal.Domain.csproj" />
+    <ProjectReference Include="Ssal.Application\Ssal.Application.csproj" />
+    <ProjectReference Include="Ssal.Infrastructure\Ssal.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <!-- Ssal.Api vive en backend/ junto a las carpetas de los otros proyectos: sin este Remove,
+       el glob por defecto de los SDK-style projects (**/*.cs) compilaría también sus archivos
+       acá adentro, duplicando los tipos ya traídos por ProjectReference. -->
+  <ItemGroup>
+    <Compile Remove="Ssal.Domain\**\*.cs" />
+    <Compile Remove="Ssal.Application\**\*.cs" />
+    <Compile Remove="Ssal.Infrastructure\**\*.cs" />
   </ItemGroup>
 
 </Project>
