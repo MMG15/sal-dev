@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Alert, Badge, Group, Pagination, Paper, Select, Stack, Table, Text, TextInput, Title } from '@mantine/core'
-import { IconInbox, IconSearch } from '@tabler/icons-react'
+import { ActionIcon, Alert, Badge, Group, Pagination, Paper, Select, Stack, Table, Text, TextInput, Title } from '@mantine/core'
+import { IconInbox, IconRefresh, IconSearch } from '@tabler/icons-react'
 import { apiFetch } from '../../lib/api'
 import { ESTADOS_CORREO, ESTADO_CORREO_COLOR, ESTADO_CORREO_LABEL, type CorreoResumen } from './correosComun'
 
@@ -57,6 +57,9 @@ export default function CorreosPage() {
             revisalo y decidí si se convierte en consulta, se responde o se descarta.
           </Text>
         </div>
+        <ActionIcon variant="default" size="lg" onClick={cargarLista} loading={cargando} title="Refrescar bandeja">
+          <IconRefresh size={18} />
+        </ActionIcon>
       </Group>
 
       {pendientes > 0 && (

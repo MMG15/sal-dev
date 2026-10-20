@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, Badge, Button, Group, Modal, Paper, PasswordInput, SimpleGrid, Stack, Stepper, Text, Textarea, Timeline, Title } from '@mantine/core'
-import { IconArrowLeft, IconCheck, IconDownload, IconSignature, IconX } from '@tabler/icons-react'
+import { IconArrowLeft, IconCheck, IconDownload, IconMail, IconSignature, IconX } from '@tabler/icons-react'
 import { apiFetch } from '../../lib/api'
 import { etiquetaArea } from '../../lib/areas'
 import { useSesion } from '../../context/SesionContext'
@@ -11,6 +11,7 @@ import {
   ESTADO_FIRMA_LABEL,
   TIPO_EVENTO,
   TIPO_LABEL,
+  datosEnvioInforme,
   fechaCorta,
   fechaHora,
 } from './firmaComun'
@@ -27,6 +28,8 @@ export default function FirmaDetallePage() {
   const [motivo, setMotivo] = useState('')
   const [modalRechazo, setModalRechazo] = useState(false)
   const [enviando, setEnviando] = useState(false)
+  const [enviandoEmail, setEnviandoEmail] = useState(false)
+  const [avisoEmail, setAvisoEmail] = useState(false)
   const [error, setError] = useState('')
 
   const base = `/api/firmas/documentos/${tipo}/${id}`
@@ -77,6 +80,30 @@ export default function FirmaDetallePage() {
       })
   }
 
+  async function enviarInformePorEmail(doc: DetalleDocumento['documento']) {
+    const { destinatario, asunto, cuerpo } = datosEnvioInforme(doc)
+    if (!destinatario) {
+      setError('El cliente/empresa de esta SSE no tiene un email registrado. Cargalo en su ficha para poder enviar el informe.')
+      return
+    }
+    setEnviandoEmail(true)
+    setError('')
+    try {
+      const res = await apiFetch(`/api/firmas/documentos/informe/${doc.id}/enviar`, {
+        method: 'POST',
+        body: JSON.stringify({ destinatario, asunto, cuerpo }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error ?? 'No se pudo enviar el informe por email.')
+        return
+      }
+      setAvisoEmail(true)
+    } finally {
+      setEnviandoEmail(false)
+    }
+  }
+
   if (noEncontrado) {
     return (
       <Stack gap="md" p="xl">
@@ -125,11 +152,29 @@ export default function FirmaDetallePage() {
           </Text>
         </div>
         {doc.tipo === 'informe' && (
-          <Button variant="default" leftSection={<IconDownload size={16} />} onClick={() => descargarPdf(doc.id, doc.codigo)}>
-            Descargar PDF{detalle.estado !== 'aprobado' ? ' (borrador)' : ''}
-          </Button>
+          <Group gap="sm">
+            <Button variant="default" leftSection={<IconDownload size={16} />} onClick={() => descargarPdf(doc.id, doc.codigo)}>
+              Descargar PDF{detalle.estado !== 'aprobado' ? ' (borrador)' : ''}
+            </Button>
+            {detalle.estado === 'aprobado' && (
+              <Button
+                leftSection={<IconMail size={16} />}
+                loading={enviandoEmail}
+                onClick={() => enviarInformePorEmail(doc)}
+                title="Manda el informe firmado por mail, con el PDF adjunto, al cliente o empresa de la SSE"
+              >
+                Enviar al cliente por email
+              </Button>
+            )}
+          </Group>
         )}
       </Group>
+
+      {avisoEmail && (
+        <Alert color="blue" variant="light" withCloseButton onClose={() => setAvisoEmail(false)}>
+          Informe enviado por email.
+        </Alert>
+      )}
 
       <Paper withBorder radius="md" p="lg">
         <Text fw={600} mb="md">Recorrido de firmas</Text>

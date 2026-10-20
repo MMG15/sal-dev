@@ -42,6 +42,15 @@ public class FirmaRepository(SsalDbContext db) : IFirmaRepository
             .Include(p => p.Consulta).ThenInclude(c => c.Empresa)
             .FirstOrDefaultAsync(p => p.IdPresupuesto == id);
 
+    // Con todos los includes que necesita el PDF (y por lo tanto también el envío por mail).
+    public Task<Informe?> ObtenerInformeCompletoAsync(int id) =>
+        db.Informes
+            .Include(i => i.Muestra).ThenInclude(m => m.RotuloInterno).ThenInclude(r => r.Sse).ThenInclude(s => s.Cliente!.Empresa)
+            .Include(i => i.Muestra).ThenInclude(m => m.RotuloInterno).ThenInclude(r => r.Sse).ThenInclude(s => s.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
+            .Include(i => i.Muestra).ThenInclude(m => m.Resultados).ThenInclude(r => r.Analisis).ThenInclude(a => a.Grupo)
+            .Include(i => i.GeneradoPorUsuario)
+            .FirstOrDefaultAsync(i => i.IdInforme == id);
+
     public async Task<List<FirmaDocumento>> ObtenerEventosAsync(string tipoDocumento, int idDocumento) =>
         await db.FirmasDocumento
             .Include(f => f.Firmante)
@@ -52,6 +61,9 @@ public class FirmaRepository(SsalDbContext db) : IFirmaRepository
     public void AgregarFirma(FirmaDocumento firma) => db.FirmasDocumento.Add(firma);
 
     public Task<Usuario?> ObtenerUsuarioAsync(int id) => db.Usuarios.FindAsync(id).AsTask();
+
+    public Task<CuentaCorreo?> ObtenerPrimeraCuentaHabilitadaAsync() =>
+        db.CuentasCorreo.Where(c => c.Habilitada).OrderBy(c => c.IdCuenta).FirstOrDefaultAsync();
 
     public Task GuardarCambiosAsync() => db.SaveChangesAsync();
 }

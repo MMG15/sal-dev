@@ -15,7 +15,8 @@ public class FirmasController(
     FirmarDocumento firmar,
     AprobarDocumento aprobar,
     RechazarDocumento rechazar,
-    ReenviarDocumento reenviar) : ControllerBase
+    ReenviarDocumento reenviar,
+    EnviarInformeFirmado enviarInforme) : ControllerBase
 {
     // Lectura del módulo y rechazo: responsables de área y Administrador
     private const string RolesFirma = "ROL-01,ROL-08,ROL-09";
@@ -87,6 +88,18 @@ public class FirmasController(
     public async Task<IActionResult> Reenviar(string tipo, int id)
     {
         var resultado = await reenviar.EjecutarAsync(tipo, id, UsuarioActual, RolActual);
+        if (!resultado.Ok)
+            return resultado.Error == "No encontrado" ? NotFound() : BadRequest(new { error = resultado.Error });
+        return NoContent();
+    }
+
+    // ─── POST /api/firmas/documentos/informe/{id}/enviar ──────────────────
+    // Entrega del informe aprobado al cliente/empresa por mail. Solo el Administrador general.
+    [HttpPost("documentos/informe/{id:int}/enviar")]
+    [Authorize(Roles = RolesAprobacion)]
+    public async Task<IActionResult> EnviarInforme(int id, [FromBody] EnviarInformeFirmadoCommand req, CancellationToken ct)
+    {
+        var resultado = await enviarInforme.EjecutarAsync(id, req, ct);
         if (!resultado.Ok)
             return resultado.Error == "No encontrado" ? NotFound() : BadRequest(new { error = resultado.Error });
         return NoContent();

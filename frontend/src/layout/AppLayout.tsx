@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { AppShell, Avatar, Box, Breadcrumbs, Burger, Group, Kbd, Menu, Modal, ScrollArea, Text, UnstyledButton } from '@mantine/core'
+import { AppShell, Avatar, Badge, Box, Breadcrumbs, Burger, Group, Kbd, Menu, Modal, ScrollArea, Text, UnstyledButton } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Spotlight, spotlight } from '@mantine/spotlight'
 import { IconChevronUp, IconKey, IconLogout, IconSearch } from '@tabler/icons-react'
@@ -7,7 +8,10 @@ import { useSesion } from '../context/SesionContext'
 import { modulosParaRol } from '../config/modulos'
 import { GRUPOS_NAVEGACION, ICONO_MODULO, PANTALLAS_COMPLETAS } from '../config/navegacion'
 import FormCambiarPassword from '../components/FormCambiarPassword'
+import { apiFetch } from '../lib/api'
 import styles from './AppLayout.module.css'
+
+const INTERVALO_CORREOS_PENDIENTES = 60_000
 
 function iniciales(nombre: string, apellido: string) {
   return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase()
@@ -24,6 +28,27 @@ export default function AppLayout() {
   const moduloActual = modulos.find(m => location.pathname.startsWith(m.path))
   const grupoActual = GRUPOS_NAVEGACION.find(g => moduloActual && g.moduloIds.includes(moduloActual.id))
   const pantallaCompleta = PANTALLAS_COMPLETAS.some(p => location.pathname.startsWith(p))
+
+  const [correosPendientes, setCorreosPendientes] = useState(0)
+  const tieneModuloCorreos = modulos.some(m => m.id === 'correos')
+
+  useEffect(() => {
+    if (!tieneModuloCorreos) return
+    let activo = true
+    async function consultar() {
+      try {
+        const res = await apiFetch('/api/correos-entrantes?pagina=1&porPagina=1')
+        if (!res.ok || !activo) return
+        const data = await res.json()
+        setCorreosPendientes(data.pendientes ?? 0)
+      } catch {
+        // si falla, se reintenta en el próximo ciclo
+      }
+    }
+    consultar()
+    const id = setInterval(consultar, INTERVALO_CORREOS_PENDIENTES)
+    return () => { activo = false; clearInterval(id) }
+  }, [tieneModuloCorreos])
 
   function handleLogout() {
     cerrarSesion()
@@ -72,6 +97,11 @@ export default function AppLayout() {
                       >
                         <span className={styles.iconoItem}>{ICONO_MODULO[m.id]}</span>
                         {m.label}
+                        {m.id === 'correos' && correosPendientes > 0 && (
+                          <Badge size="sm" circle color="red" ml="auto" variant="filled">
+                            {correosPendientes > 99 ? '99+' : correosPendientes}
+                          </Badge>
+                        )}
                       </Link>
                     )
                   })}

@@ -5,6 +5,7 @@ export interface DocumentoLista {
   id: number
   codigo: string
   destinatario: string
+  destinatarioEmail: string | null
   sse: string | null
   rotulo: string | null
   fecha: string
@@ -62,6 +63,32 @@ export const TIPO_EVENTO: Record<string, string> = {
   aprobacion: 'Aprobación final',
   rechazo: 'Rechazo',
   reenvio: 'Reenvío para firma',
+}
+
+export function datosEnvioInforme(doc: DocumentoLista): { destinatario: string; asunto: string; cuerpo: string } {
+  const cuerpo = [
+    `Estimado/a ${doc.destinatario},`,
+    '',
+    `Nos comunicamos desde el Laboratorio Control de Calidad "Dr. Alberto Graffigna" - UCCuyo`,
+    `para hacerle llegar el informe de resultados, ya aprobado y firmado, correspondiente a su SSE.`,
+    '',
+    `─────────────────────────────────────────`,
+    `INFORME ${doc.codigo}`,
+    doc.sse ? `SSE: ${doc.sse}` : undefined,
+    doc.rotulo ? `Rótulo: ${doc.rotulo}` : undefined,
+    `Fecha: ${fechaCorta(doc.fecha)}`,
+    `─────────────────────────────────────────`,
+    '',
+    'El informe firmado va adjunto en PDF a este correo.',
+    '',
+    'Ante cualquier consulta, no dude en comunicarse.',
+    '',
+    'Saludos cordiales,',
+    'Laboratorio Control de Calidad "Dr. Alberto Graffigna"',
+    'UCCuyo — San Juan, Argentina',
+  ].filter((l): l is string => l !== undefined).join('\n')
+
+  return { destinatario: doc.destinatarioEmail ?? '', asunto: `Informe ${doc.codigo} — Laboratorio Graffigna UCCuyo`, cuerpo }
 }
 
 export function fechaCorta(iso: string) {

@@ -192,6 +192,7 @@ builder.Services.AddScoped<Ssal.Application.Firmas.FirmarDocumento>();
 builder.Services.AddScoped<Ssal.Application.Firmas.AprobarDocumento>();
 builder.Services.AddScoped<Ssal.Application.Firmas.RechazarDocumento>();
 builder.Services.AddScoped<Ssal.Application.Firmas.ReenviarDocumento>();
+builder.Services.AddScoped<Ssal.Application.Firmas.EnviarInformeFirmado>();
 
 // Correo entrante
 builder.Services.AddScoped<Ssal.Application.Correos.ICorreoEntranteRepository, Ssal.Infrastructure.Repositorios.CorreoEntranteRepository>();

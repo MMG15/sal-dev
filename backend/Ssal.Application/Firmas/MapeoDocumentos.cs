@@ -13,6 +13,7 @@ internal static class MapeoDocumentos
             i.IdInforme,
             i.Codigo,
             DestinatarioSse(sse),
+            EmailSse(sse),
             sse.Codigo,
             i.Muestra.RotuloInterno.NumeroUnico,
             i.FechaGeneracion,
@@ -32,6 +33,7 @@ internal static class MapeoDocumentos
             destinatario,
             null,
             null,
+            null,
             p.Fecha,
             p.Items.Select(i => i.Analisis.Area).Distinct().OrderBy(a => a).ToList());
     }
@@ -39,6 +41,9 @@ internal static class MapeoDocumentos
     private static string DestinatarioSse(Ssal.Domain.Sse s) =>
         s.Cliente is not null ? $"{s.Cliente.Nombre} {s.Cliente.Apellido}"
         : s.Presupuesto?.Consulta.Empresa?.RazonSocial ?? "—";
+
+    private static string? EmailSse(Ssal.Domain.Sse s) =>
+        s.Cliente?.Email ?? s.Presupuesto?.Consulta.Empresa?.Email;
 
     public static string? AreaDelRol(string rol) => rol switch
     {
