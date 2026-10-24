@@ -9,7 +9,7 @@ public class ListarGruposDeAnalisis(IAnalisisRepository repo)
         return grupos
             .OrderBy(g => g.Area)
             .ThenBy(g => g.CodigoAgrupador)
-            .Select(g => new GrupoDto(g.IdGrupo, g.CodigoAgrupador, g.Descripcion, g.Area))
+            .Select(g => new GrupoDto(g.IdGrupo, g.CodigoAgrupador, g.Descripcion, g.Area, g.TipoMuestra, g.Norma, g.CantidadMuestra))
             .ToList();
     }
 }

@@ -100,9 +100,9 @@ export default function FirmaPage() {
         />
       </Group>
 
-      {error && <Alert color="red" variant="light" icon={<IconAlertCircle size={18} />}>{error}</Alert>}
+      {error && <Alert color="red" variant="light" icon={<IconAlertCircle size={18} />} style={{ flexShrink: 0 }}>{error}</Alert>}
 
-      <Paper withBorder radius="md" style={{ overflowX: 'auto' }}>
+      <Paper withBorder radius="md" style={{ overflowX: 'auto', flexShrink: 0 }}>
         {cargando ? (
           <Text c="dimmed" p="xl">Cargando documentos…</Text>
         ) : visibles.length === 0 ? (

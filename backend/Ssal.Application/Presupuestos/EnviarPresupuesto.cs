@@ -27,7 +27,8 @@ public class EnviarPresupuesto(
             return Resultado.Fallido("No hay ninguna cuenta de correo configurada para enviar presupuestos.");
 
         var pFull = await repo.ObtenerCompletoAsync(id) ?? throw new InvalidOperationException("El presupuesto desapareció durante el envío.");
-        var pdfBytes = generadorPdf.Generar(pFull);
+        var eventos = await repo.ObtenerEventosFirmaAsync(id);
+        var pdfBytes = generadorPdf.Generar(pFull, Ssal.Domain.CicloFirma.EventosCicloActual(eventos));
         var nombreArchivo = $"{p.CodigoRpo ?? "presupuesto"}.pdf";
 
         string messageId;

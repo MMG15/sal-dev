@@ -16,33 +16,32 @@ public static class SsePdfBuilder
             .OrderBy(i => i.Analisis.Area)
             .ThenBy(i => i.Analisis.Nombre)
             .ToList() ?? [];
-        var rotulo = sse.RotuloInterno;
+        var paquetes = sse.Presupuesto?.Paquetes
+            .OrderBy(p => p.Paquete.Area)
+            .ThenBy(p => p.Paquete.Nombre)
+            .ToList() ?? [];
+        var rotulos = sse.RotulosInternos.OrderBy(r => r.NumeroUnico).ToList();
+        var responsable = $"{sse.CreadoPorUsuario.Nombre} {sse.CreadoPorUsuario.Apellido}";
+        var ahora = DateTime.Now;
 
         var documento = Document.Create(doc =>
         {
             doc.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(36);
-                page.DefaultTextStyle(t => t.FontSize(10));
+                page.Margin(32);
+                page.DefaultTextStyle(t => t.FontSize(9.5f).FontColor(PdfEstilo.GrisTexto));
 
-                page.Header().Column(col =>
-                {
-                    col.Item().Text("LABORATORIO CONTROL DE CALIDAD \"DR. ALBERTO GRAFFIGNA\" - UCCUYO")
-                        .FontSize(13).Bold();
-                    col.Item().PaddingTop(2).Text("SOLICITUD DE SERVICIO (SSE)").FontSize(11).SemiBold();
-                    col.Item().PaddingTop(6).LineHorizontal(1).LineColor(Colors.Grey.Medium);
-                });
+                page.Header().Element(c => PdfEstilo.Encabezado(c, "SOLICITUD DE SERVICIO (SSE)", sse.Codigo ?? $"SSE-{sse.IdSse}"));
 
-                page.Content().PaddingVertical(12).Column(col =>
+                page.Content().PaddingVertical(10).Column(col =>
                 {
                     col.Spacing(10);
 
-                    col.Item().Row(row =>
+                    col.Item().Background(PdfEstilo.TealClaro).Padding(8).Row(row =>
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text(t => { t.Span("SSE: ").SemiBold(); t.Span(sse.Codigo ?? "—"); });
                             c.Item().Text(t => { t.Span("Presupuesto: ").SemiBold(); t.Span(sse.CodigoRpo ?? "Sin presupuesto vinculado"); });
                             c.Item().Text(t => { t.Span("Área: ").SemiBold(); t.Span(etiquetaArea); });
                             c.Item().Text(t => { t.Span("Fecha: ").SemiBold(); t.Span(sse.Fecha.ToLocalTime().ToString("dd/MM/yyyy")); });
@@ -61,17 +60,15 @@ public static class SsePdfBuilder
                                     c.Item().Text(t => { t.Span("Empresa: ").SemiBold(); t.Span(empresa.RazonSocial); });
                                 if (!string.IsNullOrWhiteSpace(cliente?.Email))
                                     c.Item().Text(t => { t.Span("Email: ").SemiBold(); t.Span(cliente.Email); });
-                                if (!string.IsNullOrWhiteSpace(cliente?.Telefono))
-                                    c.Item().Text(t => { t.Span("Teléfono: ").SemiBold(); t.Span(cliente.Telefono); });
                             }
                         });
                     });
 
-                    if (rotulo is not null)
+                    foreach (var rotulo in rotulos)
                     {
-                        col.Item().PaddingTop(4).Background(Colors.Grey.Lighten3).Padding(8).Row(row =>
+                        col.Item().Background(Colors.Grey.Lighten3).Padding(8).Row(row =>
                         {
-                            row.RelativeItem().Text(t => { t.Span("Rótulo interno: ").SemiBold(); t.Span(rotulo.NumeroUnico).FontSize(12).Bold(); });
+                            row.RelativeItem().Text(t => { t.Span("Rótulo interno: ").SemiBold(); t.Span(rotulo.NumeroUnico).FontSize(12).Bold().FontColor(PdfEstilo.VerdeOscuro); });
                             row.RelativeItem().AlignRight().Text(t => { t.Span("Estado: ").SemiBold(); t.Span(rotulo.Estado); });
                         });
 
@@ -79,8 +76,8 @@ public static class SsePdfBuilder
                         {
                             col.Item().Text(t =>
                             {
-                                t.Span("Muestra: ").SemiBold();
-                                t.Span($"{rotulo.Muestra.Tipo ?? "—"} · recibida {rotulo.Muestra.FechaRecepcion.ToLocalTime():dd/MM/yyyy} · estado {rotulo.Muestra.Estado}");
+                                t.Span("Muestra: ").SemiBold().FontSize(8.5f);
+                                t.Span($"{rotulo.Muestra.Tipo ?? "—"} · recibida {rotulo.Muestra.FechaRecepcion.ToLocalTime():dd/MM/yyyy} · estado {rotulo.Muestra.Estado}").FontSize(8.5f);
                             });
                         }
                     }
@@ -89,59 +86,56 @@ public static class SsePdfBuilder
                     {
                         table.ColumnsDefinition(c =>
                         {
-                            c.ConstantColumn(40);
-                            c.RelativeColumn(3);
+                            c.ConstantColumn(34);
+                            c.RelativeColumn(4);
                         });
 
                         table.Header(header =>
                         {
-                            header.Cell().Element(CeldaEncabezado).Text("Área");
-                            header.Cell().Element(CeldaEncabezado).Text("Análisis solicitado");
-
-                            static IContainer CeldaEncabezado(IContainer c) => c
-                                .DefaultTextStyle(t => t.SemiBold().FontColor(Colors.White))
-                                .Background(Colors.Grey.Darken2)
-                                .Padding(5);
+                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Área");
+                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Análisis / Paquete solicitado");
                         });
+
+                        foreach (var p in paquetes)
+                        {
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(p.Paquete.Area);
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Column(c =>
+                            {
+                                c.Item().Text(t =>
+                                {
+                                    t.Span(p.Paquete.Nombre).SemiBold().FontSize(9);
+                                    t.Span("  (paquete)").FontSize(8).FontColor(PdfEstilo.Teal).Italic();
+                                });
+                                c.Item().Text($"Incluye: {string.Join(", ", p.Paquete.Items.Select(i => i.Analisis.Nombre))}")
+                                    .FontSize(7.8f).FontColor(Colors.Grey.Darken1);
+                            });
+                        }
 
                         foreach (var item in analisis)
                         {
-                            table.Cell().Element(Celda).Text(item.Analisis.Area);
-                            table.Cell().Element(Celda).Text(item.Analisis.Nombre);
-
-                            static IContainer Celda(IContainer c) => c
-                                .BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).Padding(5);
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(item.Analisis.Area);
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(item.Analisis.Nombre).FontSize(9);
                         }
                     });
 
-                    col.Item().AlignRight().PaddingTop(4).Column(c =>
+                    col.Item().Background(PdfEstilo.TealClaro).Padding(10).AlignRight().Column(c =>
                     {
+                        var mostrarUsd = sse.Presupuesto?.MostrarMoneda != "ars";
+                        var mostrarArs = sse.Presupuesto?.MostrarMoneda != "usd";
+
                         c.Item().Text(t => { t.Span("Forma de pago: ").SemiBold(); t.Span(sse.FormaPago ?? "—"); });
-                        c.Item().Text(t => { t.Span("TOTAL USD: ").Bold().FontSize(11); t.Span($"USD {sse.ImporteDolares:0.00}").Bold().FontSize(11); });
-                        c.Item().Text(t => { t.Span("TOTAL ARS: ").Bold().FontSize(11); t.Span($"$ {sse.ImportePesos:0.00}").Bold().FontSize(11); });
+                        if (mostrarUsd)
+                            c.Item().PaddingTop(3).Text(t => { t.Span("TOTAL USD: ").Bold().FontSize(12).FontColor(PdfEstilo.VerdeOscuro); t.Span($"USD {sse.ImporteDolares:0.00}").Bold().FontSize(12).FontColor(PdfEstilo.VerdeOscuro); });
+                        if (mostrarArs)
+                            c.Item().PaddingTop(mostrarUsd ? 0 : 3).Text(t => { t.Span("TOTAL ARS: ").Bold().FontSize(12).FontColor(PdfEstilo.VerdeOscuro); t.Span($"$ {sse.ImportePesos:0.00}").Bold().FontSize(12).FontColor(PdfEstilo.VerdeOscuro); });
                     });
 
-                    col.Item().PaddingTop(8).Text(
+                    col.Item().Text(
                         "Este documento acredita la solicitud de servicio registrada en el laboratorio. Consérvelo como constancia."
                     ).FontSize(8.5f).Italic().FontColor(Colors.Grey.Darken1);
                 });
 
-                page.Footer().Column(col =>
-                {
-                    col.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten1);
-                    col.Item().PaddingTop(4).Row(row =>
-                    {
-                        row.RelativeItem().Text($"Registrada por {sse.CreadoPorUsuario.Nombre} {sse.CreadoPorUsuario.Apellido} · {sse.Fecha.ToLocalTime():dd/MM/yyyy HH:mm}")
-                            .FontSize(8).FontColor(Colors.Grey.Darken1);
-                        row.AutoItem().Text(t =>
-                        {
-                            t.Span("Página ").FontSize(8).FontColor(Colors.Grey.Darken1);
-                            t.CurrentPageNumber().FontSize(8).FontColor(Colors.Grey.Darken1);
-                            t.Span(" de ").FontSize(8).FontColor(Colors.Grey.Darken1);
-                            t.TotalPages().FontSize(8).FontColor(Colors.Grey.Darken1);
-                        });
-                    });
-                });
+                page.Footer().Element(c => PdfEstilo.Pie(c, responsable, ahora));
             });
         });
 

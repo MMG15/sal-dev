@@ -182,11 +182,11 @@ export default function ResultadoDetallePage() {
           ) : (
             <Text size="sm" c="dimmed">El informe se guarda cuando todos los análisis estén validados.</Text>
           )}
-          {error && <Alert color="red" variant="light" mt="sm">{error}</Alert>}
+          {error && <Alert color="red" variant="light" mt="sm" style={{ flexShrink: 0 }}>{error}</Alert>}
         </Paper>
       </SimpleGrid>
 
-      <Paper withBorder radius="md" style={{ overflowX: 'auto' }}>
+      <Paper withBorder radius="md" style={{ overflowX: 'auto', flexShrink: 0 }}>
         <Table verticalSpacing="md" horizontalSpacing="md" styles={{ th: { fontSize: 13, fontWeight: 600 } }}>
           <Table.Thead style={{ background: 'var(--mantine-color-gray-0)' }}>
             <Table.Tr>

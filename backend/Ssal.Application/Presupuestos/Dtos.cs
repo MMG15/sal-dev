@@ -11,6 +11,8 @@ public record PresupuestoResumenDto(
 
 public record ItemPresupuestoDto(int Id, int IdAnalisis, decimal PrecioUsdSnapshot, string Codigo, string Nombre, string Area, string GrupoNombre);
 
+public record ItemPaqueteDto(int Id, int IdPaquete, decimal PrecioUsdSnapshot, string Nombre, string Area, IReadOnlyList<string> AnalisisIncluidos);
+
 public record EmpresaConEmailDto(int IdEmpresa, string RazonSocial, string? Email);
 
 public record ClienteDetalleDto(int IdCliente, string Nombre, string Apellido, string? Email, string? Telefono, EmpresaConEmailDto? Empresa);
@@ -19,14 +21,17 @@ public record ConsultaResumenDto(int IdConsulta, string? Codigo, string Canal, s
 
 public record PresupuestoDetalleDto(
     int IdPresupuesto, string? CodigoRpo, string Estado, decimal ImporteDolares, decimal ImportePesos,
-    decimal Cotizacion, decimal AdicionalAsesoramiento, string? TipoAsesoramiento, DateTime Fecha,
-    ConsultaResumenDto Consulta, UsuarioNombreDto CreadoPor, IReadOnlyList<ItemPresupuestoDto> Items);
+    decimal Cotizacion, decimal AdicionalAsesoramiento, string? TipoAsesoramiento, string MostrarMoneda, DateTime Fecha,
+    ConsultaResumenDto Consulta, UsuarioNombreDto CreadoPor,
+    IReadOnlyList<ItemPresupuestoDto> Items, IReadOnlyList<ItemPaqueteDto> Paquetes);
 
 public record ItemPresupuestoCommand(int IdAnalisis);
 
+public record ItemPaqueteCommand(int IdPaquete);
+
 public record GuardarPresupuestoCommand(
-    int IdConsulta, List<ItemPresupuestoCommand> Items, decimal Cotizacion,
-    decimal AdicionalAsesoramiento, string? TipoAsesoramiento);
+    int IdConsulta, List<ItemPresupuestoCommand> Items, List<ItemPaqueteCommand> Paquetes, decimal Cotizacion,
+    decimal AdicionalAsesoramiento, string? TipoAsesoramiento, string? MostrarMoneda);
 
 public record CrearPresupuestoResultadoDto(int IdPresupuesto, string? CodigoRpo, decimal ImporteDolares, decimal ImportePesos);
 

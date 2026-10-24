@@ -85,9 +85,9 @@ export default function PresupuestosPage() {
         />
       </Group>
 
-      {error && <Alert color="red" variant="light">{error}</Alert>}
+      {error && <Alert color="red" variant="light" style={{ flexShrink: 0 }}>{error}</Alert>}
 
-      <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+      <Paper withBorder radius="md" style={{ overflow: 'hidden', flexShrink: 0 }}>
         {cargando ? (
           <Text c="dimmed" p="xl">Cargando presupuestos…</Text>
         ) : lista.length === 0 ? (

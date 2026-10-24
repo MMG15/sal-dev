@@ -86,6 +86,13 @@ builder.Services.AddScoped<Ssal.Application.Analisis.CrearAnalisis>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ActualizarAnalisis>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ToggleActivoAnalisis>();
 builder.Services.AddScoped<Ssal.Application.Analisis.EliminarAnalisis>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ActualizarGrupo>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ListarPaquetesActivos>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ListarTodosLosPaquetes>();
+builder.Services.AddScoped<Ssal.Application.Analisis.CrearPaquete>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ActualizarPaquete>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ToggleActivoPaquete>();
+builder.Services.AddScoped<Ssal.Application.Analisis.EliminarPaquete>();
 
 // Auditoría: segundo módulo migrado (lectura pura, sin reglas de negocio que mutan nada).
 builder.Services.AddScoped<Ssal.Application.Auditoria.IAuditoriaRepository, Ssal.Infrastructure.Repositorios.AuditoriaRepository>();

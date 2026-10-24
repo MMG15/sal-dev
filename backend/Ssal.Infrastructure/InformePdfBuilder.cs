@@ -24,37 +24,34 @@ public static class InformePdfBuilder
             .ThenBy(r => r.Analisis.Nombre)
             .ToList();
 
+        var responsable = $"{informe.GeneradoPorUsuario.Nombre} {informe.GeneradoPorUsuario.Apellido}";
+        var ahora = DateTime.Now;
+        var firmantes = PdfEstilo.ArmarFirmantes(firmas);
+
         var documento = Document.Create(doc =>
         {
             doc.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(36);
-                page.DefaultTextStyle(t => t.FontSize(10));
+                page.Margin(32);
+                page.DefaultTextStyle(t => t.FontSize(9.5f).FontColor(PdfEstilo.GrisTexto));
 
-                page.Header().Column(col =>
-                {
-                    col.Item().Text("LABORATORIO CONTROL DE CALIDAD \"DR. ALBERTO GRAFFIGNA\" - UCCUYO")
-                        .FontSize(13).Bold();
-                    col.Item().PaddingTop(2).Text("INFORME DE RESULTADOS DE ANÁLISIS").FontSize(11).SemiBold();
-                    col.Item().PaddingTop(6).LineHorizontal(1).LineColor(Colors.Grey.Medium);
-                });
+                page.Header().Element(c => PdfEstilo.Encabezado(c, "INFORME DE RESULTADOS", informe.Codigo));
 
-                page.Content().PaddingVertical(12).Column(col =>
+                page.Content().PaddingVertical(10).Column(col =>
                 {
                     col.Spacing(10);
 
                     if (estadoFirma != CicloFirma.Aprobado)
                     {
-                        col.Item().Text("BORRADOR: sin firma y aprobación final. No válido para entrega al cliente.")
-                            .FontSize(9).SemiBold().FontColor(Colors.Red.Medium);
+                        col.Item().Background(Colors.Red.Lighten4).Padding(6).Text("BORRADOR: sin firma y aprobación final. No válido para entrega al cliente.")
+                            .FontSize(9).SemiBold().FontColor(Colors.Red.Darken2);
                     }
 
-                    col.Item().Row(row =>
+                    col.Item().Background(PdfEstilo.TealClaro).Padding(8).Row(row =>
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text(t => { t.Span("Informe: ").SemiBold(); t.Span(informe.Codigo); });
                             c.Item().Text(t => { t.Span("SSE: ").SemiBold(); t.Span(sse.Codigo ?? "—"); });
                             c.Item().Text(t => { t.Span("N° Rótulo: ").SemiBold(); t.Span(muestra.RotuloInterno.NumeroUnico); });
                         });
@@ -71,25 +68,20 @@ public static class InformePdfBuilder
                     {
                         table.ColumnsDefinition(c =>
                         {
-                            c.ConstantColumn(35);  // Área
-                            c.RelativeColumn(3);   // Análisis
-                            c.RelativeColumn(1.4f); // Resultado
-                            c.RelativeColumn(1);   // Unidad
-                            c.RelativeColumn(1.8f); // Referencia
+                            c.ConstantColumn(34);
+                            c.RelativeColumn(3);
+                            c.RelativeColumn(1.4f);
+                            c.RelativeColumn(1);
+                            c.RelativeColumn(1.8f);
                         });
 
                         table.Header(header =>
                         {
-                            header.Cell().Element(CeldaEncabezado).Text("Área");
-                            header.Cell().Element(CeldaEncabezado).Text("Análisis");
-                            header.Cell().Element(CeldaEncabezado).Text("Resultado");
-                            header.Cell().Element(CeldaEncabezado).Text("Unidad");
-                            header.Cell().Element(CeldaEncabezado).Text("Referencia");
-
-                            static IContainer CeldaEncabezado(IContainer c) => c
-                                .DefaultTextStyle(t => t.SemiBold().FontColor(Colors.White))
-                                .Background(Colors.Grey.Darken2)
-                                .Padding(5);
+                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Área");
+                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Análisis");
+                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Resultado");
+                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Unidad");
+                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Referencia");
                         });
 
                         foreach (var r in resultados)
@@ -100,56 +92,23 @@ public static class InformePdfBuilder
                                     ? $"{r.Analisis.RangoMin?.ToString() ?? "—"} a {r.Analisis.RangoMax?.ToString() ?? "—"}"
                                     : "—";
 
-                            table.Cell().Element(Celda).Text(r.Analisis.Area);
-                            table.Cell().Element(Celda).Text(r.Analisis.Nombre);
-                            table.Cell().Element(Celda).Text(r.Valor ?? "—");
-                            table.Cell().Element(Celda).Text(r.Analisis.Unidad ?? "—");
-                            table.Cell().Element(Celda).Text(referencia);
-
-                            static IContainer Celda(IContainer c) => c
-                                .BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).Padding(5);
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(r.Analisis.Area);
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(r.Analisis.Nombre).FontSize(9);
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(r.Valor ?? "—").FontSize(9);
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(r.Analisis.Unidad ?? "—").FontSize(9);
+                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(referencia).FontSize(8.5f);
                         }
                     });
 
-                    col.Item().PaddingTop(6).Text(
-                        $"Todos los análisis listados fueron validados por el Responsable de Área correspondiente antes de la emisión de este informe."
+                    col.Item().Text(
+                        "Todos los análisis listados fueron validados por el Responsable de Área correspondiente antes de la emisión de este informe."
                     ).FontSize(8.5f).Italic().FontColor(Colors.Grey.Darken1);
 
-                    if (firmas.Count > 0)
-                    {
-                        col.Item().PaddingTop(8).Text("Firmas digitales").FontSize(10).SemiBold();
-                        foreach (var f in firmas)
-                        {
-                            var rol = f.TipoFirma switch
-                            {
-                                "responsable" => $"Responsable de área {f.Area}",
-                                "aprobacion" => "Administrador general / Director Técnico (aprobación)",
-                                _ => null
-                            };
-                            if (rol is null) continue;
-
-                            var quien = $"{f.Firmante.Nombre} {f.Firmante.Apellido}";
-                            col.Item().Text($"{rol}: {quien} · {f.FechaFirma.ToLocalTime():dd/MM/yyyy HH:mm}").FontSize(9);
-                        }
-                    }
+                    // ── Firmas digitales ──
+                    col.Item().PaddingTop(6).Element(c => PdfEstilo.BloqueFirmas(c, firmantes, ahora));
                 });
 
-                page.Footer().Column(col =>
-                {
-                    col.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten1);
-                    col.Item().PaddingTop(4).Row(row =>
-                    {
-                        row.RelativeItem().Text($"Generado por {informe.GeneradoPorUsuario.Nombre} {informe.GeneradoPorUsuario.Apellido} · {informe.FechaGeneracion:dd/MM/yyyy HH:mm}")
-                            .FontSize(8).FontColor(Colors.Grey.Darken1);
-                        row.AutoItem().Text(t =>
-                        {
-                            t.Span("Página ").FontSize(8).FontColor(Colors.Grey.Darken1);
-                            t.CurrentPageNumber().FontSize(8).FontColor(Colors.Grey.Darken1);
-                            t.Span(" de ").FontSize(8).FontColor(Colors.Grey.Darken1);
-                            t.TotalPages().FontSize(8).FontColor(Colors.Grey.Darken1);
-                        });
-                    });
-                });
+                page.Footer().Element(c => PdfEstilo.Pie(c, responsable, ahora));
             });
         });
 

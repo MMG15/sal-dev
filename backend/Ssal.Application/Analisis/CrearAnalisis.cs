@@ -27,6 +27,8 @@ public class CrearAnalisis(IAnalisisRepository repo)
             RangoMin = cmd.RangoMin,
             RangoMax = cmd.RangoMax,
             ValorEsperado = cmd.ValorEsperado,
+            Metodo = cmd.Metodo,
+            Tercerizado = cmd.Tercerizado,
             Activo = true
         };
 

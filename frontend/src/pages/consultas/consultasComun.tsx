@@ -31,6 +31,15 @@ export interface ItemPresupuesto {
   grupoNombre: string
 }
 
+export interface ItemPaquetePresupuesto {
+  id: number
+  idPaquete: number
+  precioUsdSnapshot: number
+  nombre: string
+  area: string
+  analisisIncluidos: string[]
+}
+
 export interface PresupuestoDetalle {
   idPresupuesto: number
   codigoRpo: string | null
@@ -40,8 +49,10 @@ export interface PresupuestoDetalle {
   cotizacion: number
   adicionalAsesoramiento: number
   tipoAsesoramiento: string | null
+  mostrarMoneda: string
   fecha: string
   items: ItemPresupuesto[]
+  paquetes: ItemPaquetePresupuesto[]
 }
 
 export interface ConsultaDetalle {
@@ -68,6 +79,17 @@ export interface GrupoAnalisis {
   descripcion: string | null
   area: string
   items: { idAnalisis: number; codigo: string; nombre: string; area: string; precioUsd: number }[]
+}
+
+export interface PaqueteCatalogo {
+  idPaquete: number
+  nombre: string
+  area: string
+  tipoMuestra: string | null
+  norma: string | null
+  cantidadMuestra: string | null
+  precioUsd: number
+  analisis: { idAnalisis: number; codigo: string; nombre: string; area: string; precioUsd: number }[]
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -238,7 +260,9 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
   onCerrar: () => void
 }) {
   const [grupos, setGrupos] = useState<GrupoAnalisis[]>([])
+  const [paquetes, setPaquetes] = useState<PaqueteCatalogo[]>([])
   const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
+  const [paquetesSeleccionados, setPaquetesSeleccionados] = useState<Set<number>>(new Set())
   // Se guardan como texto y arrancan vacíos (no en "0") para que el usuario pueda
   // escribir libremente sin que un cero inicial quede pegado a lo que va tipeando.
   const [cotizacion, setCotizacion] = useState(String(consulta.presupuesto?.cotizacion ?? 1300))
@@ -246,15 +270,21 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
   const cotizacionNum = parseFloat(cotizacion) || 1
   const adicionalNum = parseFloat(adicional) || 0
   const [tipoAsesoramiento, setTipoAsesoramiento] = useState(consulta.presupuesto?.tipoAsesoramiento ?? 'consulta')
+  const [mostrarMoneda, setMostrarMoneda] = useState(consulta.presupuesto?.mostrarMoneda ?? 'ambos')
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [filtroArea, setFiltroArea] = useState<'todos' | 'MIC' | 'FQ'>('todos')
 
   useEffect(() => {
-    apiFetch('/api/analisis').then(r => r.json()).then((data: GrupoAnalisis[]) => {
-      setGrupos(data)
+    Promise.all([
+      apiFetch('/api/analisis').then(r => r.json()),
+      apiFetch('/api/analisis/paquetes').then(r => r.json()),
+    ]).then(([gruposData, paquetesData]: [GrupoAnalisis[], PaqueteCatalogo[]]) => {
+      setGrupos(gruposData)
+      setPaquetes(paquetesData)
       if (consulta.presupuesto) {
         setSeleccionados(new Set(consulta.presupuesto.items.map(i => i.idAnalisis)))
+        setPaquetesSeleccionados(new Set(consulta.presupuesto.paquetes.map(p => p.idPaquete)))
       }
       setCargando(false)
     })
@@ -269,16 +299,32 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
     })
   }
 
+  function togglePaquete(idPaquete: number) {
+    setPaquetesSeleccionados(prev => {
+      const next = new Set(prev)
+      if (next.has(idPaquete)) next.delete(idPaquete)
+      else next.add(idPaquete)
+      return next
+    })
+  }
+
   const analisisMap = grupos.flatMap(g => g.items).reduce<Record<number, GrupoAnalisis['items'][0]>>((acc, a) => {
     acc[a.idAnalisis] = a
     return acc
   }, {})
 
+  const paquetesMap = paquetes.reduce<Record<number, PaqueteCatalogo>>((acc, p) => {
+    acc[p.idPaquete] = p
+    return acc
+  }, {})
+
   const subtotalAnalisis = Array.from(seleccionados).reduce((sum, id) => sum + (analisisMap[id]?.precioUsd ?? 0), 0)
-  const totalUsd = subtotalAnalisis + adicionalNum
+  const subtotalPaquetes = Array.from(paquetesSeleccionados).reduce((sum, id) => sum + (paquetesMap[id]?.precioUsd ?? 0), 0)
+  const totalUsd = subtotalAnalisis + subtotalPaquetes + adicionalNum
   const totalArs = totalUsd * cotizacionNum
 
   const gruposFiltrados = grupos.filter(g => filtroArea === 'todos' || g.area === filtroArea)
+  const paquetesFiltrados = paquetes.filter(p => filtroArea === 'todos' || p.area === filtroArea)
 
   async function guardar() {
     setGuardando(true)
@@ -288,9 +334,11 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
         body: JSON.stringify({
           idConsulta: consulta.idConsulta,
           items: Array.from(seleccionados).map(id => ({ idAnalisis: id })),
+          paquetes: Array.from(paquetesSeleccionados).map(id => ({ idPaquete: id })),
           cotizacion: cotizacionNum,
           adicionalAsesoramiento: adicionalNum,
-          tipoAsesoramiento: adicionalNum > 0 ? tipoAsesoramiento : null
+          tipoAsesoramiento: adicionalNum > 0 ? tipoAsesoramiento : null,
+          mostrarMoneda
         })
       })
       if (res.ok) onGuardado()
@@ -304,7 +352,12 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
       <div className={`${styles.modal} ${styles.modalGrande}`} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>Presupuesto básico — {consulta.codigo}</h2>
-          <button className={styles.btnCerrar} onClick={onCerrar}>✕</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <a href="/analisis" target="_blank" rel="noopener noreferrer" className={styles.linkCatalogo}>
+              Editar catálogo de análisis ↗
+            </a>
+            <button className={styles.btnCerrar} onClick={onCerrar}>✕</button>
+          </div>
         </div>
 
         <div className={styles.presupuestoLayout}>
@@ -326,6 +379,28 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
               <div className={styles.cargando}>Cargando análisis...</div>
             ) : (
               <div className={styles.gruposList}>
+                {paquetesFiltrados.length > 0 && (
+                  <div className={styles.grupoBloque}>
+                    <div className={styles.grupoTitulo}>Paquetes</div>
+                    {paquetesFiltrados.map(p => (
+                      <label key={p.idPaquete} className={styles.checkItem}>
+                        <input
+                          type="checkbox"
+                          checked={paquetesSeleccionados.has(p.idPaquete)}
+                          onChange={() => togglePaquete(p.idPaquete)}
+                        />
+                        <span className={styles.checkNombre}>
+                          <span className={`${styles.areaTag} ${p.area === 'MIC' ? styles.areaMic : styles.areaFq}`}>
+                            {p.area}
+                          </span>
+                          {' '}{p.nombre}
+                          <div className={styles.checkSubtexto}>Incluye: {p.analisis.map(a => a.nombre).join(', ')}</div>
+                        </span>
+                        <span className={styles.checkPrecio}>USD {p.precioUsd.toFixed(2)}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
                 {gruposFiltrados.map(grupo => (
                   <div key={grupo.idGrupo} className={styles.grupoBloque}>
                     <div className={styles.grupoTitulo}>
@@ -359,20 +434,33 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
             <h3 className={styles.sectionTitulo}>Resumen</h3>
 
             <div className={styles.seleccionadosList}>
-              {seleccionados.size === 0 ? (
-                <p className={styles.sinCliente}>Seleccioná análisis de la lista</p>
+              {seleccionados.size === 0 && paquetesSeleccionados.size === 0 ? (
+                <p className={styles.sinCliente}>Seleccioná análisis o paquetes de la lista</p>
               ) : (
-                Array.from(seleccionados).map(id => {
-                  const a = analisisMap[id]
-                  if (!a) return null
-                  return (
-                    <div key={id} className={styles.seleccionadoItem}>
-                      <button className={styles.btnRemover} onClick={() => toggleAnalisis(id)}>✕</button>
-                      <span className={styles.checkNombre}>{a.nombre}</span>
-                      <span className={styles.analisisPrecio}>USD {a.precioUsd.toFixed(2)}</span>
-                    </div>
-                  )
-                })
+                <>
+                  {Array.from(paquetesSeleccionados).map(id => {
+                    const p = paquetesMap[id]
+                    if (!p) return null
+                    return (
+                      <div key={`paquete-${id}`} className={styles.seleccionadoItem}>
+                        <button className={styles.btnRemover} onClick={() => togglePaquete(id)}>✕</button>
+                        <span className={styles.checkNombre}>{p.nombre} <em style={{ fontStyle: 'normal', color: 'var(--texto-suave)', fontSize: 13 }}>(paquete)</em></span>
+                        <span className={styles.analisisPrecio}>USD {p.precioUsd.toFixed(2)}</span>
+                      </div>
+                    )
+                  })}
+                  {Array.from(seleccionados).map(id => {
+                    const a = analisisMap[id]
+                    if (!a) return null
+                    return (
+                      <div key={id} className={styles.seleccionadoItem}>
+                        <button className={styles.btnRemover} onClick={() => toggleAnalisis(id)}>✕</button>
+                        <span className={styles.checkNombre}>{a.nombre}</span>
+                        <span className={styles.analisisPrecio}>USD {a.precioUsd.toFixed(2)}</span>
+                      </div>
+                    )
+                  })}
+                </>
               )}
             </div>
 
@@ -412,11 +500,28 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
                 step={1}
                 onChange={e => setCotizacion(e.target.value)}
               />
+
+              <label className={styles.formLabel}>Valor a mostrar en el PDF</label>
+              <select
+                className={styles.formInput}
+                value={mostrarMoneda}
+                onChange={e => setMostrarMoneda(e.target.value)}
+              >
+                <option value="ambos">Pesos y dólares</option>
+                <option value="usd">Solo dólares</option>
+                <option value="ars">Solo pesos</option>
+              </select>
             </div>
 
             <div className={styles.totalesBox}>
+              {subtotalPaquetes > 0 && (
+                <div className={styles.totalRow}>
+                  <span>Subtotal paquetes</span>
+                  <strong>USD {subtotalPaquetes.toFixed(2)}</strong>
+                </div>
+              )}
               <div className={styles.totalRow}>
-                <span>Subtotal análisis</span>
+                <span>Subtotal análisis sueltos</span>
                 <strong>USD {subtotalAnalisis.toFixed(2)}</strong>
               </div>
               {adicionalNum > 0 && (
@@ -439,7 +544,7 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
               className={styles.btnPrimario}
               style={{ width: '100%', marginTop: '16px' }}
               onClick={guardar}
-              disabled={guardando || seleccionados.size === 0}
+              disabled={guardando || (seleccionados.size === 0 && paquetesSeleccionados.size === 0)}
             >
               {guardando ? 'Guardando...' : 'Guardar presupuesto'}
             </button>

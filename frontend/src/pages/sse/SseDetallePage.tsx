@@ -37,6 +37,7 @@ export default function SseDetallePage() {
   const [noEncontrada, setNoEncontrada] = useState(false)
   const [pestana, setPestana] = useState<string | null>('servicio')
   const [modal, setModal] = useState<'rotulo' | 'muestra' | 'corregir' | 'cliente' | null>(null)
+  const [idRotuloActivo, setIdRotuloActivo] = useState<number | null>(null)
 
   async function descargarPdf() {
     const res = await apiFetch(`/api/sses/${id}/pdf`)
@@ -78,8 +79,14 @@ export default function SseDetallePage() {
 
   const cliente = sse.cliente
   const empresa = sse.empresa
-  const rotulo = sse.rotulo
+  const rotulos = sse.rotulos
   const analisis = sse.presupuesto?.analisis ?? []
+  const rotuloActivo = rotulos.find(r => r.idRotulo === idRotuloActivo) ?? null
+
+  function abrirModal(tipo: 'muestra' | 'corregir', idRotulo: number) {
+    setIdRotuloActivo(idRotulo)
+    setModal(tipo)
+  }
 
   return (
     <Stack gap="lg" h="100%" style={{ overflowY: 'auto' }}>
@@ -101,12 +108,18 @@ export default function SseDetallePage() {
           </Text>
         </div>
         <Group gap="sm" align="flex-start">
-          {rotulo && (
+          {rotulos.length > 0 && (
             <Paper withBorder radius="md" px="md" py="sm">
-              <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Rótulo interno</Text>
+              <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+                {rotulos.length === 1 ? 'Rótulo interno' : `Rótulos internos (${rotulos.length})`}
+              </Text>
               <Group gap="xs" mt={2}>
                 <IconTag size={16} />
-                <Text ff="monospace" fw={700} fz={18}>{rotulo.numeroUnico}</Text>
+                <Group gap={4}>
+                  {rotulos.map(r => (
+                    <Text key={r.idRotulo} ff="monospace" fw={700} fz={rotulos.length === 1 ? 18 : 14}>{r.numeroUnico}</Text>
+                  ))}
+                </Group>
               </Group>
             </Paper>
           )}
@@ -125,8 +138,8 @@ export default function SseDetallePage() {
         <Tabs.List>
           <Tabs.Tab value="servicio" leftSection={<IconClipboardText size={16} />}>Servicio</Tabs.Tab>
           <Tabs.Tab value="rotulo" leftSection={<IconTestPipe size={16} />}>
-            Rótulo y muestra
-            {rotulo?.muestra && <Pill size="xs" ml={6}>1</Pill>}
+            Rótulos y muestras
+            {rotulos.length > 0 && <Pill size="xs" ml={6}>{rotulos.filter(r => r.muestra).length}/{rotulos.length}</Pill>}
           </Tabs.Tab>
         </Tabs.List>
 
@@ -175,7 +188,7 @@ export default function SseDetallePage() {
                 )}
               </Paper>
 
-              <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+              <Paper withBorder radius="md" style={{ overflow: 'hidden', flexShrink: 0 }}>
                 <Group p="md" pb="sm">
                   <Text fw={600}>Análisis solicitados</Text>
                   <Pill size="xs">{analisis.length}</Pill>
@@ -204,78 +217,83 @@ export default function SseDetallePage() {
         </Tabs.Panel>
 
         <Tabs.Panel value="rotulo" pt="lg">
-          {rotulo ? (
-            <Stack gap="lg">
-              <Paper withBorder radius="md" p="lg">
-                <Group justify="space-between" align="flex-start" mb="sm">
-                  <Group gap="sm">
-                    <ThemeIcon variant="light" color="teal" size="lg" radius="md"><IconTag size={20} /></ThemeIcon>
-                    <div>
-                      <Text ff="monospace" fw={700} fz={20}>{rotulo.numeroUnico}</Text>
-                      <Text size="sm" c="dimmed">
-                        Asignado por {rotulo.asignadoPor.nombre} {rotulo.asignadoPor.apellido} · {new Date(rotulo.fechaAsignacion).toLocaleDateString('es-AR')}
-                      </Text>
-                    </div>
-                  </Group>
-                  <Group gap="sm">
-                    <Badge color={COLOR_ESTADO[rotulo.estado] ?? 'gray'} variant="light" radius="sm">{rotulo.estado}</Badge>
-                    <Button variant="default" onClick={() => setModal('corregir')}>Corregir rótulo</Button>
-                  </Group>
-                </Group>
-                {rotulo.descripcion && <Text size="sm">{rotulo.descripcion}</Text>}
-              </Paper>
-
-              <Paper withBorder radius="md" p="lg">
-                <Group justify="space-between" mb="md">
-                  <Group gap="xs">
-                    <IconTestPipe size={18} />
-                    <Text fw={600}>Muestra</Text>
-                  </Group>
-                  {!rotulo.muestra && <Button onClick={() => setModal('muestra')}>Registrar muestra</Button>}
-                </Group>
-                {rotulo.muestra ? (
-                  <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                    <Dato label="Tipo" valor={rotulo.muestra.tipo ?? '—'} />
-                    <Dato label="Estado" valor={rotulo.muestra.estado} />
-                    <Dato label="Recibida" valor={new Date(rotulo.muestra.fechaRecepcion).toLocaleDateString('es-AR')} />
-                    <Dato label="Recibida por" valor={`${rotulo.muestra.recibidoPor.nombre} ${rotulo.muestra.recibidoPor.apellido}`} />
-                    {rotulo.muestra.observacion && (
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <Dato label="Observación" valor={rotulo.muestra.observacion} />
-                      </div>
-                    )}
-                  </SimpleGrid>
-                ) : (
-                  <Text c="dimmed" size="sm">Todavía no se registró la muestra de este rótulo.</Text>
-                )}
-              </Paper>
-
-              <Paper withBorder radius="md" p="lg">
-                <Group gap="xs" mb="md">
-                  <IconHistory size={18} />
-                  <Text fw={600}>Historial de cambios</Text>
-                </Group>
-                {rotulo.auditorias.length === 0 ? (
-                  <Text c="dimmed" size="sm">El rótulo no tiene cambios registrados.</Text>
-                ) : (
-                  <Stack gap="md">
-                    {rotulo.auditorias.map(a => (
-                      <Group key={a.idAuditoria} align="flex-start" wrap="nowrap" gap="md">
-                        <Text size="xs" c="dimmed" w={90} style={{ flexShrink: 0 }}>
-                          {new Date(a.fechaCambio).toLocaleDateString('es-AR')}
-                        </Text>
+          {rotulos.length > 0 ? (
+            <Stack gap="xl">
+              {rotulos.map(rotulo => (
+                <Stack key={rotulo.idRotulo} gap="lg">
+                  <Paper withBorder radius="md" p="lg">
+                    <Group justify="space-between" align="flex-start" mb="sm">
+                      <Group gap="sm">
+                        <ThemeIcon variant="light" color="teal" size="lg" radius="md"><IconTag size={20} /></ThemeIcon>
                         <div>
-                          <Text size="sm">
-                            <strong>{a.usuario.nombre} {a.usuario.apellido}</strong> cambió {CAMPO_AUDITORIA_LABEL[a.campo] ?? a.campo}:{' '}
-                            <s>{a.valorAnterior || '—'}</s> → <strong>{a.valorNuevo || '—'}</strong>
+                          <Text ff="monospace" fw={700} fz={20}>{rotulo.numeroUnico}</Text>
+                          <Text size="sm" c="dimmed">
+                            Asignado por {rotulo.asignadoPor.nombre} {rotulo.asignadoPor.apellido} · {new Date(rotulo.fechaAsignacion).toLocaleDateString('es-AR')}
                           </Text>
-                          {a.motivo && <Text size="sm" c="dimmed" fs="italic">“{a.motivo}”</Text>}
                         </div>
                       </Group>
-                    ))}
-                  </Stack>
-                )}
-              </Paper>
+                      <Group gap="sm">
+                        <Badge color={COLOR_ESTADO[rotulo.estado] ?? 'gray'} variant="light" radius="sm">{rotulo.estado}</Badge>
+                        <Button variant="default" onClick={() => abrirModal('corregir', rotulo.idRotulo)}>Corregir rótulo</Button>
+                      </Group>
+                    </Group>
+                    {rotulo.descripcion && <Text size="sm">{rotulo.descripcion}</Text>}
+                  </Paper>
+
+                  <Paper withBorder radius="md" p="lg">
+                    <Group justify="space-between" mb="md">
+                      <Group gap="xs">
+                        <IconTestPipe size={18} />
+                        <Text fw={600}>Muestra</Text>
+                      </Group>
+                      {!rotulo.muestra && <Button onClick={() => abrirModal('muestra', rotulo.idRotulo)}>Registrar muestra</Button>}
+                    </Group>
+                    {rotulo.muestra ? (
+                      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                        <Dato label="Tipo" valor={rotulo.muestra.tipo ?? '—'} />
+                        <Dato label="Estado" valor={rotulo.muestra.estado} />
+                        <Dato label="Recibida" valor={new Date(rotulo.muestra.fechaRecepcion).toLocaleDateString('es-AR')} />
+                        <Dato label="Recibida por" valor={`${rotulo.muestra.recibidoPor.nombre} ${rotulo.muestra.recibidoPor.apellido}`} />
+                        {rotulo.muestra.observacion && (
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <Dato label="Observación" valor={rotulo.muestra.observacion} />
+                          </div>
+                        )}
+                      </SimpleGrid>
+                    ) : (
+                      <Text c="dimmed" size="sm">Todavía no se registró la muestra de este rótulo.</Text>
+                    )}
+                  </Paper>
+
+                  <Paper withBorder radius="md" p="lg">
+                    <Group gap="xs" mb="md">
+                      <IconHistory size={18} />
+                      <Text fw={600}>Historial de cambios</Text>
+                    </Group>
+                    {rotulo.auditorias.length === 0 ? (
+                      <Text c="dimmed" size="sm">El rótulo no tiene cambios registrados.</Text>
+                    ) : (
+                      <Stack gap="md">
+                        {rotulo.auditorias.map(a => (
+                          <Group key={a.idAuditoria} align="flex-start" wrap="nowrap" gap="md">
+                            <Text size="xs" c="dimmed" w={90} style={{ flexShrink: 0 }}>
+                              {new Date(a.fechaCambio).toLocaleDateString('es-AR')}
+                            </Text>
+                            <div>
+                              <Text size="sm">
+                                <strong>{a.usuario.nombre} {a.usuario.apellido}</strong> cambió {CAMPO_AUDITORIA_LABEL[a.campo] ?? a.campo}:{' '}
+                                <s>{a.valorAnterior || '—'}</s> → <strong>{a.valorNuevo || '—'}</strong>
+                              </Text>
+                              {a.motivo && <Text size="sm" c="dimmed" fs="italic">“{a.motivo}”</Text>}
+                            </div>
+                          </Group>
+                        ))}
+                      </Stack>
+                    )}
+                  </Paper>
+                  {rotulos.length > 1 && rotulo !== rotulos[rotulos.length - 1] && <Divider />}
+                </Stack>
+              ))}
             </Stack>
           ) : (
             <Paper withBorder radius="md" p="xl" ta="center">
@@ -302,17 +320,19 @@ export default function SseDetallePage() {
           onCerrar={() => setModal(null)}
         />
       )}
-      {modal === 'muestra' && (
+      {modal === 'muestra' && idRotuloActivo !== null && (
         <ModalMuestra
           idSse={sse.idSse}
+          idRotulo={idRotuloActivo}
           onGuardado={async () => { setModal(null); await cargar() }}
           onCerrar={() => setModal(null)}
         />
       )}
-      {modal === 'corregir' && rotulo && (
+      {modal === 'corregir' && rotuloActivo && (
         <ModalCorregirRotulo
           idSse={sse.idSse}
-          rotulo={rotulo}
+          idRotulo={rotuloActivo.idRotulo}
+          rotulo={rotuloActivo}
           onGuardado={async () => { setModal(null); await cargar() }}
           onCerrar={() => setModal(null)}
         />

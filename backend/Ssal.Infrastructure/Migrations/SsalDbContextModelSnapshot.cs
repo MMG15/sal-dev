@@ -22,7 +22,7 @@ namespace Ssal.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Ssal.Api.Models.Analisis", b =>
+            modelBuilder.Entity("Ssal.Domain.Analisis", b =>
                 {
                     b.Property<int>("IdAnalisis")
                         .ValueGeneratedOnAdd()
@@ -51,6 +51,10 @@ namespace Ssal.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("id_grupo");
 
+                    b.Property<string>("Metodo")
+                        .HasColumnType("text")
+                        .HasColumnName("metodo");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -69,6 +73,10 @@ namespace Ssal.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("rango_min");
 
+                    b.Property<bool>("Tercerizado")
+                        .HasColumnType("boolean")
+                        .HasColumnName("tercerizado");
+
                     b.Property<string>("Unidad")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)")
@@ -83,10 +91,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("IdGrupo");
 
-                    b.ToTable("analisis", (string)null);
+                    b.ToTable("analisis");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.AuditoriaRotulo", b =>
+            modelBuilder.Entity("Ssal.Domain.AuditoriaRotulo", b =>
                 {
                     b.Property<int>("IdAuditoria")
                         .ValueGeneratedOnAdd()
@@ -134,10 +142,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("IdUsuario");
 
-                    b.ToTable("auditorias_rotulo", (string)null);
+                    b.ToTable("auditorias_rotulo");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.AuditoriaSistema", b =>
+            modelBuilder.Entity("Ssal.Domain.AuditoriaSistema", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -176,10 +184,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("IdUsuario");
 
-                    b.ToTable("auditoria_sistema", (string)null);
+                    b.ToTable("auditoria_sistema");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Cliente", b =>
+            modelBuilder.Entity("Ssal.Domain.Cliente", b =>
                 {
                     b.Property<int>("IdCliente")
                         .ValueGeneratedOnAdd()
@@ -243,10 +251,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("IdEmpresa");
 
-                    b.ToTable("clientes", (string)null);
+                    b.ToTable("clientes");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Consulta", b =>
+            modelBuilder.Entity("Ssal.Domain.Consulta", b =>
                 {
                     b.Property<int>("IdConsulta")
                         .ValueGeneratedOnAdd()
@@ -318,10 +326,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("IdResponsable");
 
-                    b.ToTable("consultas", (string)null);
+                    b.ToTable("consultas");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.CorreoEntrante", b =>
+            modelBuilder.Entity("Ssal.Domain.CorreoEntrante", b =>
                 {
                     b.Property<int>("IdCorreo")
                         .ValueGeneratedOnAdd()
@@ -408,10 +416,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("IdUsuarioAccion");
 
-                    b.ToTable("correos_entrantes", (string)null);
+                    b.ToTable("correos_entrantes");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.CuentaCorreo", b =>
+            modelBuilder.Entity("Ssal.Domain.CuentaCorreo", b =>
                 {
                     b.Property<int>("IdCuenta")
                         .ValueGeneratedOnAdd()
@@ -484,10 +492,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasKey("IdCuenta");
 
-                    b.ToTable("cuentas_correo", (string)null);
+                    b.ToTable("cuentas_correo");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Empresa", b =>
+            modelBuilder.Entity("Ssal.Domain.Empresa", b =>
                 {
                     b.Property<int>("IdEmpresa")
                         .ValueGeneratedOnAdd()
@@ -543,10 +551,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasKey("IdEmpresa");
 
-                    b.ToTable("empresas", (string)null);
+                    b.ToTable("empresas");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Factura", b =>
+            modelBuilder.Entity("Ssal.Domain.Factura", b =>
                 {
                     b.Property<int>("IdFactura")
                         .ValueGeneratedOnAdd()
@@ -606,10 +614,10 @@ namespace Ssal.Infrastructure.Migrations
                     b.HasIndex("Numero")
                         .IsUnique();
 
-                    b.ToTable("facturas", (string)null);
+                    b.ToTable("facturas");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.FirmaDocumento", b =>
+            modelBuilder.Entity("Ssal.Domain.FirmaDocumento", b =>
                 {
                     b.Property<int>("IdFirma")
                         .ValueGeneratedOnAdd()
@@ -663,10 +671,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("TipoDocumento", "IdDocumento");
 
-                    b.ToTable("firmas_documento", (string)null);
+                    b.ToTable("firmas_documento");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.GrupoAnalisis", b =>
+            modelBuilder.Entity("Ssal.Domain.GrupoAnalisis", b =>
                 {
                     b.Property<int>("IdGrupo")
                         .ValueGeneratedOnAdd()
@@ -681,6 +689,11 @@ namespace Ssal.Infrastructure.Migrations
                         .HasColumnType("character varying(10)")
                         .HasColumnName("area");
 
+                    b.Property<string>("CantidadMuestra")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cantidad_muestra");
+
                     b.Property<string>("CodigoAgrupador")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -692,12 +705,22 @@ namespace Ssal.Infrastructure.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("descripcion");
 
+                    b.Property<string>("Norma")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("norma");
+
+                    b.Property<string>("TipoMuestra")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("tipo_muestra");
+
                     b.HasKey("IdGrupo");
 
-                    b.ToTable("grupos_analisis", (string)null);
+                    b.ToTable("grupos_analisis");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Informe", b =>
+            modelBuilder.Entity("Ssal.Domain.Informe", b =>
                 {
                     b.Property<int>("IdInforme")
                         .ValueGeneratedOnAdd()
@@ -731,10 +754,10 @@ namespace Ssal.Infrastructure.Migrations
                     b.HasIndex("IdMuestra")
                         .IsUnique();
 
-                    b.ToTable("informes", (string)null);
+                    b.ToTable("informes");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
+            modelBuilder.Entity("Ssal.Domain.Muestra", b =>
                 {
                     b.Property<int>("IdMuestra")
                         .ValueGeneratedOnAdd()
@@ -777,10 +800,85 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("RecibidoPor");
 
-                    b.ToTable("muestras", (string)null);
+                    b.ToTable("muestras");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.PortalUsuario", b =>
+            modelBuilder.Entity("Ssal.Domain.Paquete", b =>
+                {
+                    b.Property<int>("IdPaquete")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id_paquete");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPaquete"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activo");
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("area");
+
+                    b.Property<string>("CantidadMuestra")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("cantidad_muestra");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("Norma")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("norma");
+
+                    b.Property<decimal>("PrecioUsd")
+                        .HasColumnType("numeric")
+                        .HasColumnName("precio_usd");
+
+                    b.Property<string>("TipoMuestra")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("tipo_muestra");
+
+                    b.HasKey("IdPaquete");
+
+                    b.ToTable("paquetes");
+                });
+
+            modelBuilder.Entity("Ssal.Domain.PaqueteAnalisis", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdAnalisis")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_analisis");
+
+                    b.Property<int>("IdPaquete")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_paquete");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdAnalisis");
+
+                    b.HasIndex("IdPaquete");
+
+                    b.ToTable("paquete_analisis");
+                });
+
+            modelBuilder.Entity("Ssal.Domain.PortalUsuario", b =>
                 {
                     b.Property<int>("IdPortalUsuario")
                         .ValueGeneratedOnAdd()
@@ -832,10 +930,10 @@ namespace Ssal.Infrastructure.Migrations
                     b.HasIndex("IdCliente")
                         .IsUnique();
 
-                    b.ToTable("portal_usuarios", (string)null);
+                    b.ToTable("portal_usuarios");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Presupuesto", b =>
+            modelBuilder.Entity("Ssal.Domain.Presupuesto", b =>
                 {
                     b.Property<int>("IdPresupuesto")
                         .ValueGeneratedOnAdd()
@@ -888,6 +986,12 @@ namespace Ssal.Infrastructure.Migrations
                         .HasColumnType("character varying(250)")
                         .HasColumnName("message_id_enviado");
 
+                    b.Property<string>("MostrarMoneda")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("mostrar_moneda");
+
                     b.Property<string>("TipoAsesoramiento")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -900,10 +1004,10 @@ namespace Ssal.Infrastructure.Migrations
                     b.HasIndex("IdConsulta")
                         .IsUnique();
 
-                    b.ToTable("presupuestos", (string)null);
+                    b.ToTable("presupuestos");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.PresupuestoAnalisis", b =>
+            modelBuilder.Entity("Ssal.Domain.PresupuestoAnalisis", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -930,10 +1034,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("IdPresupuesto");
 
-                    b.ToTable("presupuesto_analisis", (string)null);
+                    b.ToTable("presupuesto_analisis");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.PresupuestoArchivo", b =>
+            modelBuilder.Entity("Ssal.Domain.PresupuestoArchivo", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -982,10 +1086,40 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("SubidoPor");
 
-                    b.ToTable("presupuesto_archivos", (string)null);
+                    b.ToTable("presupuesto_archivos");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Resultado", b =>
+            modelBuilder.Entity("Ssal.Domain.PresupuestoPaquete", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdPaquete")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_paquete");
+
+                    b.Property<int>("IdPresupuesto")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_presupuesto");
+
+                    b.Property<decimal>("PrecioUsdSnapshot")
+                        .HasColumnType("numeric")
+                        .HasColumnName("precio_usd_snapshot");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdPaquete");
+
+                    b.HasIndex("IdPresupuesto");
+
+                    b.ToTable("presupuesto_paquetes");
+                });
+
+            modelBuilder.Entity("Ssal.Domain.Resultado", b =>
                 {
                     b.Property<int>("IdResultado")
                         .ValueGeneratedOnAdd()
@@ -1044,10 +1178,10 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("ValidadoPor");
 
-                    b.ToTable("resultados", (string)null);
+                    b.ToTable("resultados");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Rol", b =>
+            modelBuilder.Entity("Ssal.Domain.Rol", b =>
                 {
                     b.Property<int>("IdRol")
                         .ValueGeneratedOnAdd()
@@ -1078,7 +1212,7 @@ namespace Ssal.Infrastructure.Migrations
                     b.HasIndex("Codigo")
                         .IsUnique();
 
-                    b.ToTable("roles", (string)null);
+                    b.ToTable("roles");
 
                     b.HasData(
                         new
@@ -1146,7 +1280,7 @@ namespace Ssal.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.RotuloInterno", b =>
+            modelBuilder.Entity("Ssal.Domain.RotuloInterno", b =>
                 {
                     b.Property<int>("IdRotulo")
                         .ValueGeneratedOnAdd()
@@ -1188,16 +1322,15 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("AsignadoPor");
 
-                    b.HasIndex("IdSse")
-                        .IsUnique();
+                    b.HasIndex("IdSse");
 
                     b.HasIndex("NumeroUnico")
                         .IsUnique();
 
-                    b.ToTable("rotulos_internos", (string)null);
+                    b.ToTable("rotulos_internos");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Sse", b =>
+            modelBuilder.Entity("Ssal.Domain.Sse", b =>
                 {
                     b.Property<int>("IdSse")
                         .ValueGeneratedOnAdd()
@@ -1272,10 +1405,10 @@ namespace Ssal.Infrastructure.Migrations
                     b.HasIndex("IdPresupuesto")
                         .IsUnique();
 
-                    b.ToTable("sses", (string)null);
+                    b.ToTable("sses");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Usuario", b =>
+            modelBuilder.Entity("Ssal.Domain.Usuario", b =>
                 {
                     b.Property<int>("IdUsuario")
                         .ValueGeneratedOnAdd()
@@ -1334,12 +1467,12 @@ namespace Ssal.Infrastructure.Migrations
 
                     b.HasIndex("IdRol");
 
-                    b.ToTable("usuarios", (string)null);
+                    b.ToTable("usuarios");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Analisis", b =>
+            modelBuilder.Entity("Ssal.Domain.Analisis", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.GrupoAnalisis", "Grupo")
+                    b.HasOne("Ssal.Domain.GrupoAnalisis", "Grupo")
                         .WithMany("Analisis")
                         .HasForeignKey("IdGrupo")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1348,15 +1481,15 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Grupo");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.AuditoriaRotulo", b =>
+            modelBuilder.Entity("Ssal.Domain.AuditoriaRotulo", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.RotuloInterno", "RotuloInterno")
+                    b.HasOne("Ssal.Domain.RotuloInterno", "RotuloInterno")
                         .WithMany("Auditorias")
                         .HasForeignKey("IdRotulo")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Usuario", "Usuario")
+                    b.HasOne("Ssal.Domain.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("IdUsuario")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1367,35 +1500,35 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.AuditoriaSistema", b =>
+            modelBuilder.Entity("Ssal.Domain.AuditoriaSistema", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Usuario", "Usuario")
+                    b.HasOne("Ssal.Domain.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("IdUsuario");
 
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Cliente", b =>
+            modelBuilder.Entity("Ssal.Domain.Cliente", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Empresa", "Empresa")
+                    b.HasOne("Ssal.Domain.Empresa", "Empresa")
                         .WithMany("Clientes")
                         .HasForeignKey("IdEmpresa");
 
                     b.Navigation("Empresa");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Consulta", b =>
+            modelBuilder.Entity("Ssal.Domain.Consulta", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Cliente", "Cliente")
+                    b.HasOne("Ssal.Domain.Cliente", "Cliente")
                         .WithMany("Consultas")
                         .HasForeignKey("IdCliente");
 
-                    b.HasOne("Ssal.Api.Models.Empresa", "Empresa")
+                    b.HasOne("Ssal.Domain.Empresa", "Empresa")
                         .WithMany("Consultas")
                         .HasForeignKey("IdEmpresa");
 
-                    b.HasOne("Ssal.Api.Models.Usuario", "Responsable")
+                    b.HasOne("Ssal.Domain.Usuario", "Responsable")
                         .WithMany()
                         .HasForeignKey("IdResponsable")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1407,24 +1540,24 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Responsable");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.CorreoEntrante", b =>
+            modelBuilder.Entity("Ssal.Domain.CorreoEntrante", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Consulta", "ConsultaGenerada")
+                    b.HasOne("Ssal.Domain.Consulta", "ConsultaGenerada")
                         .WithMany()
                         .HasForeignKey("IdConsultaGenerada")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Ssal.Api.Models.Consulta", "ConsultaRelacionada")
+                    b.HasOne("Ssal.Domain.Consulta", "ConsultaRelacionada")
                         .WithMany()
                         .HasForeignKey("IdConsultaRelacionada")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Ssal.Api.Models.CuentaCorreo", "CuentaCorreo")
+                    b.HasOne("Ssal.Domain.CuentaCorreo", "CuentaCorreo")
                         .WithMany()
                         .HasForeignKey("IdCuentaCorreo")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Ssal.Api.Models.Usuario", "UsuarioAccion")
+                    b.HasOne("Ssal.Domain.Usuario", "UsuarioAccion")
                         .WithMany()
                         .HasForeignKey("IdUsuarioAccion")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1438,17 +1571,17 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("UsuarioAccion");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Factura", b =>
+            modelBuilder.Entity("Ssal.Domain.Factura", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Usuario", "CreadoPorUsuario")
+                    b.HasOne("Ssal.Domain.Usuario", "CreadoPorUsuario")
                         .WithMany()
                         .HasForeignKey("CreadoPor")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Sse", "Sse")
+                    b.HasOne("Ssal.Domain.Sse", "Sse")
                         .WithOne("Factura")
-                        .HasForeignKey("Ssal.Api.Models.Factura", "IdSse")
+                        .HasForeignKey("Ssal.Domain.Factura", "IdSse")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1457,9 +1590,9 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Sse");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.FirmaDocumento", b =>
+            modelBuilder.Entity("Ssal.Domain.FirmaDocumento", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Usuario", "Firmante")
+                    b.HasOne("Ssal.Domain.Usuario", "Firmante")
                         .WithMany()
                         .HasForeignKey("IdFirmante")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1468,17 +1601,17 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Firmante");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Informe", b =>
+            modelBuilder.Entity("Ssal.Domain.Informe", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Usuario", "GeneradoPorUsuario")
+                    b.HasOne("Ssal.Domain.Usuario", "GeneradoPorUsuario")
                         .WithMany()
                         .HasForeignKey("GeneradoPor")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Muestra", "Muestra")
+                    b.HasOne("Ssal.Domain.Muestra", "Muestra")
                         .WithOne("Informe")
-                        .HasForeignKey("Ssal.Api.Models.Informe", "IdMuestra")
+                        .HasForeignKey("Ssal.Domain.Informe", "IdMuestra")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1487,15 +1620,15 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Muestra");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
+            modelBuilder.Entity("Ssal.Domain.Muestra", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.RotuloInterno", "RotuloInterno")
+                    b.HasOne("Ssal.Domain.RotuloInterno", "RotuloInterno")
                         .WithOne("Muestra")
-                        .HasForeignKey("Ssal.Api.Models.Muestra", "IdRotulo")
+                        .HasForeignKey("Ssal.Domain.Muestra", "IdRotulo")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Usuario", "RecibidoPorUsuario")
+                    b.HasOne("Ssal.Domain.Usuario", "RecibidoPorUsuario")
                         .WithMany()
                         .HasForeignKey("RecibidoPor")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1506,9 +1639,28 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("RotuloInterno");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.PortalUsuario", b =>
+            modelBuilder.Entity("Ssal.Domain.PaqueteAnalisis", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Cliente", "Cliente")
+                    b.HasOne("Ssal.Domain.Analisis", "Analisis")
+                        .WithMany()
+                        .HasForeignKey("IdAnalisis")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Ssal.Domain.Paquete", "Paquete")
+                        .WithMany("Items")
+                        .HasForeignKey("IdPaquete")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Analisis");
+
+                    b.Navigation("Paquete");
+                });
+
+            modelBuilder.Entity("Ssal.Domain.PortalUsuario", b =>
+                {
+                    b.HasOne("Ssal.Domain.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("IdCliente")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1517,17 +1669,17 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Cliente");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Presupuesto", b =>
+            modelBuilder.Entity("Ssal.Domain.Presupuesto", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Usuario", "CreadoPorUsuario")
+                    b.HasOne("Ssal.Domain.Usuario", "CreadoPorUsuario")
                         .WithMany()
                         .HasForeignKey("CreadoPor")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Consulta", "Consulta")
+                    b.HasOne("Ssal.Domain.Consulta", "Consulta")
                         .WithOne("Presupuesto")
-                        .HasForeignKey("Ssal.Api.Models.Presupuesto", "IdConsulta")
+                        .HasForeignKey("Ssal.Domain.Presupuesto", "IdConsulta")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1536,15 +1688,15 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("CreadoPorUsuario");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.PresupuestoAnalisis", b =>
+            modelBuilder.Entity("Ssal.Domain.PresupuestoAnalisis", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Analisis", "Analisis")
+                    b.HasOne("Ssal.Domain.Analisis", "Analisis")
                         .WithMany()
                         .HasForeignKey("IdAnalisis")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Presupuesto", "Presupuesto")
+                    b.HasOne("Ssal.Domain.Presupuesto", "Presupuesto")
                         .WithMany("Items")
                         .HasForeignKey("IdPresupuesto")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1555,15 +1707,15 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Presupuesto");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.PresupuestoArchivo", b =>
+            modelBuilder.Entity("Ssal.Domain.PresupuestoArchivo", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Presupuesto", "Presupuesto")
+                    b.HasOne("Ssal.Domain.Presupuesto", "Presupuesto")
                         .WithMany("Archivos")
                         .HasForeignKey("IdPresupuesto")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Usuario", "SubidoPorUsuario")
+                    b.HasOne("Ssal.Domain.Usuario", "SubidoPorUsuario")
                         .WithMany()
                         .HasForeignKey("SubidoPor")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1574,26 +1726,45 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("SubidoPorUsuario");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Resultado", b =>
+            modelBuilder.Entity("Ssal.Domain.PresupuestoPaquete", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Usuario", "CargadoPorUsuario")
+                    b.HasOne("Ssal.Domain.Paquete", "Paquete")
+                        .WithMany()
+                        .HasForeignKey("IdPaquete")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Ssal.Domain.Presupuesto", "Presupuesto")
+                        .WithMany("Paquetes")
+                        .HasForeignKey("IdPresupuesto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Paquete");
+
+                    b.Navigation("Presupuesto");
+                });
+
+            modelBuilder.Entity("Ssal.Domain.Resultado", b =>
+                {
+                    b.HasOne("Ssal.Domain.Usuario", "CargadoPorUsuario")
                         .WithMany()
                         .HasForeignKey("CargadoPor")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Ssal.Api.Models.Analisis", "Analisis")
+                    b.HasOne("Ssal.Domain.Analisis", "Analisis")
                         .WithMany("Resultados")
                         .HasForeignKey("IdAnalisis")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Muestra", "Muestra")
+                    b.HasOne("Ssal.Domain.Muestra", "Muestra")
                         .WithMany("Resultados")
                         .HasForeignKey("IdMuestra")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Usuario", "ValidadoPorUsuario")
+                    b.HasOne("Ssal.Domain.Usuario", "ValidadoPorUsuario")
                         .WithMany()
                         .HasForeignKey("ValidadoPor")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -1607,17 +1778,17 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("ValidadoPorUsuario");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.RotuloInterno", b =>
+            modelBuilder.Entity("Ssal.Domain.RotuloInterno", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Usuario", "AsignadoPorUsuario")
+                    b.HasOne("Ssal.Domain.Usuario", "AsignadoPorUsuario")
                         .WithMany()
                         .HasForeignKey("AsignadoPor")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Sse", "Sse")
-                        .WithOne("RotuloInterno")
-                        .HasForeignKey("Ssal.Api.Models.RotuloInterno", "IdSse")
+                    b.HasOne("Ssal.Domain.Sse", "Sse")
+                        .WithMany("RotulosInternos")
+                        .HasForeignKey("IdSse")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1626,25 +1797,25 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Sse");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Sse", b =>
+            modelBuilder.Entity("Ssal.Domain.Sse", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Usuario", "CreadoPorUsuario")
+                    b.HasOne("Ssal.Domain.Usuario", "CreadoPorUsuario")
                         .WithMany()
                         .HasForeignKey("CreadoPor")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Ssal.Api.Models.Cliente", "Cliente")
+                    b.HasOne("Ssal.Domain.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("IdCliente");
 
-                    b.HasOne("Ssal.Api.Models.Empresa", "Empresa")
+                    b.HasOne("Ssal.Domain.Empresa", "Empresa")
                         .WithMany()
                         .HasForeignKey("IdEmpresa");
 
-                    b.HasOne("Ssal.Api.Models.Presupuesto", "Presupuesto")
+                    b.HasOne("Ssal.Domain.Presupuesto", "Presupuesto")
                         .WithOne("Sse")
-                        .HasForeignKey("Ssal.Api.Models.Sse", "IdPresupuesto");
+                        .HasForeignKey("Ssal.Domain.Sse", "IdPresupuesto");
 
                     b.Navigation("Cliente");
 
@@ -1655,9 +1826,9 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Presupuesto");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Usuario", b =>
+            modelBuilder.Entity("Ssal.Domain.Usuario", b =>
                 {
-                    b.HasOne("Ssal.Api.Models.Rol", "Rol")
+                    b.HasOne("Ssal.Domain.Rol", "Rol")
                         .WithMany("Usuarios")
                         .HasForeignKey("IdRol")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1666,66 +1837,73 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Rol");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Analisis", b =>
+            modelBuilder.Entity("Ssal.Domain.Analisis", b =>
                 {
                     b.Navigation("Resultados");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Cliente", b =>
+            modelBuilder.Entity("Ssal.Domain.Cliente", b =>
                 {
                     b.Navigation("Consultas");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Consulta", b =>
+            modelBuilder.Entity("Ssal.Domain.Consulta", b =>
                 {
                     b.Navigation("Presupuesto");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Empresa", b =>
+            modelBuilder.Entity("Ssal.Domain.Empresa", b =>
                 {
                     b.Navigation("Clientes");
 
                     b.Navigation("Consultas");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.GrupoAnalisis", b =>
+            modelBuilder.Entity("Ssal.Domain.GrupoAnalisis", b =>
                 {
                     b.Navigation("Analisis");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Muestra", b =>
+            modelBuilder.Entity("Ssal.Domain.Muestra", b =>
                 {
                     b.Navigation("Informe");
 
                     b.Navigation("Resultados");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Presupuesto", b =>
+            modelBuilder.Entity("Ssal.Domain.Paquete", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Ssal.Domain.Presupuesto", b =>
                 {
                     b.Navigation("Archivos");
 
                     b.Navigation("Items");
 
+                    b.Navigation("Paquetes");
+
                     b.Navigation("Sse");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Rol", b =>
+            modelBuilder.Entity("Ssal.Domain.Rol", b =>
                 {
                     b.Navigation("Usuarios");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.RotuloInterno", b =>
+            modelBuilder.Entity("Ssal.Domain.RotuloInterno", b =>
                 {
                     b.Navigation("Auditorias");
 
                     b.Navigation("Muestra");
                 });
 
-            modelBuilder.Entity("Ssal.Api.Models.Sse", b =>
+            modelBuilder.Entity("Ssal.Domain.Sse", b =>
                 {
                     b.Navigation("Factura");
 
-                    b.Navigation("RotuloInterno");
+                    b.Navigation("RotulosInternos");
                 });
 #pragma warning restore 612, 618
         }

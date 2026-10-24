@@ -9,15 +9,12 @@ public class CrearPresupuesto(IPresupuestoRepository repo)
         var consulta = await repo.ObtenerConsultaAsync(cmd.IdConsulta);
         if (consulta is null) return Resultado<CrearPresupuestoResultadoDto>.Fallido("Consulta no encontrada");
 
-        // Si ya existe uno para esta consulta, eliminarlo
+        // Si ya existe uno para esta consulta, se actualiza en el lugar (mismo Id y mismo código RPO) en
+        // vez de borrarlo y crear uno nuevo: si ya se convirtió en SSE, ésta sigue apuntando al mismo
+        // presupuesto por Id, y borrarlo violaría esa referencia.
         var existente = await repo.ObtenerExistentePorConsultaAsync(cmd.IdConsulta);
-        if (existente is not null)
-        {
-            repo.EliminarConItems(existente);
-            await repo.GuardarCambiosAsync();
-        }
 
-        // Obtener precios actuales de los análisis seleccionados
+        // Obtener precios actuales de los análisis y paquetes seleccionados
         var ids = cmd.Items.Select(i => i.IdAnalisis).ToList();
         var analisis = await repo.ObtenerAnalisisPorIdsAsync(ids);
 
@@ -27,30 +24,59 @@ public class CrearPresupuesto(IPresupuestoRepository repo)
             PrecioUsdSnapshot = analisis.TryGetValue(i.IdAnalisis, out var a) ? a.PrecioUsd : 0
         }).ToList();
 
-        var totalUsd = items.Sum(i => i.PrecioUsdSnapshot) + cmd.AdicionalAsesoramiento;
-        var cotizacion = cmd.Cotizacion > 0 ? cmd.Cotizacion : 1;
+        var idsPaquetes = (cmd.Paquetes ?? []).Select(p => p.IdPaquete).ToList();
+        var paquetesCatalogo = await repo.ObtenerPaquetesPorIdsAsync(idsPaquetes);
 
-        var hoy = DateTime.UtcNow;
-        var prefijo = $"RPO-{hoy:yyyyMMdd}-";
-        var ultimoCodigo = await repo.ObtenerUltimoCodigoAsync(prefijo);
-        var codigo = GeneradorCodigoCorrelativo.Siguiente(prefijo, ultimoCodigo);
-
-        var presupuesto = new Ssal.Domain.Presupuesto
+        var paquetes = (cmd.Paquetes ?? []).Select(p => new Ssal.Domain.PresupuestoPaquete
         {
-            IdConsulta = cmd.IdConsulta,
-            CreadoPor = idUsuario,
-            CodigoRpo = codigo,
-            ImporteDolares = totalUsd,
-            ImportePesos = totalUsd * cotizacion,
-            Cotizacion = cotizacion,
-            AdicionalAsesoramiento = cmd.AdicionalAsesoramiento,
-            TipoAsesoramiento = cmd.AdicionalAsesoramiento > 0 ? cmd.TipoAsesoramiento : null,
-            Estado = "borrador",
-            Fecha = hoy,
-            Items = items
-        };
+            IdPaquete = p.IdPaquete,
+            PrecioUsdSnapshot = paquetesCatalogo.TryGetValue(p.IdPaquete, out var pq) ? pq.PrecioUsd : 0
+        }).ToList();
 
-        repo.Agregar(presupuesto);
+        var totalUsd = items.Sum(i => i.PrecioUsdSnapshot) + paquetes.Sum(p => p.PrecioUsdSnapshot) + cmd.AdicionalAsesoramiento;
+        var cotizacion = cmd.Cotizacion > 0 ? cmd.Cotizacion : 1;
+        var mostrarMoneda = cmd.MostrarMoneda is "usd" or "ars" or "ambos" ? cmd.MostrarMoneda : "ambos";
+
+        Ssal.Domain.Presupuesto presupuesto;
+
+        if (existente is not null)
+        {
+            repo.ReemplazarItemsYPaquetes(existente, items, paquetes);
+            existente.ImporteDolares = totalUsd;
+            existente.ImportePesos = totalUsd * cotizacion;
+            existente.Cotizacion = cotizacion;
+            existente.AdicionalAsesoramiento = cmd.AdicionalAsesoramiento;
+            existente.TipoAsesoramiento = cmd.AdicionalAsesoramiento > 0 ? cmd.TipoAsesoramiento : null;
+            existente.MostrarMoneda = mostrarMoneda;
+            existente.Estado = "borrador";
+            presupuesto = existente;
+        }
+        else
+        {
+            var hoy = DateTime.UtcNow;
+            var prefijo = $"RPO-{hoy:yyyyMMdd}-";
+            var ultimoCodigo = await repo.ObtenerUltimoCodigoAsync(prefijo);
+            var codigo = GeneradorCodigoCorrelativo.Siguiente(prefijo, ultimoCodigo);
+
+            presupuesto = new Ssal.Domain.Presupuesto
+            {
+                IdConsulta = cmd.IdConsulta,
+                CreadoPor = idUsuario,
+                CodigoRpo = codigo,
+                ImporteDolares = totalUsd,
+                ImportePesos = totalUsd * cotizacion,
+                Cotizacion = cotizacion,
+                AdicionalAsesoramiento = cmd.AdicionalAsesoramiento,
+                TipoAsesoramiento = cmd.AdicionalAsesoramiento > 0 ? cmd.TipoAsesoramiento : null,
+                MostrarMoneda = mostrarMoneda,
+                Estado = "borrador",
+                Fecha = hoy,
+                Items = items,
+                Paquetes = paquetes
+            };
+            repo.Agregar(presupuesto);
+        }
+
         await repo.GuardarCambiosAsync();
 
         return Resultado<CrearPresupuestoResultadoDto>.Exitoso(new CrearPresupuestoResultadoDto(

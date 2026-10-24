@@ -12,7 +12,7 @@ public class FacturaRepository(SsalDbContext db) : IFacturaRepository
         var q = db.Facturas
             .Include(f => f.Sse).ThenInclude(s => s.Cliente)
             .Include(f => f.Sse).ThenInclude(s => s.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
-            .Include(f => f.Sse).ThenInclude(s => s.RotuloInterno)
+            .Include(f => f.Sse).ThenInclude(s => s.RotulosInternos)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(estado))
@@ -25,7 +25,7 @@ public class FacturaRepository(SsalDbContext db) : IFacturaRepository
                 (f.Numero != null && f.Numero.ToLower().Contains(b)) ||
                 (f.Sse.Codigo != null && f.Sse.Codigo.ToLower().Contains(b)) ||
                 (f.Sse.Cliente != null && (f.Sse.Cliente.Nombre + " " + f.Sse.Cliente.Apellido).ToLower().Contains(b)) ||
-                (f.Sse.RotuloInterno != null && f.Sse.RotuloInterno.NumeroUnico.ToLower().Contains(b)));
+                f.Sse.RotulosInternos.Any(r => r.NumeroUnico.ToLower().Contains(b)));
         }
 
         var total = await q.CountAsync();
@@ -41,7 +41,7 @@ public class FacturaRepository(SsalDbContext db) : IFacturaRepository
                 f.Sse.Cliente == null ? null : new ClienteNombreDto(f.Sse.Cliente.Nombre, f.Sse.Cliente.Apellido),
                 f.Sse.Presupuesto == null || f.Sse.Presupuesto.Consulta.Empresa == null
                     ? null : new EmpresaNombreDto(f.Sse.Presupuesto.Consulta.Empresa.RazonSocial),
-                f.Sse.RotuloInterno == null ? null : f.Sse.RotuloInterno.NumeroUnico))
+                f.Sse.RotulosInternos.Count == 0 ? null : string.Join(", ", f.Sse.RotulosInternos.OrderBy(r => r.NumeroUnico).Select(r => r.NumeroUnico))))
             .ToListAsync();
 
         return (total, items);
@@ -52,14 +52,14 @@ public class FacturaRepository(SsalDbContext db) : IFacturaRepository
             .Where(s => !db.Facturas.Any(f => f.IdSse == s.IdSse && f.Estado != "anulada"))
             .Include(s => s.Cliente)
             .Include(s => s.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
-            .Include(s => s.RotuloInterno)
+            .Include(s => s.RotulosInternos)
             .OrderByDescending(s => s.Fecha)
             .Select(s => new SseDisponibleDto(
                 s.IdSse, s.Codigo, s.Area, s.Fecha, s.ImportePesos, s.ImporteDolares,
                 s.Cliente == null ? null : new ClienteNombreDto(s.Cliente.Nombre, s.Cliente.Apellido),
                 s.Presupuesto == null || s.Presupuesto.Consulta.Empresa == null
                     ? null : new EmpresaNombreDto(s.Presupuesto.Consulta.Empresa.RazonSocial),
-                s.RotuloInterno == null ? null : s.RotuloInterno.NumeroUnico))
+                s.RotulosInternos.Count == 0 ? null : string.Join(", ", s.RotulosInternos.OrderBy(r => r.NumeroUnico).Select(r => r.NumeroUnico))))
             .ToListAsync();
 
     public Task<Sse?> ObtenerSseAsync(int idSse) => db.Sses.FindAsync(idSse).AsTask();

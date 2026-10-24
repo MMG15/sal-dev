@@ -4,10 +4,10 @@ namespace Ssal.Application.Sse;
 // exige motivo y audita cada campo modificado por separado.
 public class ActualizarRotulo(ISseRepository repo)
 {
-    public async Task<Resultado> EjecutarAsync(int idSse, ActualizarRotuloCommand cmd, int idUsuario)
+    public async Task<Resultado> EjecutarAsync(int idSse, int idRotulo, ActualizarRotuloCommand cmd, int idUsuario)
     {
-        var rotulo = await repo.ObtenerRotuloPorSseAsync(idSse);
-        if (rotulo is null) return Resultado.Fallido("No encontrado");
+        var rotulo = await repo.ObtenerRotuloPorIdAsync(idRotulo);
+        if (rotulo is null || rotulo.IdSse != idSse) return Resultado.Fallido("No encontrado");
 
         var cambios = new List<Ssal.Domain.AuditoriaRotulo>();
 

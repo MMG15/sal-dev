@@ -171,7 +171,7 @@ export default function FirmaDetallePage() {
       </Group>
 
       {avisoEmail && (
-        <Alert color="blue" variant="light" withCloseButton onClose={() => setAvisoEmail(false)}>
+        <Alert color="blue" variant="light" withCloseButton onClose={() => setAvisoEmail(false)} style={{ flexShrink: 0 }}>
           Informe enviado por email.
         </Alert>
       )}
@@ -193,7 +193,7 @@ export default function FirmaDetallePage() {
         </Stepper>
       </Paper>
 
-      {error && <Alert color="red" variant="light">{error}</Alert>}
+      {error && <Alert color="red" variant="light" style={{ flexShrink: 0 }}>{error}</Alert>}
 
       {hayAcciones ? (
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">

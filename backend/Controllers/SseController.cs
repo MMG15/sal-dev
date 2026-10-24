@@ -91,22 +91,22 @@ public class SseController(
         return Ok(resultado.Valor);
     }
 
-    // ─── POST /api/sses/{id}/muestra ─────────────────────────────────────
-    [HttpPost("{id}/muestra")]
-    public async Task<IActionResult> RegistrarMuestra(int id, [FromBody] RegistrarMuestraCommand req)
+    // ─── POST /api/sses/{id}/rotulos/{idRotulo}/muestra ───────────────────
+    [HttpPost("{id}/rotulos/{idRotulo}/muestra")]
+    public async Task<IActionResult> RegistrarMuestra(int id, int idRotulo, [FromBody] RegistrarMuestraCommand req)
     {
-        var resultado = await registrarMuestra.EjecutarAsync(id, req, UsuarioActual);
+        var resultado = await registrarMuestra.EjecutarAsync(id, idRotulo, req, UsuarioActual);
         if (!resultado.Ok) return BadRequest(new { error = resultado.Error });
         return Ok(new { IdMuestra = resultado.Valor });
     }
 
-    // ─── PUT /api/sses/{id}/rotulo ────────────────────────────────────────
+    // ─── PUT /api/sses/{id}/rotulos/{idRotulo} ─────────────────────────────
     // Corrige número/descripción/estado del rótulo. Operación crítica (RF-13/RF-14):
     // exige motivo y audita cada campo modificado por separado.
-    [HttpPut("{id}/rotulo")]
-    public async Task<IActionResult> ActualizarRotulo(int id, [FromBody] ActualizarRotuloCommand req)
+    [HttpPut("{id}/rotulos/{idRotulo}")]
+    public async Task<IActionResult> ActualizarRotulo(int id, int idRotulo, [FromBody] ActualizarRotuloCommand req)
     {
-        var resultado = await actualizarRotulo.EjecutarAsync(id, req, UsuarioActual);
+        var resultado = await actualizarRotulo.EjecutarAsync(id, idRotulo, req, UsuarioActual);
         if (!resultado.Ok)
             return resultado.Error == "No encontrado" ? NotFound() : BadRequest(new { error = resultado.Error });
         return NoContent();

@@ -165,7 +165,7 @@ export default function CorreoDetallePage() {
       </Paper>
 
       {correo.consultaRelacionada && (
-        <Alert color="grape" variant="light">
+        <Alert color="grape" variant="light" style={{ flexShrink: 0 }}>
           <Stack gap="xs">
             <Text size="sm">
               Esto parece ser una respuesta a la consulta{' '}
@@ -201,7 +201,7 @@ export default function CorreoDetallePage() {
         </Alert>
       )}
 
-      {error && <Alert color="red" variant="light">{error}</Alert>}
+      {error && <Alert color="red" variant="light" style={{ flexShrink: 0 }}>{error}</Alert>}
 
       {pendiente ? (
         <Paper withBorder radius="md" p="lg">

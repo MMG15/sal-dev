@@ -24,4 +24,10 @@
     <ProjectReference Include="..\Ssal.Domain\Ssal.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Logo institucional para el encabezado de los PDFs. Como recurso embebido, va dentro
+         de la DLL y no depende del directorio de trabajo con el que corra el servidor. -->
+    <EmbeddedResource Include="Assets\logo.png" />
+  </ItemGroup>
+
 </Project>

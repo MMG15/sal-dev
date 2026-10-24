@@ -102,9 +102,9 @@ export default function SsePage() {
         />
       </Group>
 
-      {error && <Alert color="red" variant="light">{error}</Alert>}
+      {error && <Alert color="red" variant="light" style={{ flexShrink: 0 }}>{error}</Alert>}
 
-      <Paper withBorder radius="md" style={{ overflowX: "auto" }}>
+      <Paper withBorder radius="md" style={{ overflowX: "auto", flexShrink: 0 }}>
         {cargando ? (
           <Text c="dimmed" p="xl">Cargando SSE…</Text>
         ) : lista.length === 0 ? (
@@ -139,8 +139,11 @@ export default function SsePage() {
                     <Badge color={COLOR_AREA[s.area] ?? 'gray'} variant="light" radius="sm">{etiquetaArea(s.area)}</Badge>
                   </Table.Td>
                   <Table.Td>
-                    {s.rotulo ? (
-                      <Badge variant="outline" color="teal" radius="sm" ff="monospace">{s.rotulo.numeroUnico}</Badge>
+                    {s.rotulos.length > 0 ? (
+                      <Group gap={4} wrap="nowrap">
+                        <Badge variant="outline" color="teal" radius="sm" ff="monospace">{s.rotulos[0].numeroUnico}</Badge>
+                        {s.rotulos.length > 1 && <Badge variant="light" color="gray" radius="sm">+{s.rotulos.length - 1}</Badge>}
+                      </Group>
                     ) : (
                       <Text size="sm" c="dimmed">Sin rótulo</Text>
                     )}

@@ -19,6 +19,7 @@ public class FirmaRepository(SsalDbContext db) : IFirmaRepository
     public async Task<List<Presupuesto>> ListarPresupuestosAsync() =>
         await db.Presupuestos
             .Include(p => p.Items).ThenInclude(i => i.Analisis)
+            .Include(p => p.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items).ThenInclude(pa => pa.Analisis)
             .Include(p => p.Consulta).ThenInclude(c => c.Cliente)
             .Include(p => p.Consulta).ThenInclude(c => c.Empresa)
             .OrderByDescending(p => p.Fecha)
@@ -38,6 +39,7 @@ public class FirmaRepository(SsalDbContext db) : IFirmaRepository
     public Task<Presupuesto?> ObtenerPresupuestoAsync(int id) =>
         db.Presupuestos
             .Include(p => p.Items).ThenInclude(i => i.Analisis)
+            .Include(p => p.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items).ThenInclude(pa => pa.Analisis)
             .Include(p => p.Consulta).ThenInclude(c => c.Cliente)
             .Include(p => p.Consulta).ThenInclude(c => c.Empresa)
             .FirstOrDefaultAsync(p => p.IdPresupuesto == id);

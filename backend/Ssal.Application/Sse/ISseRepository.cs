@@ -10,7 +10,7 @@ public interface ISseRepository
 
     Task<Ssal.Domain.Sse?> ObtenerAsync(int id);
 
-    Task<Ssal.Domain.Sse?> ObtenerConRotuloAsync(int id);
+    Task<Ssal.Domain.Sse?> ObtenerConRotulosAsync(int id);
 
     Task<bool> ExisteClienteAsync(int id);
 
@@ -28,7 +28,7 @@ public interface ISseRepository
 
     void AgregarRotulo(Ssal.Domain.RotuloInterno rotulo);
 
-    Task<Ssal.Domain.RotuloInterno?> ObtenerRotuloConMuestraAsync(int idSse);
+    Task<Ssal.Domain.RotuloInterno?> ObtenerRotuloConMuestraAsync(int idRotulo);
 
     void AgregarMuestra(Ssal.Domain.Muestra muestra);
 
@@ -36,7 +36,7 @@ public interface ISseRepository
 
     void AgregarResultado(Ssal.Domain.Resultado resultado);
 
-    Task<Ssal.Domain.RotuloInterno?> ObtenerRotuloPorSseAsync(int idSse);
+    Task<Ssal.Domain.RotuloInterno?> ObtenerRotuloPorIdAsync(int idRotulo);
 
     Task<bool> ExisteOtroRotuloConNumeroAsync(int idRotulo, string numeroUnico);
 

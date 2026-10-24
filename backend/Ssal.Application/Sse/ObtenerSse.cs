@@ -17,16 +17,19 @@ public class ObtenerSse(ISseRepository repo)
             s.Presupuesto == null ? null : new PresupuestoResumenDto(
                 s.Presupuesto.IdPresupuesto, s.Presupuesto.CodigoRpo, s.Presupuesto.ImporteDolares, s.Presupuesto.ImportePesos,
                 s.Presupuesto.Items.Select(i => new AnalisisResumenDto(i.Analisis.Nombre, i.Analisis.Area)).ToList()),
-            s.RotuloInterno == null ? null : new RotuloDetalleDto(
-                s.RotuloInterno.IdRotulo, s.RotuloInterno.NumeroUnico, s.RotuloInterno.Descripcion, s.RotuloInterno.Estado, s.RotuloInterno.FechaAsignacion,
-                new UsuarioNombreDto(s.RotuloInterno.AsignadoPorUsuario.Nombre, s.RotuloInterno.AsignadoPorUsuario.Apellido),
-                s.RotuloInterno.Muestra == null ? null : new MuestraDto(
-                    s.RotuloInterno.Muestra.IdMuestra, s.RotuloInterno.Muestra.Tipo, s.RotuloInterno.Muestra.Estado,
-                    s.RotuloInterno.Muestra.Observacion, s.RotuloInterno.Muestra.FechaRecepcion,
-                    new UsuarioNombreDto(s.RotuloInterno.Muestra.RecibidoPorUsuario.Nombre, s.RotuloInterno.Muestra.RecibidoPorUsuario.Apellido)),
-                s.RotuloInterno.Auditorias
-                    .OrderByDescending(a => a.FechaCambio)
-                    .Select(a => new AuditoriaRotuloDto(a.IdAuditoria, a.Campo, a.ValorAnterior, a.ValorNuevo, a.Motivo, a.FechaCambio, new UsuarioNombreDto(a.Usuario.Nombre, a.Usuario.Apellido)))
-                    .ToList()));
+            s.RotulosInternos
+                .OrderBy(r => r.NumeroUnico)
+                .Select(r => new RotuloDetalleDto(
+                    r.IdRotulo, r.NumeroUnico, r.Descripcion, r.Estado, r.FechaAsignacion,
+                    new UsuarioNombreDto(r.AsignadoPorUsuario.Nombre, r.AsignadoPorUsuario.Apellido),
+                    r.Muestra == null ? null : new MuestraDto(
+                        r.Muestra.IdMuestra, r.Muestra.Tipo, r.Muestra.Estado,
+                        r.Muestra.Observacion, r.Muestra.FechaRecepcion,
+                        new UsuarioNombreDto(r.Muestra.RecibidoPorUsuario.Nombre, r.Muestra.RecibidoPorUsuario.Apellido)),
+                    r.Auditorias
+                        .OrderByDescending(a => a.FechaCambio)
+                        .Select(a => new AuditoriaRotuloDto(a.IdAuditoria, a.Campo, a.ValorAnterior, a.ValorNuevo, a.Motivo, a.FechaCambio, new UsuarioNombreDto(a.Usuario.Nombre, a.Usuario.Apellido)))
+                        .ToList()))
+                .ToList());
     }
 }

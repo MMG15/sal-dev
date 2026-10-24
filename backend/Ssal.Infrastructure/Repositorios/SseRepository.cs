@@ -13,7 +13,7 @@ public class SseRepository(SsalDbContext db) : ISseRepository
             .Include(s => s.Cliente)
             .Include(s => s.Empresa)
             .Include(s => s.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
-            .Include(s => s.RotuloInterno)
+            .Include(s => s.RotulosInternos)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(estado))
@@ -29,7 +29,7 @@ public class SseRepository(SsalDbContext db) : ISseRepository
                 (s.Codigo != null && s.Codigo.ToLower().Contains(b)) ||
                 (s.CodigoRpo != null && s.CodigoRpo.ToLower().Contains(b)) ||
                 (s.Cliente != null && (s.Cliente.Nombre + " " + s.Cliente.Apellido).ToLower().Contains(b)) ||
-                (s.RotuloInterno != null && s.RotuloInterno.NumeroUnico.ToLower().Contains(b)));
+                s.RotulosInternos.Any(r => r.NumeroUnico.ToLower().Contains(b)));
         }
 
         var total = await q.CountAsync();
@@ -43,7 +43,7 @@ public class SseRepository(SsalDbContext db) : ISseRepository
                 s.Empresa != null ? new EmpresaResumenDto(s.Empresa.RazonSocial)
                     : s.Presupuesto != null && s.Presupuesto.Consulta.Empresa != null ? new EmpresaResumenDto(s.Presupuesto.Consulta.Empresa.RazonSocial)
                     : null,
-                s.RotuloInterno == null ? null : new RotuloResumenDto(s.RotuloInterno.IdRotulo, s.RotuloInterno.NumeroUnico, s.RotuloInterno.Estado)))
+                s.RotulosInternos.OrderBy(r => r.NumeroUnico).Select(r => new RotuloResumenDto(r.IdRotulo, r.NumeroUnico, r.Estado)).ToList()))
             .ToListAsync();
 
         return (total, items);
@@ -57,9 +57,9 @@ public class SseRepository(SsalDbContext db) : ISseRepository
             .Include(x => x.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
             .Include(x => x.Presupuesto).ThenInclude(p => p!.Items).ThenInclude(i => i.Analisis)
             .Include(x => x.CreadoPorUsuario)
-            .Include(x => x.RotuloInterno).ThenInclude(r => r!.AsignadoPorUsuario)
-            .Include(x => x.RotuloInterno).ThenInclude(r => r!.Muestra).ThenInclude(m => m!.RecibidoPorUsuario)
-            .Include(x => x.RotuloInterno).ThenInclude(r => r!.Auditorias).ThenInclude(a => a.Usuario)
+            .Include(x => x.RotulosInternos).ThenInclude(r => r.AsignadoPorUsuario)
+            .Include(x => x.RotulosInternos).ThenInclude(r => r.Muestra).ThenInclude(m => m!.RecibidoPorUsuario)
+            .Include(x => x.RotulosInternos).ThenInclude(r => r.Auditorias).ThenInclude(a => a.Usuario)
             .FirstOrDefaultAsync(x => x.IdSse == id);
 
     public Task<Sse?> ObtenerCompletoParaPdfAsync(int id) =>
@@ -67,14 +67,15 @@ public class SseRepository(SsalDbContext db) : ISseRepository
             .Include(x => x.Cliente).ThenInclude(c => c!.Empresa)
             .Include(x => x.Empresa)
             .Include(x => x.Presupuesto).ThenInclude(p => p!.Items).ThenInclude(i => i.Analisis)
+            .Include(x => x.Presupuesto).ThenInclude(p => p!.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items).ThenInclude(pa => pa.Analisis)
             .Include(x => x.CreadoPorUsuario)
-            .Include(x => x.RotuloInterno).ThenInclude(r => r!.Muestra)
+            .Include(x => x.RotulosInternos).ThenInclude(r => r.Muestra)
             .FirstOrDefaultAsync(x => x.IdSse == id);
 
     public Task<Sse?> ObtenerAsync(int id) => db.Sses.FindAsync(id).AsTask();
 
-    public Task<Sse?> ObtenerConRotuloAsync(int id) =>
-        db.Sses.Include(s => s.RotuloInterno).FirstOrDefaultAsync(s => s.IdSse == id);
+    public Task<Sse?> ObtenerConRotulosAsync(int id) =>
+        db.Sses.Include(s => s.RotulosInternos).FirstOrDefaultAsync(s => s.IdSse == id);
 
     public Task<bool> ExisteClienteAsync(int id) => db.Clientes.AnyAsync(c => c.IdCliente == id);
 
@@ -104,18 +105,22 @@ public class SseRepository(SsalDbContext db) : ISseRepository
 
     public void AgregarRotulo(RotuloInterno rotulo) => db.RotulosInternos.Add(rotulo);
 
-    public Task<RotuloInterno?> ObtenerRotuloConMuestraAsync(int idSse) =>
-        db.RotulosInternos.Include(r => r.Muestra).FirstOrDefaultAsync(r => r.IdSse == idSse);
+    public Task<RotuloInterno?> ObtenerRotuloConMuestraAsync(int idRotulo) =>
+        db.RotulosInternos.Include(r => r.Muestra).FirstOrDefaultAsync(r => r.IdRotulo == idRotulo);
 
     public void AgregarMuestra(Muestra muestra) => db.Muestras.Add(muestra);
 
     public Task<Sse?> ObtenerConPresupuestoItemsAsync(int id) =>
-        db.Sses.Include(s => s.Presupuesto).ThenInclude(p => p!.Items).FirstOrDefaultAsync(s => s.IdSse == id);
+        db.Sses
+            .Include(s => s.Presupuesto).ThenInclude(p => p!.Items)
+            .Include(s => s.Presupuesto).ThenInclude(p => p!.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items)
+            .Include(s => s.RotulosInternos)
+            .FirstOrDefaultAsync(s => s.IdSse == id);
 
     public void AgregarResultado(Resultado resultado) => db.Resultados.Add(resultado);
 
-    public Task<RotuloInterno?> ObtenerRotuloPorSseAsync(int idSse) =>
-        db.RotulosInternos.FirstOrDefaultAsync(r => r.IdSse == idSse);
+    public Task<RotuloInterno?> ObtenerRotuloPorIdAsync(int idRotulo) =>
+        db.RotulosInternos.FirstOrDefaultAsync(r => r.IdRotulo == idRotulo);
 
     public Task<bool> ExisteOtroRotuloConNumeroAsync(int idRotulo, string numeroUnico) =>
         db.RotulosInternos.AnyAsync(r => r.IdRotulo != idRotulo && r.NumeroUnico == numeroUnico);

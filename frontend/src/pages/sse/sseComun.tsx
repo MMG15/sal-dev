@@ -15,7 +15,7 @@ export interface SseResumen {
   importePesos: number
   cliente: { nombre: string; apellido: string } | null
   empresa: { razonSocial: string } | null
-  rotulo: { idRotulo: number; numeroUnico: string; estado: string } | null
+  rotulos: { idRotulo: number; numeroUnico: string; estado: string }[]
 }
 
 export interface SseDetalle {
@@ -40,7 +40,7 @@ export interface SseDetalle {
     importeDolares: number; importePesos: number
     analisis: { nombre: string; area: string }[]
   } | null
-  rotulo: {
+  rotulos: {
     idRotulo: number; numeroUnico: string; descripcion: string | null
     estado: string; fechaAsignacion: string
     asignadoPor: { nombre: string; apellido: string }
@@ -54,7 +54,7 @@ export interface SseDetalle {
       motivo: string | null; fechaCambio: string
       usuario: { nombre: string; apellido: string }
     }[]
-  } | null
+  }[]
 }
 
 export interface PresupuestoOpcion {
@@ -222,6 +222,7 @@ export function ModalRotulo({ idSse, onGuardado, onCerrar }: {
 }) {
   const [numeroUnico, setNumeroUnico] = useState('')
   const [descripcion, setDescripcion] = useState('')
+  const [cantidad, setCantidad] = useState('1')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
@@ -231,7 +232,11 @@ export function ModalRotulo({ idSse, onGuardado, onCerrar }: {
     try {
       const res = await apiFetch(`/api/sses/${idSse}/rotulo`, {
         method: 'POST',
-        body: JSON.stringify({ numeroUnico: numeroUnico.trim() || null, descripcion: descripcion || null })
+        body: JSON.stringify({
+          numeroUnico: numeroUnico.trim() || null,
+          descripcion: descripcion || null,
+          cantidad: parseInt(cantidad, 10) || 1
+        })
       })
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
@@ -255,11 +260,25 @@ export function ModalRotulo({ idSse, onGuardado, onCerrar }: {
           <label className={styles.formLabel}>Número de rótulo</label>
           <input
             className={styles.formInput}
-            placeholder="ROT-YYYYMM-NNNN (dejar vacío para auto-generar)"
+            placeholder="AA-DDD-NNN (dejar vacío para auto-generar)"
             value={numeroUnico}
             onChange={e => setNumeroUnico(e.target.value)}
           />
-          <p className={styles.inputHint}>Si lo dejás vacío, se genera automáticamente con formato ROT-YYYYMM-NNNN</p>
+          <p className={styles.inputHint}>Si lo dejás vacío, se genera automáticamente con formato AA-DDD-NNN (año-día del año-correlativo diario)</p>
+
+          <label className={styles.formLabel}>Cantidad de muestras repetidas en este pedido</label>
+          <input
+            type="number"
+            className={styles.formInput}
+            min={1}
+            max={20}
+            value={cantidad}
+            onChange={e => setCantidad(e.target.value)}
+            disabled={!!numeroUnico.trim()}
+          />
+          <p className={styles.inputHint}>
+            Si el pedido trae la misma muestra más de una vez, indicá cuántas: se generan todos los rótulos juntos, con el mismo número y una letra (-A, -B, -C...) para diferenciarlos.
+          </p>
 
           <label className={styles.formLabel}>Descripción / observaciones</label>
           <textarea
@@ -286,8 +305,9 @@ export function ModalRotulo({ idSse, onGuardado, onCerrar }: {
 
 const ESTADOS_ROTULO = ['activo', 'anulado']
 
-export function ModalCorregirRotulo({ idSse, rotulo, onGuardado, onCerrar }: {
+export function ModalCorregirRotulo({ idSse, idRotulo, rotulo, onGuardado, onCerrar }: {
   idSse: number
+  idRotulo: number
   rotulo: { numeroUnico: string; descripcion: string | null; estado: string }
   onGuardado: () => void
   onCerrar: () => void
@@ -317,7 +337,7 @@ export function ModalCorregirRotulo({ idSse, rotulo, onGuardado, onCerrar }: {
     setGuardando(true)
     setError('')
     try {
-      const res = await apiFetch(`/api/sses/${idSse}/rotulo`, {
+      const res = await apiFetch(`/api/sses/${idSse}/rotulos/${idRotulo}`, {
         method: 'PUT',
         body: JSON.stringify({
           numeroUnico: numeroUnico.trim(),
@@ -515,8 +535,9 @@ const CONDICIONES_MUESTRA: { value: string; label: string }[] = [
   { value: 'rechazada', label: 'No en condiciones — se rechaza' },
 ]
 
-export function ModalMuestra({ idSse, onGuardado, onCerrar }: {
+export function ModalMuestra({ idSse, idRotulo, onGuardado, onCerrar }: {
   idSse: number
+  idRotulo: number
   onGuardado: () => void
   onCerrar: () => void
 }) {
@@ -535,7 +556,7 @@ export function ModalMuestra({ idSse, onGuardado, onCerrar }: {
       return
     }
     try {
-      const res = await apiFetch(`/api/sses/${idSse}/muestra`, {
+      const res = await apiFetch(`/api/sses/${idSse}/rotulos/${idRotulo}/muestra`, {
         method: 'POST',
         body: JSON.stringify({ tipo: tipo || null, observacion: observacion || null, condicion })
       })
@@ -572,7 +593,7 @@ export function ModalMuestra({ idSse, onGuardado, onCerrar }: {
           </select>
           {condicion === 'rechazada' && (
             <p className={styles.inputHint}>
-              Al rechazarla, la SSE se cierra como rechazada y no continúa el proceso de análisis.
+              Al rechazarla, esta muestra queda cerrada como rechazada y no continúa el proceso de análisis.
             </p>
           )}
 
@@ -593,7 +614,7 @@ export function ModalMuestra({ idSse, onGuardado, onCerrar }: {
             onClick={guardar}
             disabled={guardando}
           >
-            {guardando ? 'Registrando...' : condicion === 'rechazada' ? 'Rechazar y cerrar SSE' : 'Registrar muestra'}
+            {guardando ? 'Registrando...' : condicion === 'rechazada' ? 'Rechazar muestra' : 'Registrar muestra'}
           </button>
         </div>
       </div>

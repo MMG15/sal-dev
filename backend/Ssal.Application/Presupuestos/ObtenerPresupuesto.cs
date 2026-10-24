@@ -10,7 +10,7 @@ public class ObtenerPresupuesto(IPresupuestoRepository repo)
         var c = p.Consulta;
         return new PresupuestoDetalleDto(
             p.IdPresupuesto, p.CodigoRpo, p.Estado, p.ImporteDolares, p.ImportePesos, p.Cotizacion,
-            p.AdicionalAsesoramiento, p.TipoAsesoramiento, p.Fecha,
+            p.AdicionalAsesoramiento, p.TipoAsesoramiento, p.MostrarMoneda, p.Fecha,
             new ConsultaResumenDto(
                 c.IdConsulta, c.Codigo, c.Canal, c.Descripcion,
                 c.Cliente == null ? null : new ClienteDetalleDto(
@@ -22,6 +22,13 @@ public class ObtenerPresupuesto(IPresupuestoRepository repo)
                 .OrderBy(i => i.Analisis.Area)
                 .ThenBy(i => i.Analisis.Grupo.CodigoAgrupador)
                 .Select(i => new ItemPresupuestoDto(i.Id, i.IdAnalisis, i.PrecioUsdSnapshot, i.Analisis.Codigo, i.Analisis.Nombre, i.Analisis.Area, i.Analisis.Grupo.CodigoAgrupador))
+                .ToList(),
+            p.Paquetes
+                .OrderBy(pp => pp.Paquete.Area)
+                .ThenBy(pp => pp.Paquete.Nombre)
+                .Select(pp => new ItemPaqueteDto(
+                    pp.Id, pp.IdPaquete, pp.PrecioUsdSnapshot, pp.Paquete.Nombre, pp.Paquete.Area,
+                    pp.Paquete.Items.Select(i => i.Analisis.Nombre).ToList()))
                 .ToList());
     }
 }

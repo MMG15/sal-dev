@@ -13,10 +13,12 @@ public record ConsultaResumenDto(
 
 public record ItemAnalisisConsultaDto(int Id, int IdAnalisis, decimal PrecioUsdSnapshot, string Codigo, string Nombre, string Area, string GrupoNombre);
 
+public record ItemPaqueteConsultaDto(int Id, int IdPaquete, decimal PrecioUsdSnapshot, string Nombre, string Area, IReadOnlyList<string> AnalisisIncluidos);
+
 public record PresupuestoResumenDto(
     int IdPresupuesto, string? CodigoRpo, string Estado, decimal ImporteDolares, decimal ImportePesos,
     decimal Cotizacion, decimal AdicionalAsesoramiento, string? TipoAsesoramiento, DateTime Fecha,
-    IReadOnlyList<ItemAnalisisConsultaDto> Items);
+    IReadOnlyList<ItemAnalisisConsultaDto> Items, IReadOnlyList<ItemPaqueteConsultaDto> Paquetes);
 
 public record ClienteDetalleDto(int IdCliente, string Nombre, string Apellido, string? Email, string? Telefono, EmpresaResumenDto? Empresa);
 

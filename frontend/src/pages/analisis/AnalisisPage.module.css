@@ -1,9 +1,43 @@
+.root {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.pestanas {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--borde);
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.pestana {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 12px;
+  font-size: 16px;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+
+.pestanaActiva {
+  color: var(--teal);
+  border-bottom-color: var(--teal);
+  font-weight: 600;
+}
+
 .cabecera {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .titulo {
@@ -25,6 +59,7 @@
   gap: 12px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .tabs {
@@ -100,6 +135,7 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: var(--sombra-sm);
+  flex-shrink: 0;
 }
 
 .tabla {
@@ -185,6 +221,17 @@
   padding: 1px 6px;
   border-radius: 3px;
   flex-shrink: 0;
+}
+
+.tagTercerizado {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--dorado-claro);
+  color: var(--dorado);
 }
 
 .areaMic {
@@ -320,7 +367,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 1000;
   padding: 24px;
 }
 
@@ -337,6 +384,11 @@
 
 .modalChico {
   max-width: 380px;
+}
+
+.modalGrande {
+  max-width: 720px;
+  height: 85vh;
 }
 
 .modalHeader {
@@ -403,10 +455,12 @@
   font-size: 17.5px;
   font-weight: 500;
   color: var(--texto);
+  white-space: nowrap;
 }
 
 .campo input,
-.campo select {
+.campo select,
+.campo textarea {
   padding: 8px 12px;
   border: 1px solid var(--borde);
   border-radius: 7px;
@@ -417,12 +471,29 @@
   transition: border-color 0.12s, box-shadow 0.12s;
   width: 100%;
   box-sizing: border-box;
+  font-family: inherit;
+  resize: vertical;
 }
 
 .campo input:focus,
-.campo select:focus {
+.campo select:focus,
+.campo textarea:focus {
   border-color: var(--teal);
   box-shadow: 0 0 0 3px rgba(15, 124, 134, 0.15);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17.5px;
+  font-weight: 500;
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  width: auto;
 }
 
 .radioGroup {

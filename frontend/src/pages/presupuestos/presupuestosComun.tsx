@@ -27,6 +27,15 @@ export interface ItemPresupuesto {
   grupoNombre: string
 }
 
+export interface ItemPaquetePresupuesto {
+  id: number
+  idPaquete: number
+  precioUsdSnapshot: number
+  nombre: string
+  area: string
+  analisisIncluidos: string[]
+}
+
 export interface Archivo {
   id: number
   nombreOriginal: string
@@ -45,6 +54,7 @@ export interface PresupuestoDetalle {
   cotizacion: number
   adicionalAsesoramiento: number
   tipoAsesoramiento: string | null
+  mostrarMoneda: string
   fecha: string
   consulta: {
     idConsulta: number
@@ -60,6 +70,7 @@ export interface PresupuestoDetalle {
   }
   creadoPor: { nombre: string; apellido: string }
   items: ItemPresupuesto[]
+  paquetes: ItemPaquetePresupuesto[]
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -92,9 +103,15 @@ export function datosEnvioPresupuesto(p: PresupuestoDetalle, archivos: Archivo[]
       ? `${cliente.nombre} ${cliente.apellido}`
       : empresa?.razonSocial ?? 'cliente'
 
+    const lineasPaquetes = p.paquetes
+      .map(pq => `  • [${pq.area}] ${pq.nombre} (paquete — incluye ${pq.analisisIncluidos.join(', ')}): USD ${pq.precioUsdSnapshot.toFixed(2)}`)
+      .join('\n')
+
     const lineasAnalisis = p.items
       .map(i => `  • [${i.area}] ${i.nombre}: USD ${i.precioUsdSnapshot.toFixed(2)}`)
       .join('\n')
+
+    const lineasAnalisisCompleto = [lineasPaquetes, lineasAnalisis].filter(Boolean).join('\n')
 
     const lineasArchivos = archivos.length > 0
       ? `\nDocumentos adjuntos en el sistema (${archivos.length}):\n${archivos.map(a => `  • ${a.nombreOriginal}`).join('\n')}\n`
@@ -113,15 +130,17 @@ export function datosEnvioPresupuesto(p: PresupuestoDetalle, archivos: Archivo[]
       `─────────────────────────────────────────`,
       '',
       'ANÁLISIS INCLUIDOS:',
-      lineasAnalisis || '  (sin análisis)',
+      lineasAnalisisCompleto || '  (sin análisis)',
       '',
-      `Subtotal análisis:       USD ${p.items.reduce((s, i) => s + i.precioUsdSnapshot, 0).toFixed(2)}`,
-      p.adicionalAsesoramiento > 0
-        ? `Asesoramiento técnico (${p.tipoAsesoramiento ? TIPO_ASESORAMIENTO_LABEL[p.tipoAsesoramiento] ?? p.tipoAsesoramiento : 'sin especificar'}): USD ${p.adicionalAsesoramiento.toFixed(2)}`
-        : '',
-      `TOTAL USD:               USD ${p.importeDolares.toFixed(2)}`,
-      `Cotización USD/ARS:      $ ${p.cotizacion.toFixed(0)}`,
-      `TOTAL ARS:               $ ${p.importePesos.toFixed(2)}`,
+      ...(p.mostrarMoneda !== 'ars' ? [
+        `Subtotal análisis:       USD ${(p.items.reduce((s, i) => s + i.precioUsdSnapshot, 0) + p.paquetes.reduce((s, pq) => s + pq.precioUsdSnapshot, 0)).toFixed(2)}`,
+        p.adicionalAsesoramiento > 0
+          ? `Asesoramiento técnico (${p.tipoAsesoramiento ? TIPO_ASESORAMIENTO_LABEL[p.tipoAsesoramiento] ?? p.tipoAsesoramiento : 'sin especificar'}): USD ${p.adicionalAsesoramiento.toFixed(2)}`
+          : '',
+        `TOTAL USD:               USD ${p.importeDolares.toFixed(2)}`,
+      ] : []),
+      ...(p.mostrarMoneda === 'ambos' ? [`Cotización USD/ARS:      $ ${p.cotizacion.toFixed(0)}`] : []),
+      ...(p.mostrarMoneda !== 'usd' ? [`TOTAL ARS:               $ ${p.importePesos.toFixed(2)}`] : []),
       lineasArchivos,
       '─────────────────────────────────────────',
       '',

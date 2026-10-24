@@ -45,6 +45,17 @@ public class Analisis
     [MaxLength(100)]
     public string? ValorEsperado { get; set; } // para resultados cualitativos, ej: "Ausencia", "Negativo"
 
+    // Norma/equipo/sensibilidad/rango de cuantificación. Texto libre porque en los presupuestos
+    // reales va desde un código corto ("Método APHA 9215B") hasta un párrafo con condiciones
+    // especiales (métodos alternativos, qué pasa si se piden las dos variantes, etc.).
+    [Column("metodo")]
+    public string? Metodo { get; set; }
+
+    // Se manda a hacer a un laboratorio externo en vez de hacerse in-house. Afecta vigencia de
+    // la oferta y condiciones de pago (suele pedirse anticipo antes de poder iniciar el análisis).
+    [Column("tercerizado")]
+    public bool Tercerizado { get; set; } = false;
+
     [Column("activo")]
     public bool Activo { get; set; } = true;
 

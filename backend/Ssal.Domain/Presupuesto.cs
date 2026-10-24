@@ -38,6 +38,11 @@ public class Presupuesto
     [Column("cotizacion")]
     public decimal Cotizacion { get; set; } = 1;
 
+    // Qué valor mostrar en los PDF (presupuesto y SSE): usd | ars | ambos
+    [Column("mostrar_moneda")]
+    [MaxLength(10)]
+    public string MostrarMoneda { get; set; } = "ambos";
+
     [Column("estado")]
     [MaxLength(30)]
     public string Estado { get; set; } = "borrador"; // borrador | enviado | aceptado | rechazado
@@ -61,5 +66,6 @@ public class Presupuesto
     public Sse? Sse { get; set; }
 
     public ICollection<PresupuestoAnalisis> Items { get; set; } = [];
+    public ICollection<PresupuestoPaquete> Paquetes { get; set; } = [];
     public ICollection<PresupuestoArchivo> Archivos { get; set; } = [];
 }

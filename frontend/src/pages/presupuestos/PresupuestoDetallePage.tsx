@@ -157,6 +157,7 @@ export default function PresupuestoDetallePage() {
 
   const transiciones = TRANSICIONES[presupuesto.estado] ?? []
   const subtotalAnalisis = presupuesto.items.reduce((s, i) => s + i.precioUsdSnapshot, 0)
+    + presupuesto.paquetes.reduce((s, p) => s + p.precioUsdSnapshot, 0)
   const cliente = presupuesto.consulta.cliente
   const puedeEnviar = presupuesto.estado === 'borrador' || presupuesto.estado === 'enviado'
 
@@ -250,7 +251,7 @@ export default function PresupuestoDetallePage() {
         <Tabs.List>
           <Tabs.Tab value="analisis" leftSection={<IconFileSpreadsheet size={16} />}>
             Análisis
-            <Pill size="xs" ml={6}>{presupuesto.items.length}</Pill>
+            <Pill size="xs" ml={6}>{presupuesto.items.length + presupuesto.paquetes.length}</Pill>
           </Tabs.Tab>
           <Tabs.Tab value="consulta" leftSection={<IconInfoCircle size={16} />}>Consulta y cliente</Tabs.Tab>
           <Tabs.Tab value="documentos" leftSection={<IconPaperclip size={16} />}>
@@ -260,7 +261,7 @@ export default function PresupuestoDetallePage() {
         </Tabs.List>
 
         <Tabs.Panel value="analisis" pt="lg">
-          <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+          <Paper withBorder radius="md" style={{ overflow: 'hidden', flexShrink: 0 }}>
             <Table verticalSpacing="sm" horizontalSpacing="md">
               <Table.Thead style={{ background: 'var(--mantine-color-gray-0)' }}>
                 <Table.Tr>
@@ -270,6 +271,20 @@ export default function PresupuestoDetallePage() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
+                {presupuesto.paquetes.map(p => (
+                  <Table.Tr key={`paquete-${p.id}`}>
+                    <Table.Td>
+                      <Badge color={p.area === 'MIC' ? 'blue' : 'violet'} variant="light" radius="sm">{p.area}</Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm" fw={500}>{p.nombre} <Text component="span" size="xs" c="dimmed">(paquete)</Text></Text>
+                      <Text size="xs" c="dimmed">Incluye: {p.analisisIncluidos.join(', ')}</Text>
+                    </Table.Td>
+                    <Table.Td ta="right">
+                      <Text size="sm" ff="monospace">{fmtUsd(p.precioUsdSnapshot)}</Text>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
                 {presupuesto.items.map(i => (
                   <Table.Tr key={i.id}>
                     <Table.Td>

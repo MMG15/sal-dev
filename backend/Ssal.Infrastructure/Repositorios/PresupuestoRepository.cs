@@ -51,6 +51,7 @@ public class PresupuestoRepository(SsalDbContext db, IConfiguration config) : IP
             .Include(x => x.Consulta).ThenInclude(c => c.Empresa)
             .Include(x => x.CreadoPorUsuario)
             .Include(x => x.Items).ThenInclude(i => i.Analisis).ThenInclude(a => a.Grupo)
+            .Include(x => x.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items).ThenInclude(pa => pa.Analisis)
             .FirstOrDefaultAsync(x => x.IdPresupuesto == id);
 
     public Task<Presupuesto?> ObtenerCompletoAsync(int id) =>
@@ -59,6 +60,7 @@ public class PresupuestoRepository(SsalDbContext db, IConfiguration config) : IP
             .Include(x => x.Consulta).ThenInclude(c => c.Empresa)
             .Include(x => x.CreadoPorUsuario)
             .Include(x => x.Items).ThenInclude(i => i.Analisis)
+            .Include(x => x.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items).ThenInclude(pa => pa.Analisis)
             .FirstOrDefaultAsync(x => x.IdPresupuesto == id);
 
     public Task<Presupuesto?> ObtenerAsync(int id) => db.Presupuestos.FindAsync(id).AsTask();
@@ -69,16 +71,32 @@ public class PresupuestoRepository(SsalDbContext db, IConfiguration config) : IP
     public Task<Consulta?> ObtenerConsultaAsync(int idConsulta) => db.Consultas.FindAsync(idConsulta).AsTask();
 
     public Task<Presupuesto?> ObtenerExistentePorConsultaAsync(int idConsulta) =>
-        db.Presupuestos.Include(p => p.Items).FirstOrDefaultAsync(p => p.IdConsulta == idConsulta);
+        db.Presupuestos
+            .Include(p => p.Items)
+            .Include(p => p.Paquetes)
+            .FirstOrDefaultAsync(p => p.IdConsulta == idConsulta);
 
-    public void EliminarConItems(Presupuesto existente)
+    public void ReemplazarItemsYPaquetes(
+        Presupuesto existente, List<PresupuestoAnalisis> nuevosItems, List<PresupuestoPaquete> nuevosPaquetes)
     {
-        db.RemoveRange(existente.Items);
-        db.Remove(existente);
+        db.PresupuestosAnalisis.RemoveRange(existente.Items);
+        db.PresupuestosPaquetes.RemoveRange(existente.Paquetes);
+        existente.Items = nuevosItems;
+        existente.Paquetes = nuevosPaquetes;
     }
 
     public async Task<Dictionary<int, Analisis>> ObtenerAnalisisPorIdsAsync(List<int> ids) =>
         await db.Analisis.Where(a => ids.Contains(a.IdAnalisis)).ToDictionaryAsync(a => a.IdAnalisis);
+
+    public async Task<Dictionary<int, Paquete>> ObtenerPaquetesPorIdsAsync(List<int> ids) =>
+        await db.Paquetes.Where(p => ids.Contains(p.IdPaquete)).ToDictionaryAsync(p => p.IdPaquete);
+
+    public async Task<List<FirmaDocumento>> ObtenerEventosFirmaAsync(int idPresupuesto) =>
+        await db.FirmasDocumento
+            .Include(f => f.Firmante)
+            .Where(f => f.TipoDocumento == "presupuesto" && f.IdDocumento == idPresupuesto)
+            .OrderBy(f => f.IdFirma)
+            .ToListAsync();
 
     public Task<string?> ObtenerUltimoCodigoAsync(string prefijo) =>
         db.Presupuestos

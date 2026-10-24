@@ -9,7 +9,8 @@ public class DescargarPresupuestoPdf(IPresupuestoRepository repo, IPresupuestoPd
         var p = await repo.ObtenerCompletoAsync(id);
         if (p is null) return null;
 
-        var pdfBytes = generador.Generar(p);
+        var eventos = await repo.ObtenerEventosFirmaAsync(id);
+        var pdfBytes = generador.Generar(p, Ssal.Domain.CicloFirma.EventosCicloActual(eventos));
         return new PresupuestoPdfDto(pdfBytes, $"{p.CodigoRpo ?? "presupuesto"}.pdf");
     }
 }

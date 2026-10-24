@@ -20,6 +20,9 @@ public class ObtenerConsulta(IConsultaRepository repo)
                 c.Presupuesto.AdicionalAsesoramiento, c.Presupuesto.TipoAsesoramiento, c.Presupuesto.Fecha,
                 c.Presupuesto.Items.Select(i => new ItemAnalisisConsultaDto(
                     i.Id, i.IdAnalisis, i.PrecioUsdSnapshot, i.Analisis.Codigo, i.Analisis.Nombre,
-                    i.Analisis.Area, i.Analisis.Grupo.CodigoAgrupador)).ToList()));
+                    i.Analisis.Area, i.Analisis.Grupo.CodigoAgrupador)).ToList(),
+                c.Presupuesto.Paquetes.Select(pp => new ItemPaqueteConsultaDto(
+                    pp.Id, pp.IdPaquete, pp.PrecioUsdSnapshot, pp.Paquete.Nombre, pp.Paquete.Area,
+                    pp.Paquete.Items.Select(i => i.Analisis.Nombre).ToList())).ToList()));
     }
 }

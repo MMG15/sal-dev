@@ -63,7 +63,7 @@ export default function CorreosPage() {
       </Group>
 
       {pendientes > 0 && (
-        <Alert color="orange" variant="light" icon={<IconInbox size={18} />}>
+        <Alert color="orange" variant="light" icon={<IconInbox size={18} />} style={{ flexShrink: 0 }}>
           <Group justify="space-between" wrap="nowrap">
             <Text size="sm">{pendientes} correo{pendientes === 1 ? '' : 's'} sin revisar.</Text>
             <Text
@@ -79,7 +79,7 @@ export default function CorreosPage() {
         </Alert>
       )}
 
-      {error && <Alert color="red" variant="light">{error}</Alert>}
+      {error && <Alert color="red" variant="light" style={{ flexShrink: 0 }}>{error}</Alert>}
 
       <Group gap="sm" wrap="nowrap">
         <TextInput
@@ -99,7 +99,7 @@ export default function CorreosPage() {
         />
       </Group>
 
-      <Paper withBorder radius="md" style={{ overflowX: 'auto' }}>
+      <Paper withBorder radius="md" style={{ overflowX: 'auto', flexShrink: 0 }}>
         {cargando ? (
           <Text c="dimmed" p="xl">Cargando bandeja…</Text>
         ) : correos.length === 0 ? (

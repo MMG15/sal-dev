@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { apiFetch } from '../../lib/api'
+import PaquetesTab from './PaquetesTab'
+import GruposTab from './GruposTab'
 import styles from './AnalisisPage.module.css'
 
 interface AnalisisItem {
@@ -12,6 +14,8 @@ interface AnalisisItem {
   rangoMin: number | null
   rangoMax: number | null
   valorEsperado: string | null
+  metodo: string | null
+  tercerizado: boolean
   activo: boolean
   grupo: { idGrupo: number; codigoAgrupador: string; area: string }
 }
@@ -26,6 +30,30 @@ type FiltroArea = 'todas' | 'MIC' | 'FQ'
 type FiltroEstado = 'todos' | 'activos' | 'inactivos'
 
 export default function AnalisisPage() {
+  const [pestana, setPestana] = useState<'catalogo' | 'paquetes' | 'categorias'>('catalogo')
+
+  return (
+    <div className={styles.root}>
+      <div className={styles.pestanas}>
+        <button className={`${styles.pestana} ${pestana === 'catalogo' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('catalogo')}>
+          Catálogo
+        </button>
+        <button className={`${styles.pestana} ${pestana === 'paquetes' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('paquetes')}>
+          Paquetes
+        </button>
+        <button className={`${styles.pestana} ${pestana === 'categorias' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('categorias')}>
+          Categorías
+        </button>
+      </div>
+
+      {pestana === 'catalogo' && <CatalogoAnalisisTab />}
+      {pestana === 'paquetes' && <PaquetesTab />}
+      {pestana === 'categorias' && <GruposTab />}
+    </div>
+  )
+}
+
+function CatalogoAnalisisTab() {
   const [analisis, setAnalisis] = useState<AnalisisItem[]>([])
   const [grupos, setGrupos] = useState<GrupoOpcion[]>([])
   const [cargando, setCargando] = useState(true)
@@ -50,6 +78,8 @@ export default function AnalisisPage() {
     rangoMin: '',
     rangoMax: '',
     valorEsperado: '',
+    metodo: '',
+    tercerizado: false,
   })
   const [tipoReferencia, setTipoReferencia] = useState<'ninguno' | 'rango' | 'esperado'>('ninguno')
 
@@ -92,7 +122,7 @@ export default function AnalisisPage() {
   }, [analisis, busqueda, filtroArea, filtroEstado])
 
   function abrirCrear() {
-    setForm({ idGrupo: 0, nuevoGrupo: '', codigo: '', nombre: '', area: 'MIC', precioUsd: '', unidad: '', rangoMin: '', rangoMax: '', valorEsperado: '' })
+    setForm({ idGrupo: 0, nuevoGrupo: '', codigo: '', nombre: '', area: 'MIC', precioUsd: '', unidad: '', rangoMin: '', rangoMax: '', valorEsperado: '', metodo: '', tercerizado: false })
     setTipoReferencia('ninguno')
     setError('')
     setModal({ tipo: 'crear' })
@@ -110,6 +140,8 @@ export default function AnalisisPage() {
       rangoMin: item.rangoMin?.toString() ?? '',
       rangoMax: item.rangoMax?.toString() ?? '',
       valorEsperado: item.valorEsperado ?? '',
+      metodo: item.metodo ?? '',
+      tercerizado: item.tercerizado,
     })
     setTipoReferencia(item.valorEsperado ? 'esperado' : (item.rangoMin != null || item.rangoMax != null) ? 'rango' : 'ninguno')
     setError('')
@@ -139,6 +171,8 @@ export default function AnalisisPage() {
         rangoMin: tipoReferencia === 'rango' && form.rangoMin ? parseFloat(form.rangoMin) : null,
         rangoMax: tipoReferencia === 'rango' && form.rangoMax ? parseFloat(form.rangoMax) : null,
         valorEsperado: tipoReferencia === 'esperado' ? form.valorEsperado.trim() || null : null,
+        metodo: form.metodo.trim() || null,
+        tercerizado: form.tercerizado,
       }
       const isEditar = modal?.tipo === 'editar'
       const res = await apiFetch(
@@ -246,7 +280,10 @@ export default function AnalisisPage() {
               {listaFiltrada.map(a => (
                 <tr key={a.idAnalisis} className={a.activo ? '' : styles.filaInactiva}>
                   <td className={styles.tdCodigo}>{a.codigo}</td>
-                  <td>{a.nombre}</td>
+                  <td title={a.metodo ?? undefined}>
+                    {a.nombre}
+                    {a.tercerizado && <span className={styles.tagTercerizado}>Tercerizado</span>}
+                  </td>
                   <td>
                     <span className={`${styles.areaTag} ${a.area === 'MIC' ? styles.areaMic : styles.areaFq}`}>
                       {a.area}
@@ -363,6 +400,27 @@ export default function AnalisisPage() {
                   value={form.unidad}
                   onChange={e => setForm(f => ({ ...f, unidad: e.target.value }))}
                 />
+              </div>
+
+              <div className={styles.campo}>
+                <label>Método / norma técnica</label>
+                <textarea
+                  placeholder="Ej: Método APHA 9215B, o un párrafo con norma + equipo + sensibilidad + condiciones especiales"
+                  value={form.metodo}
+                  onChange={e => setForm(f => ({ ...f, metodo: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+
+              <div className={styles.campo}>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={form.tercerizado}
+                    onChange={e => setForm(f => ({ ...f, tercerizado: e.target.checked }))}
+                  />
+                  Es un análisis tercerizado (se manda a hacer a un laboratorio externo)
+                </label>
               </div>
 
               <div className={styles.campo}>

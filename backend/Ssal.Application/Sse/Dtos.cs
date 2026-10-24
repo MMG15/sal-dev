@@ -8,7 +8,7 @@ public record UsuarioNombreDto(string Nombre, string Apellido);
 public record SseResumenDto(
     int IdSse, string? Codigo, string? CodigoRpo, string Area, string Estado, DateTime Fecha,
     string? FormaPago, decimal ImporteDolares, decimal ImportePesos,
-    ClienteResumenDto? Cliente, EmpresaResumenDto? Empresa, RotuloResumenDto? Rotulo);
+    ClienteResumenDto? Cliente, EmpresaResumenDto? Empresa, IReadOnlyList<RotuloResumenDto> Rotulos);
 
 public record ClienteDetalleDto(int IdCliente, string Nombre, string Apellido, string? Email, string? Telefono, EmpresaResumenDto? Empresa);
 public record EmpresaDetalleDto(int IdEmpresa, string RazonSocial, string? Email, string? Telefono);
@@ -26,7 +26,7 @@ public record RotuloDetalleDto(
 public record SseDetalleDto(
     int IdSse, string? Codigo, string? CodigoRpo, string Area, string Estado, DateTime Fecha,
     string? FormaPago, decimal ImporteDolares, decimal ImportePesos, UsuarioNombreDto CreadoPor,
-    ClienteDetalleDto? Cliente, EmpresaDetalleDto? Empresa, PresupuestoResumenDto? Presupuesto, RotuloDetalleDto? Rotulo);
+    ClienteDetalleDto? Cliente, EmpresaDetalleDto? Empresa, PresupuestoResumenDto? Presupuesto, IReadOnlyList<RotuloDetalleDto> Rotulos);
 
 public record CrearSseCommand(int? IdPresupuesto, int? IdCliente, string Area, string? FormaPago, decimal ImporteDolares, decimal ImportePesos);
 
@@ -36,7 +36,10 @@ public record AsignarClienteSseCommand(int? IdCliente, int? IdEmpresa);
 
 public record CambiarEstadoSseCommand(string Estado);
 
-public record AsignarRotuloCommand(string? NumeroUnico, string? Descripcion);
+// Cantidad: cuántas muestras repetidas trae este pedido (default 1). Si es más de 1, se crean
+// varios rótulos de una vez, todos con el mismo número base y sufijo de letra (-A, -B, -C...);
+// se ignora si se especifica un NumeroUnico manual (ese modo siempre crea un solo rótulo).
+public record AsignarRotuloCommand(string? NumeroUnico, string? Descripcion, int? Cantidad);
 
 public record RotuloCreadoDto(int IdRotulo, string NumeroUnico);
 

@@ -65,6 +65,9 @@ public class Sse
     [ForeignKey("CreadoPor")]
     public Usuario CreadoPorUsuario { get; set; } = null!;
 
-    public RotuloInterno? RotuloInterno { get; set; }
+    // Varios rótulos por SSE: un mismo pedido puede traer la misma muestra repetida
+    // (ej. 3 muestras de agua del mismo tipo), cada una con su propio rótulo, recepción
+    // y resultados independientes (ver GenerarRotulos en AsignarRotulo).
+    public ICollection<RotuloInterno> RotulosInternos { get; set; } = [];
     public Factura? Factura { get; set; }
 }

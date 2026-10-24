@@ -199,7 +199,7 @@ export default function ConsultaDetallePage() {
                 </Paper>
               </SimpleGrid>
 
-              <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+              <Paper withBorder radius="md" style={{ overflow: 'hidden', flexShrink: 0 }}>
                 <Table verticalSpacing="sm" horizontalSpacing="md">
                   <Table.Thead style={{ background: 'var(--mantine-color-gray-0)' }}>
                     <Table.Tr>

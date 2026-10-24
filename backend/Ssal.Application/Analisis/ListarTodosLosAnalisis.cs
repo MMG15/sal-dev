@@ -21,6 +21,8 @@ public class ListarTodosLosAnalisis(IAnalisisRepository repo)
                 a.RangoMin,
                 a.RangoMax,
                 a.ValorEsperado,
+                a.Metodo,
+                a.Tercerizado,
                 a.Activo,
                 new GrupoResumenDto(a.Grupo.IdGrupo, a.Grupo.CodigoAgrupador, a.Grupo.Area)))
             .ToList();

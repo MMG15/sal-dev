@@ -16,6 +16,8 @@ public interface IAnalisisRepository
 
     Task<Ssal.Domain.Analisis?> ObtenerPorIdAsync(int id);
 
+    Task<Ssal.Domain.GrupoAnalisis?> ObtenerGrupoPorIdAsync(int id);
+
     Ssal.Domain.GrupoAnalisis CrearGrupo(string codigoAgrupador, string area);
 
     void Agregar(Ssal.Domain.Analisis analisis);
@@ -23,6 +25,23 @@ public interface IAnalisisRepository
     Task<bool> TieneUsoEnPresupuestosAsync(int idAnalisis);
 
     void Eliminar(Ssal.Domain.Analisis analisis);
+
+    // Paquetes: catálogo de combos reutilizables (precio propio, no es la suma de sus partes).
+    Task<List<Ssal.Domain.Paquete>> ListarPaquetesConAnalisisAsync();
+
+    Task<List<Ssal.Domain.Paquete>> ListarTodosLosPaquetesConAnalisisAsync();
+
+    Task<Ssal.Domain.Paquete?> ObtenerPaquetePorIdAsync(int id);
+
+    Task<List<Ssal.Domain.Analisis>> ObtenerAnalisisPorIdsAsync(List<int> ids);
+
+    void AgregarPaquete(Ssal.Domain.Paquete paquete);
+
+    void ReemplazarItemsDePaquete(Ssal.Domain.Paquete paquete, List<Ssal.Domain.Analisis> nuevosAnalisis);
+
+    Task<bool> TienePaqueteUsoEnPresupuestosAsync(int idPaquete);
+
+    void EliminarPaquete(Ssal.Domain.Paquete paquete);
 
     Task GuardarCambiosAsync();
 }

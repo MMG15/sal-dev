@@ -214,7 +214,7 @@ export default function ClientesPage() {
   }
 
   return (
-    <div>
+    <div className={styles.root}>
       {/* Cabecera */}
       <div className={styles.cabecera}>
         <h2 className={styles.titulo}>Clientes y empresas</h2>

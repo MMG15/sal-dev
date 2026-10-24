@@ -79,10 +79,10 @@ export default function ConsultasPage() {
         </Button>
       </Group>
 
-      {error && <Alert color="red" variant="light">{error}</Alert>}
+      {error && <Alert color="red" variant="light" style={{ flexShrink: 0 }}>{error}</Alert>}
 
       {totalPendientes > 0 && (
-        <Alert color="orange" variant="light" icon={<IconAlertTriangle size={18} />}>
+        <Alert color="orange" variant="light" icon={<IconAlertTriangle size={18} />} style={{ flexShrink: 0 }}>
           <Group justify="space-between" wrap="nowrap">
             <Text size="sm">
               {totalPendientes} consulta{totalPendientes === 1 ? '' : 's'} sin responder hace {DIAS_PENDIENTE} o más días.
@@ -120,7 +120,7 @@ export default function ConsultasPage() {
         />
       </Group>
 
-      <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+      <Paper withBorder radius="md" style={{ overflow: 'hidden', flexShrink: 0 }}>
         {cargando ? (
           <Text c="dimmed" p="xl">Cargando consultas…</Text>
         ) : consultas.length === 0 ? (

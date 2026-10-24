@@ -26,6 +26,14 @@ internal static class MapeoDocumentos
         var destinatario = cliente is not null
             ? $"{cliente.Nombre} {cliente.Apellido}"
             : p.Consulta.Empresa?.RazonSocial ?? "—";
+
+        // Las áreas que tienen que firmar salen tanto de los análisis sueltos como de los
+        // incluidos en cada paquete — si el presupuesto tiene solo paquetes, igual hay que pedir
+        // la firma de los responsables de esas áreas.
+        var areas = p.Items.Select(i => i.Analisis.Area)
+            .Concat(p.Paquetes.SelectMany(pp => pp.Paquete.Items.Select(pa => pa.Analisis.Area)))
+            .Distinct().OrderBy(a => a).ToList();
+
         return new DocInfoDto(
             "presupuesto",
             p.IdPresupuesto,
@@ -35,7 +43,7 @@ internal static class MapeoDocumentos
             null,
             null,
             p.Fecha,
-            p.Items.Select(i => i.Analisis.Area).Distinct().OrderBy(a => a).ToList());
+            areas);
     }
 
     private static string DestinatarioSse(Ssal.Domain.Sse s) =>

@@ -5,5 +5,6 @@ namespace Ssal.Infrastructure;
 
 public class PresupuestoPdfGenerator : IPresupuestoPdfGenerator
 {
-    public byte[] Generar(Presupuesto presupuesto) => PresupuestoPdfBuilder.Generar(presupuesto);
+    public byte[] Generar(Presupuesto presupuesto, IReadOnlyList<FirmaDocumento> firmasCicloActual) =>
+        PresupuestoPdfBuilder.Generar(presupuesto, firmasCicloActual);
 }

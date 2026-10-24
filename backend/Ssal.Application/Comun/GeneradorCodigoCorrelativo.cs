@@ -5,7 +5,7 @@ namespace Ssal.Application.Comun;
 // estaba copiada y pegada en varios controllers; a medida que se migra cada módulo, pasa a usar esto.
 public static class GeneradorCodigoCorrelativo
 {
-    // digitos: 3 para CF-/RPO-/SSE- (el default, válido para todos salvo el rótulo, que usa 4).
+    // digitos: 3 para todos los códigos del sistema (CF-, RPO-, SSE-, y el rótulo AA-DDD-NNN).
     public static string Siguiente(string prefijo, string? ultimoCodigoConElMismoPrefijo, int digitos = 3)
     {
         var siguiente = 1;
