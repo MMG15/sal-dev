@@ -304,6 +304,7 @@ function FilaResultado({ resultado, onCargar, onValidar, onRechazar }: {
           )}
           {resultado.estado === 'cargado' && (
             <>
+              <Button size="xs" variant="default" onClick={onCargar}>Editar</Button>
               <Button size="xs" variant="light" color="red" leftSection={<IconX size={14} />} onClick={onRechazar}>Rechazar</Button>
               <Button size="xs" color="teal" leftSection={<IconCheck size={14} />} onClick={onValidar}>Validar</Button>
             </>

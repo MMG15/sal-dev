@@ -683,6 +683,7 @@
   flex-direction: column;
   padding: 14px;
   overflow-y: auto;
+  min-height: 0;
   gap: 12px;
 }
 
