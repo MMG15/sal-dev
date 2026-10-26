@@ -47,4 +47,6 @@ public record ArchivoPresupuestoDto(int Id, string NombreOriginal, string TipoMi
 
 public record ArchivoSubidoDto(int Id, string NombreOriginal, long TamañoBytes);
 
+public record AdjuntarDesdeBibliotecaCommand(int IdDocumento);
+
 public record ArchivoContenidoDto(byte[] Contenido, string TipoMime, string NombreOriginal);

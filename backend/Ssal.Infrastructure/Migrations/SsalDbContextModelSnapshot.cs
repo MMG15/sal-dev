@@ -497,6 +497,58 @@ namespace Ssal.Infrastructure.Migrations
                     b.ToTable("cuentas_correo");
                 });
 
+            modelBuilder.Entity("Ssal.Domain.DocumentoInstitucional", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("NombreAlmacenado")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("nombre_almacenado");
+
+                    b.Property<string>("NombreOriginal")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("nombre_original");
+
+                    b.Property<DateTime>("SubidoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("subido_en");
+
+                    b.Property<int>("SubidoPor")
+                        .HasColumnType("integer")
+                        .HasColumnName("subido_por");
+
+                    b.Property<long>("TamañoBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("tamanio_bytes");
+
+                    b.Property<string>("TipoMime")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("tipo_mime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubidoPor");
+
+                    b.ToTable("documentos_institucionales");
+                });
+
             modelBuilder.Entity("Ssal.Domain.Empresa", b =>
                 {
                     b.Property<int>("IdEmpresa")
@@ -1638,6 +1690,17 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("CuentaCorreo");
 
                     b.Navigation("UsuarioAccion");
+                });
+
+            modelBuilder.Entity("Ssal.Domain.DocumentoInstitucional", b =>
+                {
+                    b.HasOne("Ssal.Domain.Usuario", "SubidoPorUsuario")
+                        .WithMany()
+                        .HasForeignKey("SubidoPor")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SubidoPorUsuario");
                 });
 
             modelBuilder.Entity("Ssal.Domain.Factura", b =>

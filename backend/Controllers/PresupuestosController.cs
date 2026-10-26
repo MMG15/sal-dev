@@ -19,7 +19,8 @@ public class PresupuestosController(
     ListarArchivosPresupuesto listarArchivos,
     SubirArchivoPresupuesto subirArchivo,
     DescargarArchivoPresupuesto descargarArchivo,
-    EliminarArchivoPresupuesto eliminarArchivo) : ControllerBase
+    EliminarArchivoPresupuesto eliminarArchivo,
+    AdjuntarDocumentoInstitucional adjuntarDocumentoInstitucional) : ControllerBase
 {
     // Roles con permiso de gestión (crear/editar/archivar) de presupuestos. El administrativo
     // (ROL-02) hace presupuestos en casos puntuales, por tarea delegada del admin general —
@@ -118,6 +119,18 @@ public class PresupuestosController(
 
         if (!resultado.Ok)
             return resultado.Error == "No encontrado" ? NotFound() : BadRequest(new { error = resultado.Error });
+        return Ok(resultado.Valor);
+    }
+
+    // ─── POST /api/presupuestos/{id}/archivos/desde-biblioteca ───────────
+    // Adjunta un documento de la biblioteca institucional (ISO 9001, procedimientos, etc.)
+    // sin tener que bajarlo y volver a subirlo a mano.
+    [HttpPost("{id}/archivos/desde-biblioteca")]
+    [Authorize(Roles = RolesGestion)]
+    public async Task<IActionResult> AdjuntarDesdeBiblioteca(int id, [FromBody] AdjuntarDesdeBibliotecaCommand req)
+    {
+        var resultado = await adjuntarDocumentoInstitucional.EjecutarAsync(id, req.IdDocumento, UsuarioActual, HttpContext.RequestAborted);
+        if (!resultado.Ok) return BadRequest(new { error = resultado.Error });
         return Ok(resultado.Valor);
     }
 

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, type FormEvent } from 'react'
 import { apiFetch } from '../../lib/api'
 import { useSesion } from '../../context/SesionContext'
 import CuentasCorreoTab from './CuentasCorreoTab'
+import DocumentosInstitucionalesTab from './DocumentosInstitucionalesTab'
 import styles from './UsuariosPage.module.css'
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -65,7 +66,8 @@ export default function UsuariosPage() {
   // (es, en los hechos, una integración externa) y consultan la auditoría.
   const puedeGestionarUsuarios = sesion.rolCodigo === 'ROL-01'
   const puedeGestionarCorreo = sesion.rolCodigo === 'ROL-01' || sesion.rolCodigo === 'ROL-06'
-  const [pestana, setPestana] = useState<'usuarios' | 'correos' | 'auditoria'>(
+  const puedeGestionarDocumentos = sesion.rolCodigo === 'ROL-01' || sesion.rolCodigo === 'ROL-06'
+  const [pestana, setPestana] = useState<'usuarios' | 'correos' | 'documentos' | 'auditoria'>(
     puedeGestionarUsuarios ? 'usuarios' : puedeGestionarCorreo ? 'correos' : 'auditoria'
   )
 
@@ -82,6 +84,11 @@ export default function UsuariosPage() {
             Cuentas de correo
           </button>
         )}
+        {puedeGestionarDocumentos && (
+          <button className={`${styles.pestana} ${pestana === 'documentos' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('documentos')}>
+            Documentos institucionales
+          </button>
+        )}
         <button className={`${styles.pestana} ${pestana === 'auditoria' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('auditoria')}>
           Registro de auditoría
         </button>
@@ -89,6 +96,7 @@ export default function UsuariosPage() {
 
       {pestana === 'usuarios' && puedeGestionarUsuarios && <TablaUsuarios />}
       {pestana === 'correos' && puedeGestionarCorreo && <CuentasCorreoTab />}
+      {pestana === 'documentos' && puedeGestionarDocumentos && <DocumentosInstitucionalesTab />}
       {pestana === 'auditoria' && <RegistroAuditoria />}
     </div>
   )

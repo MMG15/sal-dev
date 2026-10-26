@@ -172,6 +172,14 @@ builder.Services.AddScoped<Ssal.Application.Presupuestos.ListarArchivosPresupues
 builder.Services.AddScoped<Ssal.Application.Presupuestos.SubirArchivoPresupuesto>();
 builder.Services.AddScoped<Ssal.Application.Presupuestos.DescargarArchivoPresupuesto>();
 builder.Services.AddScoped<Ssal.Application.Presupuestos.EliminarArchivoPresupuesto>();
+builder.Services.AddScoped<Ssal.Application.Presupuestos.AdjuntarDocumentoInstitucional>();
+
+// Biblioteca de documentos institucionales (ISO 9001, procedimientos, disposiciones)
+builder.Services.AddScoped<Ssal.Application.DocumentosInstitucionales.IDocumentoInstitucionalRepository, Ssal.Infrastructure.Repositorios.DocumentoInstitucionalRepository>();
+builder.Services.AddScoped<Ssal.Application.DocumentosInstitucionales.ListarDocumentosInstitucionales>();
+builder.Services.AddScoped<Ssal.Application.DocumentosInstitucionales.SubirDocumentoInstitucional>();
+builder.Services.AddScoped<Ssal.Application.DocumentosInstitucionales.DescargarDocumentoInstitucional>();
+builder.Services.AddScoped<Ssal.Application.DocumentosInstitucionales.EliminarDocumentoInstitucional>();
 
 // SSE / Rótulos
 builder.Services.AddScoped<Ssal.Application.Sse.ISseRepository, Ssal.Infrastructure.Repositorios.SseRepository>();

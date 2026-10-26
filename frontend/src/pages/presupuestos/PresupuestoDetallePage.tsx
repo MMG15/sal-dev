@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ActionIcon, Alert, Badge, Button, Divider, FileButton, Group, Modal, Paper, Pill, SimpleGrid, Stack, Table, Tabs, Text, TextInput, Title } from '@mantine/core'
-import { IconArrowLeft, IconDownload, IconFileSpreadsheet, IconFileTypePdf, IconInfoCircle, IconMail, IconPaperclip, IconPencil, IconTrash, IconUser } from '@tabler/icons-react'
+import { IconArrowLeft, IconDownload, IconFileCertificate, IconFileSpreadsheet, IconFileTypePdf, IconInfoCircle, IconMail, IconPaperclip, IconPencil, IconTrash, IconUser } from '@tabler/icons-react'
 import { apiFetch } from '../../lib/api'
 import { useSesion } from '../../context/SesionContext'
 import {
@@ -42,6 +42,7 @@ export default function PresupuestoDetallePage() {
   const [avisoEmail, setAvisoEmail] = useState(false)
   const [enviandoEmail, setEnviandoEmail] = useState(false)
   const [modalEditarCliente, setModalEditarCliente] = useState(false)
+  const [modalBiblioteca, setModalBiblioteca] = useState(false)
   const puedeEditarCliente = ROLES_CLIENTES.includes(sesion.rolCodigo)
 
   const cargarArchivos = useCallback(async () => {
@@ -124,6 +125,26 @@ export default function PresupuestoDetallePage() {
         setError(d.error ?? 'No se pudo adjuntar el archivo.')
         return
       }
+      await cargarArchivos()
+    } finally {
+      setSubiendo(false)
+    }
+  }
+
+  async function adjuntarDesdeBiblioteca(idDocumento: number) {
+    setSubiendo(true)
+    setError('')
+    try {
+      const res = await apiFetch(`/api/presupuestos/${id}/archivos/desde-biblioteca`, {
+        method: 'POST',
+        body: JSON.stringify({ idDocumento }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error ?? 'No se pudo adjuntar el documento.')
+        return
+      }
+      setModalBiblioteca(false)
       await cargarArchivos()
     } finally {
       setSubiendo(false)
@@ -403,9 +424,14 @@ export default function PresupuestoDetallePage() {
                 <Text fw={600}>Documentos adjuntos</Text>
                 <Text size="sm" c="dimmed">PDF, Word, Excel, imagen o ZIP. Se envían junto con el presupuesto.</Text>
               </div>
-              <FileButton onChange={subirArchivo} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip" disabled={subiendo}>
-                {props => <Button {...props} leftSection={<IconPaperclip size={16} />} loading={subiendo}>Adjuntar archivo</Button>}
-              </FileButton>
+              <Group gap="xs">
+                <Button variant="default" leftSection={<IconFileCertificate size={16} />} onClick={() => setModalBiblioteca(true)} disabled={subiendo}>
+                  Adjuntar certificación
+                </Button>
+                <FileButton onChange={subirArchivo} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip" disabled={subiendo}>
+                  {props => <Button {...props} leftSection={<IconPaperclip size={16} />} loading={subiendo}>Adjuntar archivo</Button>}
+                </FileButton>
+              </Group>
             </Group>
 
             {archivos.length === 0 ? (
@@ -444,7 +470,65 @@ export default function PresupuestoDetallePage() {
           onGuardado={async () => { setModalEditarCliente(false); await cargar() }}
         />
       )}
+
+      {modalBiblioteca && (
+        <ModalBiblioteca
+          onCerrar={() => setModalBiblioteca(false)}
+          onElegir={adjuntarDesdeBiblioteca}
+          adjuntando={subiendo}
+        />
+      )}
     </Stack>
+  )
+}
+
+interface DocumentoInstitucional {
+  id: number
+  nombre: string
+  nombreOriginal: string
+  tipoMime: string
+  tamañoBytes: number
+  subidoEn: string
+  subidoPor: string
+}
+
+function ModalBiblioteca({ onCerrar, onElegir, adjuntando }: {
+  onCerrar: () => void
+  onElegir: (idDocumento: number) => void
+  adjuntando: boolean
+}) {
+  const [documentos, setDocumentos] = useState<DocumentoInstitucional[]>([])
+  const [cargando, setCargando] = useState(true)
+
+  useEffect(() => {
+    apiFetch('/api/documentos-institucionales')
+      .then(r => r.json())
+      .then(setDocumentos)
+      .finally(() => setCargando(false))
+  }, [])
+
+  return (
+    <Modal opened onClose={onCerrar} title="Adjuntar desde la biblioteca institucional" centered size="lg">
+      {cargando ? (
+        <Text c="dimmed" size="sm">Cargando documentos…</Text>
+      ) : documentos.length === 0 ? (
+        <Text c="dimmed" size="sm">
+          Todavía no hay documentos cargados. Se cargan desde Usuarios → Documentos institucionales.
+        </Text>
+      ) : (
+        <Stack gap="xs">
+          {documentos.map(d => (
+            <Group key={d.id} justify="space-between" wrap="nowrap" p="sm" style={{ border: '1px solid var(--mantine-color-gray-3)', borderRadius: 8 }}>
+              <div style={{ minWidth: 0 }}>
+                <Text size="sm" fw={500} truncate>{d.nombre}</Text>
+                <Text size="xs" c="dimmed">{d.nombreOriginal} · {formatBytes(d.tamañoBytes)}</Text>
+              </div>
+              <Button size="xs" onClick={() => onElegir(d.id)} loading={adjuntando}>Adjuntar</Button>
+            </Group>
+          ))}
+        </Stack>
+      )}
+    </Modal>
   )
 }
 
