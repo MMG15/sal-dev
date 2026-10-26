@@ -33,7 +33,7 @@ nada que ver ahí.
 | Rol | Clientes | Consultas | Presupuestos | SSE/Rótulos | Análisis | Resultados | Facturación | Firma digital | Usuarios | Portal (cuentas de cliente) |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | ROL-01 Admin general | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| ROL-02 Administrativo | ✅ | ✅ | 👁️¹ | ✅ | ✅ | — | — | — | — | — |
+| ROL-02 Administrativo | ✅ | ✅ | ✅¹ | ✅ | ✅ | — | — | — | — | — |
 | ROL-03 Presupuestos | — | ✅ | ✅ | — | ✅ | — | — | — | — | — |
 | ROL-04 Cobranzas | — | — | — | — | — | — | 👁️² | — | — | — |
 | ROL-05 Cliente externo⁴ | — | — | — | — | — | — | — | — | — | ✅ |
@@ -45,8 +45,9 @@ nada que ver ahí.
 ² Cobranzas ve facturas y registra cobros (marcar pagada), pero no emite.
 ³ Emite la factura en TANGO y la registra en SAL (paso 10 del flujo PO-01).
 
-¹ Administrativo puede **ver** presupuestos aceptados (para vincularlos a una
-SSE) pero no puede crearlos ni modificarlos — queda exclusivo de ROL-01/03.
+¹ Administrativo puede crear y gestionar presupuestos igual que ROL-03, pero
+solo en casos puntuales (tarea delegada por el admin general, no es su función
+principal).
 
 ## Dónde está implementado
 

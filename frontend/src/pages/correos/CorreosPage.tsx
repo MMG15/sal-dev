@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ActionIcon, Alert, Badge, Group, Pagination, Paper, Select, Stack, Table, Text, TextInput, Title } from '@mantine/core'
-import { IconInbox, IconRefresh, IconSearch } from '@tabler/icons-react'
+import { ActionIcon, Alert, Badge, Button, Group, Pagination, Paper, Select, Stack, Table, Text, TextInput, Title } from '@mantine/core'
+import { IconInbox, IconMailOpened, IconRefresh, IconSearch } from '@tabler/icons-react'
 import { apiFetch } from '../../lib/api'
 import { ESTADOS_CORREO, ESTADO_CORREO_COLOR, ESTADO_CORREO_LABEL, type CorreoResumen } from './correosComun'
 
@@ -17,6 +17,8 @@ export default function CorreosPage() {
   const [filtroEstado, setFiltroEstado] = useState<string | null>('pendiente')
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
+  const [revisando, setRevisando] = useState(false)
+  const [mensajeRevision, setMensajeRevision] = useState('')
 
   const cargarLista = useCallback(async () => {
     setCargando(true)
@@ -47,6 +49,35 @@ export default function CorreosPage() {
 
   useEffect(() => { cargarLista() }, [cargarLista])
 
+  async function revisarAhora() {
+    setRevisando(true)
+    setError('')
+    setMensajeRevision('')
+    try {
+      const res = await apiFetch('/api/cuentas-correo')
+      const cuentas = await res.json().catch(() => null)
+      if (!res.ok || !Array.isArray(cuentas)) {
+        setError('No se pudieron obtener las casillas configuradas.')
+        return
+      }
+      const habilitadas = cuentas.filter((c: { habilitada: boolean }) => c.habilitada)
+      if (habilitadas.length === 0) {
+        setError('No hay ninguna casilla de correo habilitada para revisar.')
+        return
+      }
+      let importados = 0
+      for (const cuenta of habilitadas) {
+        const r = await apiFetch(`/api/cuentas-correo/${cuenta.idCuenta}/revisar-ahora`, { method: 'POST' })
+        const d = await r.json().catch(() => ({}))
+        if (r.ok) importados += d.importados ?? 0
+      }
+      setMensajeRevision(importados > 0 ? `Se importaron ${importados} correo(s) nuevo(s).` : 'No había correos nuevos.')
+      await cargarLista()
+    } finally {
+      setRevisando(false)
+    }
+  }
+
   return (
     <Stack gap="lg" h="100%" style={{ overflowY: 'auto' }}>
       <Group justify="space-between" align="flex-end" wrap="nowrap">
@@ -57,9 +88,20 @@ export default function CorreosPage() {
             revisalo y decidí si se convierte en consulta, se responde o se descarta.
           </Text>
         </div>
-        <ActionIcon variant="default" size="lg" onClick={cargarLista} loading={cargando} title="Refrescar bandeja">
-          <IconRefresh size={18} />
-        </ActionIcon>
+        <Group gap="xs" wrap="nowrap">
+          <Button
+            variant="default"
+            leftSection={<IconMailOpened size={16} />}
+            onClick={revisarAhora}
+            loading={revisando}
+            title="Conecta ahora mismo con la casilla de correo para buscar mensajes nuevos"
+          >
+            Revisar correo ahora
+          </Button>
+          <ActionIcon variant="default" size="lg" onClick={cargarLista} loading={cargando} title="Refrescar bandeja">
+            <IconRefresh size={18} />
+          </ActionIcon>
+        </Group>
       </Group>
 
       {pendientes > 0 && (
@@ -80,6 +122,7 @@ export default function CorreosPage() {
       )}
 
       {error && <Alert color="red" variant="light" style={{ flexShrink: 0 }}>{error}</Alert>}
+      {mensajeRevision && <Alert color="teal" variant="light" style={{ flexShrink: 0 }}>{mensajeRevision}</Alert>}
 
       <Group gap="sm" wrap="nowrap">
         <TextInput

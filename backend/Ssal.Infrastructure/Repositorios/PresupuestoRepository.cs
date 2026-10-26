@@ -52,6 +52,7 @@ public class PresupuestoRepository(SsalDbContext db, IConfiguration config) : IP
             .Include(x => x.CreadoPorUsuario)
             .Include(x => x.Items).ThenInclude(i => i.Analisis).ThenInclude(a => a.Grupo)
             .Include(x => x.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items).ThenInclude(pa => pa.Analisis)
+            .Include(x => x.Metodos).ThenInclude(pm => pm.Metodo)
             .FirstOrDefaultAsync(x => x.IdPresupuesto == id);
 
     public Task<Presupuesto?> ObtenerCompletoAsync(int id) =>
@@ -59,8 +60,9 @@ public class PresupuestoRepository(SsalDbContext db, IConfiguration config) : IP
             .Include(x => x.Consulta).ThenInclude(c => c.Cliente).ThenInclude(cl => cl!.Empresa)
             .Include(x => x.Consulta).ThenInclude(c => c.Empresa)
             .Include(x => x.CreadoPorUsuario)
-            .Include(x => x.Items).ThenInclude(i => i.Analisis)
+            .Include(x => x.Items).ThenInclude(i => i.Analisis).ThenInclude(a => a.Metodo)
             .Include(x => x.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items).ThenInclude(pa => pa.Analisis)
+            .Include(x => x.Metodos).ThenInclude(pm => pm.Metodo)
             .FirstOrDefaultAsync(x => x.IdPresupuesto == id);
 
     public Task<Presupuesto?> ObtenerAsync(int id) => db.Presupuestos.FindAsync(id).AsTask();
@@ -74,15 +76,19 @@ public class PresupuestoRepository(SsalDbContext db, IConfiguration config) : IP
         db.Presupuestos
             .Include(p => p.Items)
             .Include(p => p.Paquetes)
+            .Include(p => p.Metodos)
             .FirstOrDefaultAsync(p => p.IdConsulta == idConsulta);
 
     public void ReemplazarItemsYPaquetes(
-        Presupuesto existente, List<PresupuestoAnalisis> nuevosItems, List<PresupuestoPaquete> nuevosPaquetes)
+        Presupuesto existente, List<PresupuestoAnalisis> nuevosItems, List<PresupuestoPaquete> nuevosPaquetes,
+        List<PresupuestoMetodo> nuevosMetodos)
     {
         db.PresupuestosAnalisis.RemoveRange(existente.Items);
         db.PresupuestosPaquetes.RemoveRange(existente.Paquetes);
+        db.PresupuestosMetodos.RemoveRange(existente.Metodos);
         existente.Items = nuevosItems;
         existente.Paquetes = nuevosPaquetes;
+        existente.Metodos = nuevosMetodos;
     }
 
     public async Task<Dictionary<int, Analisis>> ObtenerAnalisisPorIdsAsync(List<int> ids) =>
@@ -90,6 +96,9 @@ public class PresupuestoRepository(SsalDbContext db, IConfiguration config) : IP
 
     public async Task<Dictionary<int, Paquete>> ObtenerPaquetesPorIdsAsync(List<int> ids) =>
         await db.Paquetes.Where(p => ids.Contains(p.IdPaquete)).ToDictionaryAsync(p => p.IdPaquete);
+
+    public async Task<Dictionary<int, Metodo>> ObtenerMetodosPorIdsAsync(List<int> ids) =>
+        await db.Metodos.Where(m => ids.Contains(m.IdMetodo)).ToDictionaryAsync(m => m.IdMetodo);
 
     public async Task<List<FirmaDocumento>> ObtenerEventosFirmaAsync(int idPresupuesto) =>
         await db.FirmasDocumento

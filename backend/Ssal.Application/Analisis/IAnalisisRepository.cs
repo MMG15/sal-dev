@@ -20,6 +20,8 @@ public interface IAnalisisRepository
 
     Ssal.Domain.GrupoAnalisis CrearGrupo(string codigoAgrupador, string area);
 
+    Task<bool> ExisteGrupoConCodigoAsync(string codigoAgrupador, string area);
+
     void Agregar(Ssal.Domain.Analisis analisis);
 
     Task<bool> TieneUsoEnPresupuestosAsync(int idAnalisis);
@@ -42,6 +44,19 @@ public interface IAnalisisRepository
     Task<bool> TienePaqueteUsoEnPresupuestosAsync(int idPaquete);
 
     void EliminarPaquete(Ssal.Domain.Paquete paquete);
+
+    // Métodos: catálogo reutilizable de normas/equipos/técnicas (antes texto libre por análisis).
+    Task<List<Ssal.Domain.Metodo>> ListarMetodosActivosAsync();
+
+    Task<List<Ssal.Domain.Metodo>> ListarTodosLosMetodosAsync();
+
+    Task<Ssal.Domain.Metodo?> ObtenerMetodoPorIdAsync(int id);
+
+    void AgregarMetodo(Ssal.Domain.Metodo metodo);
+
+    Task<bool> TieneMetodoUsoAsync(int idMetodo);
+
+    void EliminarMetodo(Ssal.Domain.Metodo metodo);
 
     Task GuardarCambiosAsync();
 }

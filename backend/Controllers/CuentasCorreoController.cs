@@ -5,11 +5,13 @@ using Ssal.Application.CuentasCorreo;
 namespace Ssal.Api.Controllers;
 
 // Administración de las casillas desde las que se importan consultas (RF-06, preparación).
-// Mismos roles que ya administran el resto de "Usuarios": el administrador general y el
-// administrador de sistema (es, en los hechos, una integración externa — RF del backoffice).
+// Crear/Actualizar/Eliminar tocan la contraseña de la casilla, así que quedan exclusivos del
+// administrador general y el administrador de sistema. Listar y "revisar ahora" no exponen ni
+// tocan ninguna credencial (el DTO de listado no incluye la contraseña), así que están abiertos
+// a cualquier rol que también tenga acceso a "Correo entrante" (ver frontend/src/config/modulos.ts) —
+// si no, esos usuarios dependen de un admin para forzar la revisión de la bandeja.
 [ApiController]
 [Route("api/cuentas-correo")]
-[Authorize(Roles = "ROL-01,ROL-06")]
 public class CuentasCorreoController(
     ListarCuentasCorreo listar,
     CrearCuentaCorreo crear,
@@ -17,12 +19,17 @@ public class CuentasCorreoController(
     RevisarCuentaAhora revisarAhora,
     EliminarCuentaCorreo eliminar) : ControllerBase
 {
+    const string RolesLectura = "ROL-01,ROL-02,ROL-03,ROL-06,ROL-07";
+    const string RolesAdministracion = "ROL-01,ROL-06";
+
     // ─── GET /api/cuentas-correo ────────────────────────────────────────────
     [HttpGet]
+    [Authorize(Roles = RolesLectura)]
     public async Task<IActionResult> Listar() => Ok(await listar.EjecutarAsync());
 
     // ─── POST /api/cuentas-correo ───────────────────────────────────────────
     [HttpPost]
+    [Authorize(Roles = RolesAdministracion)]
     public async Task<IActionResult> Crear([FromBody] GuardarCuentaCorreoCommand req)
     {
         var resultado = await crear.EjecutarAsync(req);
@@ -32,6 +39,7 @@ public class CuentasCorreoController(
 
     // ─── PUT /api/cuentas-correo/{id} ────────────────────────────────────────
     [HttpPut("{id:int}")]
+    [Authorize(Roles = RolesAdministracion)]
     public async Task<IActionResult> Actualizar(int id, [FromBody] GuardarCuentaCorreoCommand req)
     {
         var resultado = await actualizar.EjecutarAsync(id, req);
@@ -42,6 +50,7 @@ public class CuentasCorreoController(
 
     // ─── POST /api/cuentas-correo/{id}/revisar-ahora ────────────────────────
     [HttpPost("{id:int}/revisar-ahora")]
+    [Authorize(Roles = RolesLectura)]
     public async Task<IActionResult> RevisarAhora(int id)
     {
         var resultado = await revisarAhora.EjecutarAsync(id, HttpContext.RequestAborted);
@@ -52,6 +61,7 @@ public class CuentasCorreoController(
 
     // ─── DELETE /api/cuentas-correo/{id} ─────────────────────────────────────
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = RolesAdministracion)]
     public async Task<IActionResult> Eliminar(int id)
     {
         var ok = await eliminar.EjecutarAsync(id);

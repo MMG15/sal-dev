@@ -28,7 +28,7 @@ public class ActualizarAnalisis(IAnalisisRepository repo)
         analisis.RangoMin = cmd.RangoMin;
         analisis.RangoMax = cmd.RangoMax;
         analisis.ValorEsperado = cmd.ValorEsperado;
-        analisis.Metodo = cmd.Metodo;
+        analisis.IdMetodo = cmd.IdMetodo;
         analisis.Tercerizado = cmd.Tercerizado;
         analisis.IdGrupo = idGrupo;
 

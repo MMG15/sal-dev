@@ -36,6 +36,14 @@ export interface ItemPaquetePresupuesto {
   analisisIncluidos: string[]
 }
 
+export interface ItemMetodoPresupuesto {
+  id: number
+  idMetodo: number
+  nombre: string
+  descripcion: string | null
+  area: string
+}
+
 export interface Archivo {
   id: number
   nombreOriginal: string
@@ -71,6 +79,7 @@ export interface PresupuestoDetalle {
   creadoPor: { nombre: string; apellido: string }
   items: ItemPresupuesto[]
   paquetes: ItemPaquetePresupuesto[]
+  metodos: ItemMetodoPresupuesto[]
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────

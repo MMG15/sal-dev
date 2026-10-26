@@ -10,10 +10,17 @@ using Ssal.Domain;
 
 namespace Ssal.Infrastructure;
 
-// Trae los correos no leídos de una casilla y los deja en la bandeja (CorreoEntrante)
-// para que el personal decida si son un pedido real o no. No manda ni responde nada: solo lee.
+// Trae los correos recientes de una casilla y los deja en la bandeja (CorreoEntrante) para que
+// el personal decida si son un pedido real o no. No manda ni responde nada: solo lee.
 public class ImportadorCorreos(SsalDbContext db, ILogger<ImportadorCorreos> logger)
 {
+    // Margen de seguridad sobre la última revisión: la mayoría de los servidores IMAP solo
+    // soportan granularidad de día en el SINCE del protocolo, y además así no se pierde nada si
+    // llegó un mail justo antes del corte. No importa que la ventana traiga mensajes ya
+    // importados de vuelta — el antiduplicado real es el Message-Id contra la base, no esto.
+    private static readonly TimeSpan MargenRevision = TimeSpan.FromDays(2);
+    private static readonly TimeSpan VentanaPrimeraRevision = TimeSpan.FromDays(30);
+
     // Se le pasa la cuenta y su contraseña ya desencriptada (ver Cifrado.cs); nunca
     // guarda ni loguea la contraseña en texto plano.
     public async Task<int> ImportarAsync(CuentaCorreo cuenta, string passwordPlano, CancellationToken ct)
@@ -23,12 +30,19 @@ public class ImportadorCorreos(SsalDbContext db, ILogger<ImportadorCorreos> logg
         await client.AuthenticateAsync(cuenta.Usuario, passwordPlano, ct);
 
         var inbox = client.Inbox;
-        await inbox.OpenAsync(FolderAccess.ReadWrite, ct);
+        await inbox.OpenAsync(FolderAccess.ReadOnly, ct);
 
-        var noLeidos = await inbox.SearchAsync(SearchQuery.NotSeen, ct);
+        // Antes se buscaba SearchQuery.NotSeen (no leído), pero eso depende del estado del
+        // buzón: si alguien abre el mail directo en Gmail (sin pasar por el sistema), queda
+        // "visto" y el importador lo ignoraba para siempre, sin reintento posible. Se busca por
+        // fecha en su lugar; lo que ya está importado se filtra abajo por Message-Id.
+        var desde = cuenta.UltimaRevision is not null
+            ? cuenta.UltimaRevision.Value - MargenRevision
+            : DateTime.UtcNow - VentanaPrimeraRevision;
+        var candidatos = await inbox.SearchAsync(SearchQuery.DeliveredAfter(desde), ct);
         var importados = 0;
 
-        foreach (var uid in noLeidos)
+        foreach (var uid in candidatos)
         {
             try
             {
@@ -41,28 +55,24 @@ public class ImportadorCorreos(SsalDbContext db, ILogger<ImportadorCorreos> logg
                     : $"sin-message-id-{cuenta.IdCuenta}-{uid.Id}";
 
                 var yaExiste = await db.CorreosEntrantes.AnyAsync(c => c.ExternoId == externoId, ct);
-                if (!yaExiste)
+                if (yaExiste) continue;
+
+                var idConsultaRelacionada = await BuscarConsultaRelacionadaAsync(mensaje, ct);
+
+                db.CorreosEntrantes.Add(new CorreoEntrante
                 {
-                    var idConsultaRelacionada = await BuscarConsultaRelacionadaAsync(mensaje, ct);
-
-                    db.CorreosEntrantes.Add(new CorreoEntrante
-                    {
-                        ExternoId = externoId,
-                        Remitente = remitente?.Address ?? "desconocido",
-                        RemitenteNombre = remitente?.Name,
-                        Asunto = mensaje.Subject,
-                        Cuerpo = mensaje.TextBody ?? mensaje.HtmlBody,
-                        FechaRecibido = mensaje.Date.UtcDateTime,
-                        Estado = "pendiente",
-                        IdCuentaCorreo = cuenta.IdCuenta,
-                        IdConsultaRelacionada = idConsultaRelacionada
-                    });
-                    await db.SaveChangesAsync(ct);
-                    importados++;
-                }
-
-                // Lo marcamos leído recién cuando ya quedó guardado, para no perderlo si algo falla antes.
-                await inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, ct);
+                    ExternoId = externoId,
+                    Remitente = remitente?.Address ?? "desconocido",
+                    RemitenteNombre = remitente?.Name,
+                    Asunto = mensaje.Subject,
+                    Cuerpo = mensaje.TextBody ?? mensaje.HtmlBody,
+                    FechaRecibido = mensaje.Date.UtcDateTime,
+                    Estado = "pendiente",
+                    IdCuentaCorreo = cuenta.IdCuenta,
+                    IdConsultaRelacionada = idConsultaRelacionada
+                });
+                await db.SaveChangesAsync(ct);
+                importados++;
             }
             catch (Exception ex)
             {

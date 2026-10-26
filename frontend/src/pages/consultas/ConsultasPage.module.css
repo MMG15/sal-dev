@@ -528,6 +528,12 @@
   margin-top: 8px;
 }
 
+.inputHint {
+  font-size: 13.5px;
+  color: var(--texto-suave);
+  margin: 2px 0 0;
+}
+
 .formInput {
   padding: 7px 10px;
   border: 1px solid var(--borde);

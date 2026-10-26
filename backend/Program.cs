@@ -86,6 +86,7 @@ builder.Services.AddScoped<Ssal.Application.Analisis.CrearAnalisis>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ActualizarAnalisis>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ToggleActivoAnalisis>();
 builder.Services.AddScoped<Ssal.Application.Analisis.EliminarAnalisis>();
+builder.Services.AddScoped<Ssal.Application.Analisis.CrearGrupo>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ActualizarGrupo>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ListarPaquetesActivos>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ListarTodosLosPaquetes>();
@@ -93,6 +94,12 @@ builder.Services.AddScoped<Ssal.Application.Analisis.CrearPaquete>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ActualizarPaquete>();
 builder.Services.AddScoped<Ssal.Application.Analisis.ToggleActivoPaquete>();
 builder.Services.AddScoped<Ssal.Application.Analisis.EliminarPaquete>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ListarMetodosActivos>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ListarTodosLosMetodos>();
+builder.Services.AddScoped<Ssal.Application.Analisis.CrearMetodo>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ActualizarMetodo>();
+builder.Services.AddScoped<Ssal.Application.Analisis.ToggleActivoMetodo>();
+builder.Services.AddScoped<Ssal.Application.Analisis.EliminarMetodo>();
 
 // Auditoría: segundo módulo migrado (lectura pura, sin reglas de negocio que mutan nada).
 builder.Services.AddScoped<Ssal.Application.Auditoria.IAuditoriaRepository, Ssal.Infrastructure.Repositorios.AuditoriaRepository>();
@@ -237,7 +244,7 @@ using (var scope = app.Services.CreateScope())
 
     var seedUsuarios = new (string Email, string Nombre, string Apellido, int IdRol, string Password)[]
     {
-        ("admin@ssal.uccuyo.edu.ar",            "Administrador", "Sistema",   1, "Admin1234!"),
+        ("admin@ssal.uccuyo.edu.ar",            "Marta",         "Gaido",     1, "Admin1234!"),
         ("administrativo@ssal.uccuyo.edu.ar",   "María",         "González",  2, "Ssal1234!"),
         ("presupuestos@ssal.uccuyo.edu.ar",     "Carlos",        "López",     3, "Ssal1234!"),
         ("cobranzas@ssal.uccuyo.edu.ar",        "Laura",         "Martínez",  4, "Ssal1234!"),
@@ -263,6 +270,17 @@ using (var scope = app.Services.CreateScope())
             });
         }
     }
+
+    // Corrección puntual: el admin ya estaba sembrado con el nombre placeholder de antes
+    // de conocer el nombre real. El seed de arriba no pisa usuarios existentes, así que esto
+    // lo corrige una sola vez (no vuelve a tocarlo si ya tiene otro nombre).
+    var admin = db.Usuarios.FirstOrDefault(x => x.Email == "admin@ssal.uccuyo.edu.ar");
+    if (admin is not null && admin.Nombre == "Administrador" && admin.Apellido == "Sistema")
+    {
+        admin.Nombre = "Marta";
+        admin.Apellido = "Gaido";
+    }
+
     db.SaveChanges();
 
     // Seed: grupos y análisis de referencia

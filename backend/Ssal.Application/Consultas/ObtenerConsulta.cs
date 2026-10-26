@@ -17,12 +17,14 @@ public class ObtenerConsulta(IConsultaRepository repo)
             c.Presupuesto == null ? null : new PresupuestoResumenDto(
                 c.Presupuesto.IdPresupuesto, c.Presupuesto.CodigoRpo, c.Presupuesto.Estado,
                 c.Presupuesto.ImporteDolares, c.Presupuesto.ImportePesos, c.Presupuesto.Cotizacion,
-                c.Presupuesto.AdicionalAsesoramiento, c.Presupuesto.TipoAsesoramiento, c.Presupuesto.Fecha,
+                c.Presupuesto.AdicionalAsesoramiento, c.Presupuesto.TipoAsesoramiento, c.Presupuesto.MostrarMoneda, c.Presupuesto.Fecha,
                 c.Presupuesto.Items.Select(i => new ItemAnalisisConsultaDto(
                     i.Id, i.IdAnalisis, i.PrecioUsdSnapshot, i.Analisis.Codigo, i.Analisis.Nombre,
                     i.Analisis.Area, i.Analisis.Grupo.CodigoAgrupador)).ToList(),
                 c.Presupuesto.Paquetes.Select(pp => new ItemPaqueteConsultaDto(
                     pp.Id, pp.IdPaquete, pp.PrecioUsdSnapshot, pp.Paquete.Nombre, pp.Paquete.Area,
-                    pp.Paquete.Items.Select(i => i.Analisis.Nombre).ToList())).ToList()));
+                    pp.Paquete.Items.Select(i => i.Analisis.Nombre).ToList())).ToList(),
+                c.Presupuesto.Metodos.Select(pm => new ItemMetodoConsultaDto(
+                    pm.Id, pm.IdMetodo, pm.Metodo.Nombre, pm.Metodo.Descripcion, pm.Metodo.Area)).ToList()));
     }
 }

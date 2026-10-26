@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react'
 import { apiFetch } from '../../lib/api'
 import PaquetesTab from './PaquetesTab'
 import GruposTab from './GruposTab'
+import MetodosTab from './MetodosTab'
 import styles from './AnalisisPage.module.css'
 
 interface AnalisisItem {
@@ -14,7 +15,7 @@ interface AnalisisItem {
   rangoMin: number | null
   rangoMax: number | null
   valorEsperado: string | null
-  metodo: string | null
+  metodo: { idMetodo: number; nombre: string; area: string } | null
   tercerizado: boolean
   activo: boolean
   grupo: { idGrupo: number; codigoAgrupador: string; area: string }
@@ -26,11 +27,18 @@ interface GrupoOpcion {
   area: string
 }
 
+interface MetodoOpcion {
+  idMetodo: number
+  nombre: string
+  descripcion: string | null
+  area: string
+}
+
 type FiltroArea = 'todas' | 'MIC' | 'FQ'
 type FiltroEstado = 'todos' | 'activos' | 'inactivos'
 
 export default function AnalisisPage() {
-  const [pestana, setPestana] = useState<'catalogo' | 'paquetes' | 'categorias'>('catalogo')
+  const [pestana, setPestana] = useState<'catalogo' | 'paquetes' | 'categorias' | 'metodos'>('catalogo')
 
   return (
     <div className={styles.root}>
@@ -44,11 +52,15 @@ export default function AnalisisPage() {
         <button className={`${styles.pestana} ${pestana === 'categorias' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('categorias')}>
           Categorías
         </button>
+        <button className={`${styles.pestana} ${pestana === 'metodos' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('metodos')}>
+          Métodos
+        </button>
       </div>
 
       {pestana === 'catalogo' && <CatalogoAnalisisTab />}
       {pestana === 'paquetes' && <PaquetesTab />}
       {pestana === 'categorias' && <GruposTab />}
+      {pestana === 'metodos' && <MetodosTab />}
     </div>
   )
 }
@@ -56,6 +68,7 @@ export default function AnalisisPage() {
 function CatalogoAnalisisTab() {
   const [analisis, setAnalisis] = useState<AnalisisItem[]>([])
   const [grupos, setGrupos] = useState<GrupoOpcion[]>([])
+  const [metodos, setMetodos] = useState<MetodoOpcion[]>([])
   const [cargando, setCargando] = useState(true)
   const [busqueda, setBusqueda] = useState('')
   const [filtroArea, setFiltroArea] = useState<FiltroArea>('todas')
@@ -78,7 +91,7 @@ function CatalogoAnalisisTab() {
     rangoMin: '',
     rangoMax: '',
     valorEsperado: '',
-    metodo: '',
+    idMetodo: 0,
     tercerizado: false,
   })
   const [tipoReferencia, setTipoReferencia] = useState<'ninguno' | 'rango' | 'esperado'>('ninguno')
@@ -87,21 +100,25 @@ function CatalogoAnalisisTab() {
     setCargando(true)
     setErrorCarga('')
     try {
-      const [resA, resG] = await Promise.all([
+      const [resA, resG, resM] = await Promise.all([
         apiFetch('/api/analisis/todos'),
         apiFetch('/api/analisis/grupos'),
+        apiFetch('/api/analisis/metodos'),
       ])
-      if (!resA.ok || !resG.ok) {
+      if (!resA.ok || !resG.ok || !resM.ok) {
         setAnalisis([])
         setGrupos([])
-        setErrorCarga(`No se pudo cargar el catálogo (error ${resA.ok ? resG.status : resA.status}).`)
+        setMetodos([])
+        setErrorCarga(`No se pudo cargar el catálogo (error ${resA.ok ? (resG.ok ? resM.status : resG.status) : resA.status}).`)
         return
       }
       setAnalisis(await resA.json())
       setGrupos(await resG.json())
+      setMetodos(await resM.json())
     } catch {
       setAnalisis([])
       setGrupos([])
+      setMetodos([])
       setErrorCarga('No se pudo conectar con el servidor.')
     } finally {
       setCargando(false)
@@ -122,7 +139,7 @@ function CatalogoAnalisisTab() {
   }, [analisis, busqueda, filtroArea, filtroEstado])
 
   function abrirCrear() {
-    setForm({ idGrupo: 0, nuevoGrupo: '', codigo: '', nombre: '', area: 'MIC', precioUsd: '', unidad: '', rangoMin: '', rangoMax: '', valorEsperado: '', metodo: '', tercerizado: false })
+    setForm({ idGrupo: 0, nuevoGrupo: '', codigo: '', nombre: '', area: 'MIC', precioUsd: '', unidad: '', rangoMin: '', rangoMax: '', valorEsperado: '', idMetodo: 0, tercerizado: false })
     setTipoReferencia('ninguno')
     setError('')
     setModal({ tipo: 'crear' })
@@ -140,7 +157,7 @@ function CatalogoAnalisisTab() {
       rangoMin: item.rangoMin?.toString() ?? '',
       rangoMax: item.rangoMax?.toString() ?? '',
       valorEsperado: item.valorEsperado ?? '',
-      metodo: item.metodo ?? '',
+      idMetodo: item.metodo?.idMetodo ?? 0,
       tercerizado: item.tercerizado,
     })
     setTipoReferencia(item.valorEsperado ? 'esperado' : (item.rangoMin != null || item.rangoMax != null) ? 'rango' : 'ninguno')
@@ -171,7 +188,7 @@ function CatalogoAnalisisTab() {
         rangoMin: tipoReferencia === 'rango' && form.rangoMin ? parseFloat(form.rangoMin) : null,
         rangoMax: tipoReferencia === 'rango' && form.rangoMax ? parseFloat(form.rangoMax) : null,
         valorEsperado: tipoReferencia === 'esperado' ? form.valorEsperado.trim() || null : null,
-        metodo: form.metodo.trim() || null,
+        idMetodo: form.idMetodo || null,
         tercerizado: form.tercerizado,
       }
       const isEditar = modal?.tipo === 'editar'
@@ -208,6 +225,7 @@ function CatalogoAnalisisTab() {
   }
 
   const gruposFiltrados = grupos.filter(g => g.area === form.area)
+  const metodosFiltrados = metodos.filter(m => m.area === form.area || m.area === 'AMBAS')
   const totalActivos = analisis.filter(a => a.activo).length
 
   return (
@@ -280,7 +298,7 @@ function CatalogoAnalisisTab() {
               {listaFiltrada.map(a => (
                 <tr key={a.idAnalisis} className={a.activo ? '' : styles.filaInactiva}>
                   <td className={styles.tdCodigo}>{a.codigo}</td>
-                  <td title={a.metodo ?? undefined}>
+                  <td title={a.metodo?.nombre ?? undefined}>
                     {a.nombre}
                     {a.tercerizado && <span className={styles.tagTercerizado}>Tercerizado</span>}
                   </td>
@@ -404,12 +422,16 @@ function CatalogoAnalisisTab() {
 
               <div className={styles.campo}>
                 <label>Método / norma técnica</label>
-                <textarea
-                  placeholder="Ej: Método APHA 9215B, o un párrafo con norma + equipo + sensibilidad + condiciones especiales"
-                  value={form.metodo}
-                  onChange={e => setForm(f => ({ ...f, metodo: e.target.value }))}
-                  rows={3}
-                />
+                <select
+                  value={form.idMetodo}
+                  onChange={e => setForm(f => ({ ...f, idMetodo: Number(e.target.value) }))}
+                >
+                  <option value={0}>— Sin método asignado —</option>
+                  {metodosFiltrados.map(m => (
+                    <option key={m.idMetodo} value={m.idMetodo}>{m.nombre}</option>
+                  ))}
+                </select>
+                <p className={styles.ayuda}>Los métodos se cargan desde la pestaña "Métodos" de este catálogo.</p>
               </div>
 
               <div className={styles.campo}>

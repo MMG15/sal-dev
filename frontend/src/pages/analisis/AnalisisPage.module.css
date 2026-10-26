@@ -53,6 +53,12 @@
   margin: 0;
 }
 
+.ayuda {
+  font-size: 14px;
+  color: var(--texto-suave);
+  margin: 4px 0 0;
+}
+
 .controles {
   display: flex;
   align-items: center;

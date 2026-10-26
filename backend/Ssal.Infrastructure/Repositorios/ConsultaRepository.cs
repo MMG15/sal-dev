@@ -49,6 +49,7 @@ public class ConsultaRepository(SsalDbContext db) : IConsultaRepository
             .Include(x => x.Responsable)
             .Include(x => x.Presupuesto).ThenInclude(p => p!.Items).ThenInclude(i => i.Analisis).ThenInclude(a => a.Grupo)
             .Include(x => x.Presupuesto).ThenInclude(p => p!.Paquetes).ThenInclude(pp => pp.Paquete).ThenInclude(pq => pq.Items).ThenInclude(pa => pa.Analisis)
+            .Include(x => x.Presupuesto).ThenInclude(p => p!.Metodos).ThenInclude(pm => pm.Metodo)
             .FirstOrDefaultAsync(x => x.IdConsulta == id);
 
     public Task<Consulta?> ObtenerAsync(int id) => db.Consultas.FindAsync(id).AsTask();

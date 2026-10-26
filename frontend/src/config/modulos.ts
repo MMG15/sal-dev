@@ -47,7 +47,7 @@ export const MODULOS: ModuloConfig[] = [
     label: 'Presupuestos',
     descripcion: 'Presupuestos, análisis y archivos adjuntos',
     path: '/presupuestos',
-    roles: ['ROL-01', 'ROL-03'],
+    roles: ['ROL-01', 'ROL-02', 'ROL-03'],
     listo: true,
   },
   {

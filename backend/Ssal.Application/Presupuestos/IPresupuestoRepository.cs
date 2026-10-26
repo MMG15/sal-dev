@@ -17,16 +17,20 @@ public interface IPresupuestoRepository
 
     Task<Ssal.Domain.Presupuesto?> ObtenerExistentePorConsultaAsync(int idConsulta);
 
-    // Reemplaza los análisis y paquetes de un presupuesto existente (se usa al editarlo: se actualiza
-    // en el lugar, nunca se borra y se recrea, porque una SSE ya podría estar apuntando a este Id).
+    // Reemplaza los análisis, paquetes y métodos de un presupuesto existente (se usa al editarlo:
+    // se actualiza en el lugar, nunca se borra y se recrea, porque una SSE ya podría estar
+    // apuntando a este Id).
     void ReemplazarItemsYPaquetes(
         Ssal.Domain.Presupuesto existente,
         List<Ssal.Domain.PresupuestoAnalisis> nuevosItems,
-        List<Ssal.Domain.PresupuestoPaquete> nuevosPaquetes);
+        List<Ssal.Domain.PresupuestoPaquete> nuevosPaquetes,
+        List<Ssal.Domain.PresupuestoMetodo> nuevosMetodos);
 
     Task<Dictionary<int, Ssal.Domain.Analisis>> ObtenerAnalisisPorIdsAsync(List<int> ids);
 
     Task<Dictionary<int, Ssal.Domain.Paquete>> ObtenerPaquetesPorIdsAsync(List<int> ids);
+
+    Task<Dictionary<int, Ssal.Domain.Metodo>> ObtenerMetodosPorIdsAsync(List<int> ids);
 
     // Para el bloque de firmas digitales en el PDF.
     Task<List<Ssal.Domain.FirmaDocumento>> ObtenerEventosFirmaAsync(int idPresupuesto);

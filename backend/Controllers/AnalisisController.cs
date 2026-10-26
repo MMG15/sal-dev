@@ -15,13 +15,20 @@ public class AnalisisController(
     ActualizarAnalisis actualizar,
     ToggleActivoAnalisis toggleActivo,
     EliminarAnalisis eliminar,
+    CrearGrupo crearGrupo,
     ActualizarGrupo actualizarGrupo,
     ListarPaquetesActivos listarPaquetesActivos,
     ListarTodosLosPaquetes listarTodosLosPaquetes,
     CrearPaquete crearPaquete,
     ActualizarPaquete actualizarPaquete,
     ToggleActivoPaquete toggleActivoPaquete,
-    EliminarPaquete eliminarPaquete) : ControllerBase
+    EliminarPaquete eliminarPaquete,
+    ListarMetodosActivos listarMetodosActivos,
+    ListarTodosLosMetodos listarTodosLosMetodos,
+    CrearMetodo crearMetodo,
+    ActualizarMetodo actualizarMetodo,
+    ToggleActivoMetodo toggleActivoMetodo,
+    EliminarMetodo eliminarMetodo) : ControllerBase
 {
     // ─── GET /api/analisis ────────────────────────────────────────────────
     // Para el selector de presupuesto: solo activos, agrupados
@@ -74,6 +81,15 @@ public class AnalisisController(
         if (!resultado.Ok)
             return resultado.Error == "No encontrado" ? NotFound() : BadRequest(new { error = resultado.Error });
         return NoContent();
+    }
+
+    // ─── POST /api/analisis/grupos ──────────────────────────────────────────
+    [HttpPost("grupos")]
+    public async Task<IActionResult> CrearGrupo([FromBody] GuardarGrupoCommand req)
+    {
+        var resultado = await crearGrupo.EjecutarAsync(req);
+        if (!resultado.Ok) return BadRequest(new { error = resultado.Error });
+        return Ok(resultado.Valor);
     }
 
     // ─── PUT /api/analisis/grupos/{id} ─────────────────────────────────────
@@ -129,6 +145,54 @@ public class AnalisisController(
     public async Task<IActionResult> EliminarPaquete(int id)
     {
         var resultado = await eliminarPaquete.EjecutarAsync(id);
+        if (!resultado.Ok)
+            return resultado.Error == "No encontrado" ? NotFound() : BadRequest(new { error = resultado.Error });
+        return NoContent();
+    }
+
+    // ─── GET /api/analisis/metodos ─────────────────────────────────────────
+    // Para el selector de presupuesto / análisis: solo activos
+    [HttpGet("metodos")]
+    public async Task<IActionResult> Metodos() => Ok(await listarMetodosActivos.EjecutarAsync());
+
+    // ─── GET /api/analisis/metodos/todos ───────────────────────────────────
+    // Para gestión: todos incluyendo inactivos
+    [HttpGet("metodos/todos")]
+    public async Task<IActionResult> MetodosTodos() => Ok(await listarTodosLosMetodos.EjecutarAsync());
+
+    // ─── POST /api/analisis/metodos ────────────────────────────────────────
+    [HttpPost("metodos")]
+    public async Task<IActionResult> CrearMetodo([FromBody] GuardarMetodoCommand req)
+    {
+        var resultado = await crearMetodo.EjecutarAsync(req);
+        if (!resultado.Ok) return BadRequest(new { error = resultado.Error });
+        return Ok(resultado.Valor);
+    }
+
+    // ─── PUT /api/analisis/metodos/{id} ────────────────────────────────────
+    [HttpPut("metodos/{id}")]
+    public async Task<IActionResult> ActualizarMetodo(int id, [FromBody] GuardarMetodoCommand req)
+    {
+        var resultado = await actualizarMetodo.EjecutarAsync(id, req);
+        if (!resultado.Ok)
+            return resultado.Error == "No encontrado" ? NotFound() : BadRequest(new { error = resultado.Error });
+        return NoContent();
+    }
+
+    // ─── PATCH /api/analisis/metodos/{id}/activo ───────────────────────────
+    [HttpPatch("metodos/{id}/activo")]
+    public async Task<IActionResult> ToggleActivoMetodo(int id)
+    {
+        var resultado = await toggleActivoMetodo.EjecutarAsync(id);
+        if (!resultado.Ok) return NotFound();
+        return Ok(new { resultado.Valor.IdMetodo, resultado.Valor.Activo });
+    }
+
+    // ─── DELETE /api/analisis/metodos/{id} ─────────────────────────────────
+    [HttpDelete("metodos/{id}")]
+    public async Task<IActionResult> EliminarMetodo(int id)
+    {
+        var resultado = await eliminarMetodo.EjecutarAsync(id);
         if (!resultado.Ok)
             return resultado.Error == "No encontrado" ? NotFound() : BadRequest(new { error = resultado.Error });
         return NoContent();

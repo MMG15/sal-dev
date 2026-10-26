@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ActionIcon, Alert, Badge, Button, Divider, FileButton, Group, Paper, Pill, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core'
-import { IconArrowLeft, IconDownload, IconFileSpreadsheet, IconFileTypePdf, IconInfoCircle, IconMail, IconPaperclip, IconTrash, IconUser } from '@tabler/icons-react'
+import { ActionIcon, Alert, Badge, Button, Divider, FileButton, Group, Modal, Paper, Pill, SimpleGrid, Stack, Table, Tabs, Text, TextInput, Title } from '@mantine/core'
+import { IconArrowLeft, IconDownload, IconFileSpreadsheet, IconFileTypePdf, IconInfoCircle, IconMail, IconPaperclip, IconPencil, IconTrash, IconUser } from '@tabler/icons-react'
 import { apiFetch } from '../../lib/api'
+import { useSesion } from '../../context/SesionContext'
 import {
   TIPO_ASESORAMIENTO_LABEL,
   TRANSICIONES,
@@ -23,9 +24,14 @@ const COLOR_ESTADO: Record<string, string> = {
 const fmtUsd = (n: number) => `USD ${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const fmtArs = (n: number) => `$ ${n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
+// Mismos roles que ya tienen acceso al módulo Clientes (ver frontend/src/config/modulos.ts y
+// el [Authorize(Roles=...)] de ClientesController) — no se suma Presupuestos (ROL-03) acá.
+const ROLES_CLIENTES = ['ROL-01', 'ROL-02', 'ROL-07']
+
 export default function PresupuestoDetallePage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { sesion } = useSesion()
   const [presupuesto, setPresupuesto] = useState<PresupuestoDetalle | null>(null)
   const [noEncontrado, setNoEncontrado] = useState(false)
   const [archivos, setArchivos] = useState<Archivo[]>([])
@@ -35,6 +41,8 @@ export default function PresupuestoDetallePage() {
   const [error, setError] = useState('')
   const [avisoEmail, setAvisoEmail] = useState(false)
   const [enviandoEmail, setEnviandoEmail] = useState(false)
+  const [modalEditarCliente, setModalEditarCliente] = useState(false)
+  const puedeEditarCliente = ROLES_CLIENTES.includes(sesion.rolCodigo)
 
   const cargarArchivos = useCallback(async () => {
     const res = await apiFetch(`/api/presupuestos/${id}/archivos`)
@@ -320,6 +328,23 @@ export default function PresupuestoDetallePage() {
               <Text size="sm" ff="monospace" fw={600}>{fmtUsd(subtotalAnalisis)}</Text>
             </Group>
           </Paper>
+
+          {presupuesto.metodos.length > 0 && (
+            <Paper withBorder radius="md" p="lg" mt="lg">
+              <Text fw={600} mb="md">Métodos aplicados</Text>
+              <Stack gap="sm">
+                {presupuesto.metodos.map(m => (
+                  <Group key={m.id} align="flex-start" wrap="nowrap" gap="sm">
+                    <Badge color={m.area === 'MIC' ? 'blue' : m.area === 'FQ' ? 'violet' : 'grape'} variant="light" radius="sm">{m.area}</Badge>
+                    <div>
+                      <Text size="sm" fw={500}>{m.nombre}</Text>
+                      {m.descripcion && <Text size="xs" c="dimmed">{m.descripcion}</Text>}
+                    </div>
+                  </Group>
+                ))}
+              </Stack>
+            </Paper>
+          )}
         </Tabs.Panel>
 
         <Tabs.Panel value="consulta" pt="lg">
@@ -344,9 +369,16 @@ export default function PresupuestoDetallePage() {
             </Paper>
 
             <Paper withBorder radius="md" p="lg">
-              <Group gap="xs" mb="md">
-                <IconUser size={18} />
-                <Text fw={600}>Cliente y empresa</Text>
+              <Group justify="space-between" mb="md">
+                <Group gap="xs">
+                  <IconUser size={18} />
+                  <Text fw={600}>Cliente y empresa</Text>
+                </Group>
+                {cliente && puedeEditarCliente && (
+                  <Button size="xs" variant="default" leftSection={<IconPencil size={14} />} onClick={() => setModalEditarCliente(true)}>
+                    Editar cliente
+                  </Button>
+                )}
               </Group>
               {cliente ? (
                 <Stack gap="sm">
@@ -404,7 +436,97 @@ export default function PresupuestoDetallePage() {
           </Paper>
         </Tabs.Panel>
       </Tabs>
+
+      {modalEditarCliente && cliente && (
+        <ModalEditarCliente
+          idCliente={cliente.idCliente}
+          onCerrar={() => setModalEditarCliente(false)}
+          onGuardado={async () => { setModalEditarCliente(false); await cargar() }}
+        />
+      )}
     </Stack>
+  )
+}
+
+function ModalEditarCliente({ idCliente, onCerrar, onGuardado }: {
+  idCliente: number
+  onCerrar: () => void
+  onGuardado: () => void
+}) {
+  const [cargando, setCargando] = useState(true)
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState('')
+  // Campos del cliente que esta pantalla no edita, pero que hay que reenviar tal cual
+  // (el PUT reemplaza el registro completo, no hace un merge parcial).
+  const [resto, setResto] = useState<{ idEmpresa: number | null; cuit: string | null; condicionIva: string | null; usuarioWeb: string | null } | null>(null)
+  const [nombre, setNombre] = useState('')
+  const [apellido, setApellido] = useState('')
+  const [email, setEmail] = useState('')
+  const [telefono, setTelefono] = useState('')
+
+  useEffect(() => {
+    apiFetch(`/api/clientes/${idCliente}`)
+      .then(r => r.json())
+      .then(c => {
+        setResto({ idEmpresa: c.idEmpresa, cuit: c.cuit, condicionIva: c.condicionIva, usuarioWeb: c.usuarioWeb })
+        setNombre(c.nombre)
+        setApellido(c.apellido)
+        setEmail(c.email ?? '')
+        setTelefono(c.telefono ?? '')
+      })
+      .finally(() => setCargando(false))
+  }, [idCliente])
+
+  async function guardar() {
+    if (!resto) return
+    if (!nombre.trim() || !apellido.trim()) { setError('Nombre y apellido son obligatorios.'); return }
+    setGuardando(true)
+    setError('')
+    try {
+      const res = await apiFetch(`/api/clientes/${idCliente}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          idEmpresa: resto.idEmpresa,
+          nombre: nombre.trim(),
+          apellido: apellido.trim(),
+          email: email.trim() || null,
+          telefono: telefono.trim() || null,
+          cuit: resto.cuit,
+          condicionIva: resto.condicionIva,
+          usuarioWeb: resto.usuarioWeb,
+        }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        setError(d.error ?? d.title ?? 'No se pudo guardar.')
+        return
+      }
+      onGuardado()
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <Modal opened onClose={onCerrar} title="Editar cliente" centered>
+      {cargando ? (
+        <Text c="dimmed" size="sm">Cargando datos del cliente…</Text>
+      ) : (
+        <Stack gap="md">
+          <Group grow>
+            <TextInput label="Nombre" value={nombre} onChange={e => setNombre(e.currentTarget.value)} data-autofocus />
+            <TextInput label="Apellido" value={apellido} onChange={e => setApellido(e.currentTarget.value)} />
+          </Group>
+          <TextInput label="Email" type="email" value={email} onChange={e => setEmail(e.currentTarget.value)} />
+          <TextInput label="Teléfono" value={telefono} onChange={e => setTelefono(e.currentTarget.value)} />
+          {error && <Alert color="red" variant="light">{error}</Alert>}
+          <Group justify="flex-end">
+            <Button variant="default" onClick={onCerrar} disabled={guardando}>Cancelar</Button>
+            <Button onClick={guardar} loading={guardando}>Guardar cambios</Button>
+          </Group>
+        </Stack>
+      )}
+    </Modal>
   )
 }
 

@@ -29,6 +29,11 @@ public class ObtenerPresupuesto(IPresupuestoRepository repo)
                 .Select(pp => new ItemPaqueteDto(
                     pp.Id, pp.IdPaquete, pp.PrecioUsdSnapshot, pp.Paquete.Nombre, pp.Paquete.Area,
                     pp.Paquete.Items.Select(i => i.Analisis.Nombre).ToList()))
+                .ToList(),
+            p.Metodos
+                .OrderBy(pm => pm.Metodo.Area)
+                .ThenBy(pm => pm.Metodo.Nombre)
+                .Select(pm => new ItemMetodoDto(pm.Id, pm.IdMetodo, pm.Metodo.Nombre, pm.Metodo.Descripcion, pm.Metodo.Area))
                 .ToList());
     }
 }

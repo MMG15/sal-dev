@@ -27,6 +27,12 @@ const COLOR_ESTADO: Record<string, string> = {
 
 const COLOR_AREA: Record<string, string> = { MIC: 'blue', FQ: 'violet', AMBAS: 'grape' }
 
+const ESTADO_MUESTRA_LABEL: Record<string, string> = {
+  en_proceso: 'En proceso',
+  completada: 'Completada',
+  rechazada: 'Rechazada',
+}
+
 const fmtUsd = (n: number) => `USD ${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const fmtArs = (n: number) => `$ ${n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
@@ -251,7 +257,12 @@ export default function SseDetallePage() {
                     {rotulo.muestra ? (
                       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                         <Dato label="Tipo" valor={rotulo.muestra.tipo ?? '—'} />
-                        <Dato label="Estado" valor={rotulo.muestra.estado} />
+                        <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+                          <Text size="sm" c="dimmed">Estado</Text>
+                          <Badge color={COLOR_ESTADO[rotulo.muestra.estado] ?? 'gray'} variant="light" radius="sm">
+                            {ESTADO_MUESTRA_LABEL[rotulo.muestra.estado] ?? rotulo.muestra.estado}
+                          </Badge>
+                        </Group>
                         <Dato label="Recibida" valor={new Date(rotulo.muestra.fechaRecepcion).toLocaleDateString('es-AR')} />
                         <Dato label="Recibida por" valor={`${rotulo.muestra.recibidoPor.nombre} ${rotulo.muestra.recibidoPor.apellido}`} />
                         {rotulo.muestra.observacion && (

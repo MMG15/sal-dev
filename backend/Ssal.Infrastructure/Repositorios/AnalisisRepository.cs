@@ -11,7 +11,7 @@ public class AnalisisRepository(SsalDbContext db) : IAnalisisRepository
         await db.GruposAnalisis.Include(g => g.Analisis).ToListAsync();
 
     public async Task<List<Ssal.Domain.Analisis>> ListarTodosConGrupoAsync() =>
-        await db.Analisis.Include(a => a.Grupo).ToListAsync();
+        await db.Analisis.Include(a => a.Grupo).Include(a => a.Metodo).ToListAsync();
 
     public async Task<List<GrupoAnalisis>> ListarGruposAsync() =>
         await db.GruposAnalisis.ToListAsync();
@@ -24,6 +24,9 @@ public class AnalisisRepository(SsalDbContext db) : IAnalisisRepository
 
     public async Task<GrupoAnalisis?> ObtenerGrupoPorIdAsync(int id) =>
         await db.GruposAnalisis.FindAsync(id);
+
+    public async Task<bool> ExisteGrupoConCodigoAsync(string codigoAgrupador, string area) =>
+        await db.GruposAnalisis.AnyAsync(g => g.CodigoAgrupador == codigoAgrupador && g.Area == area);
 
     public GrupoAnalisis CrearGrupo(string codigoAgrupador, string area)
     {
@@ -70,6 +73,23 @@ public class AnalisisRepository(SsalDbContext db) : IAnalisisRepository
         await db.PresupuestosPaquetes.AnyAsync(p => p.IdPaquete == idPaquete);
 
     public void EliminarPaquete(Paquete paquete) => db.Paquetes.Remove(paquete);
+
+    public async Task<List<Metodo>> ListarMetodosActivosAsync() =>
+        await db.Metodos.Where(m => m.Activo).OrderBy(m => m.Area).ThenBy(m => m.Nombre).ToListAsync();
+
+    public async Task<List<Metodo>> ListarTodosLosMetodosAsync() =>
+        await db.Metodos.OrderBy(m => m.Area).ThenBy(m => m.Nombre).ToListAsync();
+
+    public async Task<Metodo?> ObtenerMetodoPorIdAsync(int id) =>
+        await db.Metodos.FindAsync(id);
+
+    public void AgregarMetodo(Metodo metodo) => db.Metodos.Add(metodo);
+
+    public async Task<bool> TieneMetodoUsoAsync(int idMetodo) =>
+        await db.Analisis.AnyAsync(a => a.IdMetodo == idMetodo) ||
+        await db.PresupuestosMetodos.AnyAsync(p => p.IdMetodo == idMetodo);
+
+    public void EliminarMetodo(Metodo metodo) => db.Metodos.Remove(metodo);
 
     public Task GuardarCambiosAsync() => db.SaveChangesAsync();
 }

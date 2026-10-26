@@ -23,6 +23,7 @@ public static class PresupuestoPdfBuilder
 
         var items = presupuesto.Items.OrderBy(i => i.Analisis.Area).ThenBy(i => i.Analisis.Nombre).ToList();
         var paquetes = presupuesto.Paquetes.OrderBy(p => p.Paquete.Area).ThenBy(p => p.Paquete.Nombre).ToList();
+        var metodos = presupuesto.Metodos.OrderBy(m => m.Metodo.Area).ThenBy(m => m.Metodo.Nombre).ToList();
         var subtotal = items.Sum(i => i.PrecioUsdSnapshot) + paquetes.Sum(p => p.PrecioUsdSnapshot);
 
         var documento = Document.Create(doc =>
@@ -135,12 +136,31 @@ public static class PresupuestoPdfBuilder
                             table.Cell().Element(PdfEstilo.CeldaTabla).Column(c =>
                             {
                                 c.Item().Text(i.Analisis.Nombre).SemiBold().FontSize(9);
-                                if (!string.IsNullOrWhiteSpace(i.Analisis.Metodo))
-                                    c.Item().Text(i.Analisis.Metodo).FontSize(7.8f).FontColor(Colors.Grey.Darken1);
+                                if (i.Analisis.Metodo is not null)
+                                    c.Item().Text(i.Analisis.Metodo.Nombre).FontSize(7.8f).FontColor(Colors.Grey.Darken1);
                             });
                             table.Cell().Element(PdfEstilo.CeldaTabla).AlignRight().AlignMiddle().Text($"USD {i.PrecioUsdSnapshot:0.00}").FontSize(9);
                         }
                     });
+
+                    // ── Métodos aplicados ──
+                    if (metodos.Count > 0)
+                    {
+                        col.Item().Column(c =>
+                        {
+                            c.Item().Background(Colors.Grey.Lighten3).Padding(4).Text("MÉTODOS APLICADOS").Bold().FontSize(9).FontColor(PdfEstilo.VerdeOscuro);
+                            foreach (var m in metodos)
+                            {
+                                c.Item().PaddingTop(3).Text(t =>
+                                {
+                                    t.Span($"[{m.Metodo.Area}] ").SemiBold().FontSize(8.5f);
+                                    t.Span(m.Metodo.Nombre).SemiBold().FontSize(8.5f);
+                                    if (!string.IsNullOrWhiteSpace(m.Metodo.Descripcion))
+                                        t.Span($" — {m.Metodo.Descripcion}").FontSize(8.5f).FontColor(Colors.Grey.Darken1);
+                                });
+                            }
+                        });
+                    }
 
                     // ── Totales ──
                     var mostrarUsd = presupuesto.MostrarMoneda != "ars";

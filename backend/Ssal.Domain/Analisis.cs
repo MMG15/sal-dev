@@ -45,11 +45,10 @@ public class Analisis
     [MaxLength(100)]
     public string? ValorEsperado { get; set; } // para resultados cualitativos, ej: "Ausencia", "Negativo"
 
-    // Norma/equipo/sensibilidad/rango de cuantificación. Texto libre porque en los presupuestos
-    // reales va desde un código corto ("Método APHA 9215B") hasta un párrafo con condiciones
-    // especiales (métodos alternativos, qué pasa si se piden las dos variantes, etc.).
-    [Column("metodo")]
-    public string? Metodo { get; set; }
+    // Técnica/norma/equipo con la que se hace este análisis (catálogo reutilizable, ver Metodo.cs
+    // — antes era texto libre repetido en cada análisis).
+    [Column("id_metodo")]
+    public int? IdMetodo { get; set; }
 
     // Se manda a hacer a un laboratorio externo en vez de hacerse in-house. Afecta vigencia de
     // la oferta y condiciones de pago (suele pedirse anticipo antes de poder iniciar el análisis).
@@ -62,6 +61,9 @@ public class Analisis
     // Navegación
     [ForeignKey("IdGrupo")]
     public GrupoAnalisis Grupo { get; set; } = null!;
+
+    [ForeignKey("IdMetodo")]
+    public Metodo? Metodo { get; set; }
 
     public ICollection<Resultado> Resultados { get; set; } = [];
 }

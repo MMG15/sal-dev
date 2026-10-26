@@ -40,6 +40,14 @@ export interface ItemPaquetePresupuesto {
   analisisIncluidos: string[]
 }
 
+export interface ItemMetodoPresupuesto {
+  id: number
+  idMetodo: number
+  nombre: string
+  descripcion: string | null
+  area: string
+}
+
 export interface PresupuestoDetalle {
   idPresupuesto: number
   codigoRpo: string | null
@@ -53,6 +61,7 @@ export interface PresupuestoDetalle {
   fecha: string
   items: ItemPresupuesto[]
   paquetes: ItemPaquetePresupuesto[]
+  metodos: ItemMetodoPresupuesto[]
 }
 
 export interface ConsultaDetalle {
@@ -92,6 +101,13 @@ export interface PaqueteCatalogo {
   analisis: { idAnalisis: number; codigo: string; nombre: string; area: string; precioUsd: number }[]
 }
 
+export interface MetodoCatalogo {
+  idMetodo: number
+  nombre: string
+  descripcion: string | null
+  area: string
+}
+
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 /** Debe coincidir con DiasParaPendiente en ConsultasController.cs */
@@ -100,7 +116,7 @@ export const DIAS_PENDIENTE = 2
 /** Roles con acceso al módulo Presupuestos (debe coincidir con modulos.ts y con
  * el [Authorize(Roles=...)] de PresupuestosController) — determina si se puede
  * armar un presupuesto desde acá adentro. */
-export const ROLES_PRESUPUESTOS = ['ROL-01', 'ROL-03']
+export const ROLES_PRESUPUESTOS = ['ROL-01', 'ROL-02', 'ROL-03']
 
 export const TIPOS_ASESORAMIENTO: { value: string; label: string }[] = [
   { value: 'consulta', label: 'Solo consulta' },
@@ -261,8 +277,10 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
 }) {
   const [grupos, setGrupos] = useState<GrupoAnalisis[]>([])
   const [paquetes, setPaquetes] = useState<PaqueteCatalogo[]>([])
+  const [metodosCatalogo, setMetodosCatalogo] = useState<MetodoCatalogo[]>([])
   const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
   const [paquetesSeleccionados, setPaquetesSeleccionados] = useState<Set<number>>(new Set())
+  const [metodosSeleccionados, setMetodosSeleccionados] = useState<Set<number>>(new Set())
   // Se guardan como texto y arrancan vacíos (no en "0") para que el usuario pueda
   // escribir libremente sin que un cero inicial quede pegado a lo que va tipeando.
   const [cotizacion, setCotizacion] = useState(String(consulta.presupuesto?.cotizacion ?? 1300))
@@ -279,12 +297,15 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
     Promise.all([
       apiFetch('/api/analisis').then(r => r.json()),
       apiFetch('/api/analisis/paquetes').then(r => r.json()),
-    ]).then(([gruposData, paquetesData]: [GrupoAnalisis[], PaqueteCatalogo[]]) => {
+      apiFetch('/api/analisis/metodos').then(r => r.json()),
+    ]).then(([gruposData, paquetesData, metodosData]: [GrupoAnalisis[], PaqueteCatalogo[], MetodoCatalogo[]]) => {
       setGrupos(gruposData)
       setPaquetes(paquetesData)
+      setMetodosCatalogo(metodosData)
       if (consulta.presupuesto) {
         setSeleccionados(new Set(consulta.presupuesto.items.map(i => i.idAnalisis)))
         setPaquetesSeleccionados(new Set(consulta.presupuesto.paquetes.map(p => p.idPaquete)))
+        setMetodosSeleccionados(new Set(consulta.presupuesto.metodos.map(m => m.idMetodo)))
       }
       setCargando(false)
     })
@@ -304,6 +325,15 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
       const next = new Set(prev)
       if (next.has(idPaquete)) next.delete(idPaquete)
       else next.add(idPaquete)
+      return next
+    })
+  }
+
+  function toggleMetodo(idMetodo: number) {
+    setMetodosSeleccionados(prev => {
+      const next = new Set(prev)
+      if (next.has(idMetodo)) next.delete(idMetodo)
+      else next.add(idMetodo)
       return next
     })
   }
@@ -338,7 +368,8 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
           cotizacion: cotizacionNum,
           adicionalAsesoramiento: adicionalNum,
           tipoAsesoramiento: adicionalNum > 0 ? tipoAsesoramiento : null,
-          mostrarMoneda
+          mostrarMoneda,
+          metodos: Array.from(metodosSeleccionados).map(id => ({ idMetodo: id }))
         })
       })
       if (res.ok) onGuardado()
@@ -511,6 +542,29 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
                 <option value="usd">Solo dólares</option>
                 <option value="ars">Solo pesos</option>
               </select>
+
+              <label className={styles.formLabel}>Métodos aplicados</label>
+              {metodosCatalogo.length === 0 ? (
+                <p className={styles.inputHint}>No hay métodos cargados todavía — se crean desde el catálogo de Análisis.</p>
+              ) : (
+                <div style={{ border: '1px solid var(--borde)', borderRadius: 6, maxHeight: 160, overflowY: 'auto' }}>
+                  {metodosCatalogo.map(m => (
+                    <label key={m.idMetodo} className={styles.checkItem}>
+                      <input
+                        type="checkbox"
+                        checked={metodosSeleccionados.has(m.idMetodo)}
+                        onChange={() => toggleMetodo(m.idMetodo)}
+                      />
+                      <span className={styles.checkNombre}>
+                        <span className={`${styles.areaTag} ${m.area === 'MIC' ? styles.areaMic : m.area === 'FQ' ? styles.areaFq : ''}`}>
+                          {m.area}
+                        </span>
+                        {' '}{m.nombre}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className={styles.totalesBox}>

@@ -21,10 +21,12 @@ public record AnalisisDetalleDto(
     decimal? RangoMin,
     decimal? RangoMax,
     string? ValorEsperado,
-    string? Metodo,
+    MetodoResumenDto? Metodo,
     bool Tercerizado,
     bool Activo,
     GrupoResumenDto Grupo);
+
+public record MetodoResumenDto(int IdMetodo, string Nombre, string Area);
 
 public record GrupoResumenDto(int IdGrupo, string CodigoAgrupador, string Area);
 
@@ -44,10 +46,14 @@ public record GuardarAnalisisCommand(
     decimal? RangoMin,
     decimal? RangoMax,
     string? ValorEsperado,
-    string? Metodo,
+    int? IdMetodo,
     bool Tercerizado);
 
-public record GuardarGrupoCommand(string? TipoMuestra, string? Norma, string? CantidadMuestra);
+// CodigoAgrupador/Area solo se usan al crear (ActualizarGrupo no los toca — el nombre y el
+// área de una categoría ya existente no se editan desde acá).
+public record GuardarGrupoCommand(string? CodigoAgrupador, string? Area, string? TipoMuestra, string? Norma, string? CantidadMuestra);
+
+public record GrupoCreadoDto(int IdGrupo);
 
 // ─── Paquetes ───────────────────────────────────────────────────────────────
 
@@ -64,3 +70,18 @@ public record PaqueteDetalleDto(
 public record GuardarPaqueteCommand(
     string Nombre, string Area, string? TipoMuestra, string? Norma, string? CantidadMuestra,
     decimal PrecioUsd, List<int> IdsAnalisis);
+
+// ─── Métodos ────────────────────────────────────────────────────────────────
+// Norma + equipo + sensibilidad + condiciones de un análisis. Catálogo reutilizable: antes era
+// texto libre repetido en cada análisis; ahora se carga una vez y se referencia desde Analisis
+// y desde Presupuesto (para mostrar en el PDF qué método se va a aplicar).
+
+// Para selectores (catálogo de análisis, presupuesto): solo métodos activos.
+public record MetodoDto(int IdMetodo, string Nombre, string? Descripcion, string Area);
+
+// Para la pantalla de gestión: todos los métodos, incluyendo inactivos.
+public record MetodoDetalleDto(int IdMetodo, string Nombre, string? Descripcion, string Area, bool Activo);
+
+public record GuardarMetodoCommand(string Nombre, string? Descripcion, string Area);
+
+public record MetodoCreadoDto(int IdMetodo);

@@ -25,6 +25,8 @@ public class SsalDbContext(DbContextOptions<SsalDbContext> options) : DbContext(
     public DbSet<Paquete> Paquetes => Set<Paquete>();
     public DbSet<PaqueteAnalisis> PaquetesAnalisis => Set<PaqueteAnalisis>();
     public DbSet<PresupuestoPaquete> PresupuestosPaquetes => Set<PresupuestoPaquete>();
+    public DbSet<Metodo> Metodos => Set<Metodo>();
+    public DbSet<PresupuestoMetodo> PresupuestosMetodos => Set<PresupuestoMetodo>();
     public DbSet<PresupuestoArchivo> PresupuestosArchivos => Set<PresupuestoArchivo>();
     public DbSet<PortalUsuario> PortalUsuarios => Set<PortalUsuario>();
     public DbSet<AuditoriaSistema> Auditoria => Set<AuditoriaSistema>();

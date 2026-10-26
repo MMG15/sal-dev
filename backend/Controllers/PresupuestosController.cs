@@ -21,10 +21,10 @@ public class PresupuestosController(
     DescargarArchivoPresupuesto descargarArchivo,
     EliminarArchivoPresupuesto eliminarArchivo) : ControllerBase
 {
-    // Roles con permiso de gestión (crear/editar/archivar) de presupuestos.
-    private const string RolesGestion = "ROL-01,ROL-03";
-    // Roles con permiso de lectura — se suma ROL-02 porque desde SSE (Administrativo)
-    // hace falta poder listar y consultar presupuestos aceptados para vincularlos.
+    // Roles con permiso de gestión (crear/editar/archivar) de presupuestos. El administrativo
+    // (ROL-02) hace presupuestos en casos puntuales, por tarea delegada del admin general —
+    // no es su función principal, pero necesita poder hacerlo igual que Presupuestos (ROL-03).
+    private const string RolesGestion = "ROL-01,ROL-02,ROL-03";
     private const string RolesLectura = "ROL-01,ROL-02,ROL-03";
 
     int UsuarioActual => int.Parse(
