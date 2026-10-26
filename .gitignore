@@ -27,3 +27,9 @@ backend/storage/**
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code (configuración/estado local de la herramienta, no del proyecto)
+.claude/
+
+# Logs (cuando se implemente logging a archivo en producción)
+*.log
