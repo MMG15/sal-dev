@@ -24,7 +24,10 @@ public class ListarTodosLosAnalisis(IAnalisisRepository repo)
                 a.Metodo == null ? null : new MetodoResumenDto(a.Metodo.IdMetodo, a.Metodo.Nombre, a.Metodo.Area),
                 a.Tercerizado,
                 a.Activo,
-                new GrupoResumenDto(a.Grupo.IdGrupo, a.Grupo.CodigoAgrupador, a.Grupo.Area)))
+                new GrupoResumenDto(a.Grupo.IdGrupo, a.Grupo.CodigoAgrupador, a.Grupo.Area),
+                a.LimiteDeteccion,
+                a.ReferenciaNormativa,
+                a.CriterioAceptacion))
             .ToList();
     }
 }

@@ -17,12 +17,14 @@ public class ObtenerMuestra(IResultadoRepository repo)
             m.Resultados
                 .OrderBy(r => r.Analisis.Area).ThenBy(r => r.Analisis.Nombre)
                 .Select(r => new ResultadoDto(
-                    r.IdResultado, r.Valor, r.Estado, r.FechaCarga, r.MotivoRechazo,
+                    r.IdResultado, r.Valor, r.Estado, r.FechaCarga, r.FechaResultado, r.MotivoRechazo,
                     r.CargadoPorUsuario == null ? null : new UsuarioNombreDto(r.CargadoPorUsuario.Nombre, r.CargadoPorUsuario.Apellido),
                     r.ValidadoPorUsuario == null ? null : new UsuarioNombreDto(r.ValidadoPorUsuario.Nombre, r.ValidadoPorUsuario.Apellido),
                     r.FechaValidacion,
                     new AnalisisDetalleDto(r.Analisis.IdAnalisis, r.Analisis.Codigo, r.Analisis.Nombre, r.Analisis.Area, r.Analisis.Unidad,
-                        r.Analisis.RangoMin, r.Analisis.RangoMax, r.Analisis.ValorEsperado, r.Analisis.Grupo.CodigoAgrupador),
+                        r.Analisis.RangoMin, r.Analisis.RangoMax, r.Analisis.ValorEsperado, r.Analisis.Grupo.CodigoAgrupador,
+                        r.Analisis.Metodo == null ? null : r.Analisis.Metodo.Nombre,
+                        r.Analisis.LimiteDeteccion, r.Analisis.ReferenciaNormativa, r.Analisis.CriterioAceptacion),
                     Ssal.Domain.EvaluadorDeRango.FueraDeRango(r.Valor, r.Analisis)))
                 .ToList());
     }

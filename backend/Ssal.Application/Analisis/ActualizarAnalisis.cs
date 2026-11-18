@@ -31,6 +31,9 @@ public class ActualizarAnalisis(IAnalisisRepository repo)
         analisis.IdMetodo = cmd.IdMetodo;
         analisis.Tercerizado = cmd.Tercerizado;
         analisis.IdGrupo = idGrupo;
+        analisis.LimiteDeteccion = cmd.LimiteDeteccion;
+        analisis.ReferenciaNormativa = cmd.ReferenciaNormativa;
+        analisis.CriterioAceptacion = cmd.CriterioAceptacion;
 
         await repo.GuardarCambiosAsync();
         return Resultado.Exitoso();

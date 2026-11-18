@@ -11,10 +11,11 @@ public record MuestraResumenDto(
 
 public record AnalisisDetalleDto(
     int IdAnalisis, string Codigo, string Nombre, string Area, string? Unidad,
-    decimal? RangoMin, decimal? RangoMax, string? ValorEsperado, string GrupoNombre);
+    decimal? RangoMin, decimal? RangoMax, string? ValorEsperado, string GrupoNombre,
+    string? MetodoNombre, string? LimiteDeteccion, string? ReferenciaNormativa, string? CriterioAceptacion);
 
 public record ResultadoDto(
-    int IdResultado, string? Valor, string Estado, DateTime? FechaCarga, string? MotivoRechazo,
+    int IdResultado, string? Valor, string Estado, DateTime? FechaCarga, DateTime? FechaResultado, string? MotivoRechazo,
     UsuarioNombreDto? CargadoPor, UsuarioNombreDto? ValidadoPor, DateTime? FechaValidacion,
     AnalisisDetalleDto Analisis, bool? FueraDeRango);
 
@@ -27,7 +28,7 @@ public record MuestraDetalleDto(
 
 public record InformeCreadoDto(int IdInforme, string Codigo);
 
-public record CargarValorCommand(string Valor);
+public record CargarValorCommand(string Valor, DateTime? FechaResultado);
 
 public record ValorCargadoDto(int IdResultado, string Estado, bool? FueraDeRango);
 

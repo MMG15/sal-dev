@@ -47,6 +47,11 @@ namespace Ssal.Infrastructure.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("codigo");
 
+                    b.Property<string>("CriterioAceptacion")
+                        .HasMaxLength(1500)
+                        .HasColumnType("character varying(1500)")
+                        .HasColumnName("criterio_aceptacion");
+
                     b.Property<int>("IdGrupo")
                         .HasColumnType("integer")
                         .HasColumnName("id_grupo");
@@ -54,6 +59,11 @@ namespace Ssal.Infrastructure.Migrations
                     b.Property<int?>("IdMetodo")
                         .HasColumnType("integer")
                         .HasColumnName("id_metodo");
+
+                    b.Property<string>("LimiteDeteccion")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("limite_deteccion");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -72,6 +82,11 @@ namespace Ssal.Infrastructure.Migrations
                     b.Property<decimal?>("RangoMin")
                         .HasColumnType("numeric")
                         .HasColumnName("rango_min");
+
+                    b.Property<string>("ReferenciaNormativa")
+                        .HasMaxLength(1500)
+                        .HasColumnType("character varying(1500)")
+                        .HasColumnName("referencia_normativa");
 
                     b.Property<bool>("Tercerizado")
                         .HasColumnType("boolean")
@@ -1178,32 +1193,6 @@ namespace Ssal.Infrastructure.Migrations
                     b.ToTable("presupuesto_archivos");
                 });
 
-            modelBuilder.Entity("Ssal.Domain.PresupuestoMetodo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IdMetodo")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_metodo");
-
-                    b.Property<int>("IdPresupuesto")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_presupuesto");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdMetodo");
-
-                    b.HasIndex("IdPresupuesto");
-
-                    b.ToTable("presupuesto_metodos");
-                });
-
             modelBuilder.Entity("Ssal.Domain.PresupuestoPaquete", b =>
                 {
                     b.Property<int>("Id")
@@ -1256,6 +1245,10 @@ namespace Ssal.Infrastructure.Migrations
                     b.Property<DateTime?>("FechaCarga")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_carga");
+
+                    b.Property<DateTime?>("FechaResultado")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_resultado");
 
                     b.Property<DateTime?>("FechaValidacion")
                         .HasColumnType("timestamp with time zone")
@@ -1858,25 +1851,6 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("SubidoPorUsuario");
                 });
 
-            modelBuilder.Entity("Ssal.Domain.PresupuestoMetodo", b =>
-                {
-                    b.HasOne("Ssal.Domain.Metodo", "Metodo")
-                        .WithMany("Presupuestos")
-                        .HasForeignKey("IdMetodo")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Ssal.Domain.Presupuesto", "Presupuesto")
-                        .WithMany("Metodos")
-                        .HasForeignKey("IdPresupuesto")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Metodo");
-
-                    b.Navigation("Presupuesto");
-                });
-
             modelBuilder.Entity("Ssal.Domain.PresupuestoPaquete", b =>
                 {
                     b.HasOne("Ssal.Domain.Paquete", "Paquete")
@@ -2018,8 +1992,6 @@ namespace Ssal.Infrastructure.Migrations
             modelBuilder.Entity("Ssal.Domain.Metodo", b =>
                 {
                     b.Navigation("Analisis");
-
-                    b.Navigation("Presupuestos");
                 });
 
             modelBuilder.Entity("Ssal.Domain.Muestra", b =>
@@ -2039,8 +2011,6 @@ namespace Ssal.Infrastructure.Migrations
                     b.Navigation("Archivos");
 
                     b.Navigation("Items");
-
-                    b.Navigation("Metodos");
 
                     b.Navigation("Paquetes");
 

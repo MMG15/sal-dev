@@ -470,9 +470,9 @@
 }
 
 .modalGrande {
-  width: 1180px;
-  max-width: 96vw;
-  height: 88vh;
+  width: 1480px;
+  max-width: 97vw;
+  height: 94vh;
 }
 
 .modalHeader {
@@ -577,7 +577,7 @@
 /* ── Layout interno del modal de presupuesto ── */
 .presupuestoLayout {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr 440px;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -592,17 +592,40 @@
 
 .selectorFiltros {
   display: flex;
-  gap: 4px;
-  padding: 12px 14px 8px;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 24px 12px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--borde);
+}
+
+.buscadorAnalisis {
+  flex: 1;
+  margin-left: 10px;
+  padding: 7px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 16.5px;
+  color: var(--texto);
+  background: #fff;
+}
+
+.buscadorAnalisis:focus {
+  outline: none;
+  border-color: var(--azul);
+}
+
+.checkCodigo {
+  font-family: monospace;
+  font-size: 13.5px;
+  color: var(--texto-suave);
 }
 
 .tabArea {
   background: none;
   border: 1px solid var(--borde);
-  border-radius: 5px;
-  padding: 4px 12px;
+  border-radius: 6px;
+  padding: 6px 16px;
   font-size: 16.5px;
   cursor: pointer;
   color: var(--texto-suave);
@@ -618,11 +641,11 @@
 .gruposList {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 20px;
+  padding: 16px 24px;
 }
 
 .grupoBloque {
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .grupoTitulo {
@@ -634,8 +657,8 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--texto-suave);
-  margin-bottom: 4px;
-  padding-bottom: 4px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--borde);
 }
 
@@ -643,9 +666,9 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 7px 8px;
+  padding: 8px 10px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 18px;
 }
 
@@ -687,27 +710,44 @@
 .resumenPanel {
   display: flex;
   flex-direction: column;
-  padding: 14px;
+  padding: 20px;
   overflow-y: auto;
   min-height: 0;
-  gap: 12px;
+  gap: 18px;
+  background: #fafbfc;
+}
+
+.resumenBloque {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.resumenBloque .sectionTitulo {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--texto-suave);
 }
 
 .seleccionadosList {
   flex: 1;
-  min-height: 80px;
-  max-height: 200px;
+  min-height: 90px;
+  max-height: 320px;
   overflow-y: auto;
-  border: 1px solid var(--borde);
-  border-radius: 6px;
-  padding: 8px;
 }
 
 .seleccionadoItem {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 6px 0;
   font-size: 16.5px;
   border-bottom: 1px solid var(--borde);
 }
@@ -735,16 +775,19 @@
 .cotizacionForm {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
+}
+
+.fila2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .totalesBox {
-  border: 1px solid var(--borde);
-  border-radius: 6px;
-  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .totalRow {
@@ -761,11 +804,11 @@
 
 .totalDestacado {
   border-top: 1px solid var(--borde);
-  padding-top: 6px;
+  padding-top: 8px;
   margin-top: 2px;
 }
 
 .totalDestacado strong {
-  font-size: 18.5px;
+  font-size: 19px;
   color: var(--azul);
 }

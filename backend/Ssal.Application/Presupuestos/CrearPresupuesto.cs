@@ -33,13 +33,6 @@ public class CrearPresupuesto(IPresupuestoRepository repo)
             PrecioUsdSnapshot = paquetesCatalogo.TryGetValue(p.IdPaquete, out var pq) ? pq.PrecioUsd : 0
         }).ToList();
 
-        var idsMetodos = (cmd.Metodos ?? []).Select(m => m.IdMetodo).Distinct().ToList();
-        var metodosCatalogo = await repo.ObtenerMetodosPorIdsAsync(idsMetodos);
-        var metodos = idsMetodos
-            .Where(metodosCatalogo.ContainsKey)
-            .Select(id => new Ssal.Domain.PresupuestoMetodo { IdMetodo = id })
-            .ToList();
-
         var totalUsd = items.Sum(i => i.PrecioUsdSnapshot) + paquetes.Sum(p => p.PrecioUsdSnapshot) + cmd.AdicionalAsesoramiento;
         var cotizacion = cmd.Cotizacion > 0 ? cmd.Cotizacion : 1;
         var mostrarMoneda = cmd.MostrarMoneda is "usd" or "ars" or "ambos" ? cmd.MostrarMoneda : "ambos";
@@ -48,7 +41,7 @@ public class CrearPresupuesto(IPresupuestoRepository repo)
 
         if (existente is not null)
         {
-            repo.ReemplazarItemsYPaquetes(existente, items, paquetes, metodos);
+            repo.ReemplazarItemsYPaquetes(existente, items, paquetes);
             existente.ImporteDolares = totalUsd;
             existente.ImportePesos = totalUsd * cotizacion;
             existente.Cotizacion = cotizacion;
@@ -79,8 +72,7 @@ public class CrearPresupuesto(IPresupuestoRepository repo)
                 Estado = "borrador",
                 Fecha = hoy,
                 Items = items,
-                Paquetes = paquetes,
-                Metodos = metodos
+                Paquetes = paquetes
             };
             repo.Agregar(presupuesto);
         }

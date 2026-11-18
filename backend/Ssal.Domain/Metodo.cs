@@ -32,5 +32,4 @@ public class Metodo
 
     // Navegación
     public ICollection<Analisis> Analisis { get; set; } = [];
-    public ICollection<PresupuestoMetodo> Presupuestos { get; set; } = [];
 }

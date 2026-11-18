@@ -29,6 +29,9 @@ public class CrearAnalisis(IAnalisisRepository repo)
             ValorEsperado = cmd.ValorEsperado,
             IdMetodo = cmd.IdMetodo,
             Tercerizado = cmd.Tercerizado,
+            LimiteDeteccion = cmd.LimiteDeteccion,
+            ReferenciaNormativa = cmd.ReferenciaNormativa,
+            CriterioAceptacion = cmd.CriterioAceptacion,
             Activo = true
         };
 

@@ -23,8 +23,6 @@ public class ObtenerConsulta(IConsultaRepository repo)
                     i.Analisis.Area, i.Analisis.Grupo.CodigoAgrupador)).ToList(),
                 c.Presupuesto.Paquetes.Select(pp => new ItemPaqueteConsultaDto(
                     pp.Id, pp.IdPaquete, pp.PrecioUsdSnapshot, pp.Paquete.Nombre, pp.Paquete.Area,
-                    pp.Paquete.Items.Select(i => i.Analisis.Nombre).ToList())).ToList(),
-                c.Presupuesto.Metodos.Select(pm => new ItemMetodoConsultaDto(
-                    pm.Id, pm.IdMetodo, pm.Metodo.Nombre, pm.Metodo.Descripcion, pm.Metodo.Area)).ToList()));
+                    pp.Paquete.Items.Select(i => i.Analisis.Nombre).ToList())).ToList()));
     }
 }

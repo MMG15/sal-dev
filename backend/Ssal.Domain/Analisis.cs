@@ -45,6 +45,21 @@ public class Analisis
     [MaxLength(100)]
     public string? ValorEsperado { get; set; } // para resultados cualitativos, ej: "Ausencia", "Negativo"
 
+    // Detalle normativo que el informe de resultados tiene que poder mostrar, tal como lo emite
+    // hoy el laboratorio en papel: sensibilidad del método, artículo/resolución vigente y los
+    // criterios de aceptación (n/c/m o equivalente) con sus notas aclaratorias.
+    [Column("limite_deteccion")]
+    [MaxLength(200)]
+    public string? LimiteDeteccion { get; set; } // ej: "1 ufc/mL"
+
+    [Column("referencia_normativa")]
+    [MaxLength(1500)]
+    public string? ReferenciaNormativa { get; set; } // ej: "Artículo 982: Agua Potable seg. CAA - Resolución..."
+
+    [Column("criterio_aceptacion")]
+    [MaxLength(1500)]
+    public string? CriterioAceptacion { get; set; } // ej: "n=1, c=0, m=500UFC/ml. (8) En caso de que..."
+
     // Técnica/norma/equipo con la que se hace este análisis (catálogo reutilizable, ver Metodo.cs
     // — antes era texto libre repetido en cada análisis).
     [Column("id_metodo")]

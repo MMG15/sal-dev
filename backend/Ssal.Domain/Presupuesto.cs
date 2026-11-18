@@ -67,6 +67,5 @@ public class Presupuesto
 
     public ICollection<PresupuestoAnalisis> Items { get; set; } = [];
     public ICollection<PresupuestoPaquete> Paquetes { get; set; } = [];
-    public ICollection<PresupuestoMetodo> Metodos { get; set; } = [];
     public ICollection<PresupuestoArchivo> Archivos { get; set; } = [];
 }

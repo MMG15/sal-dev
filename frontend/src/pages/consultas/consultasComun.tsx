@@ -40,14 +40,6 @@ export interface ItemPaquetePresupuesto {
   analisisIncluidos: string[]
 }
 
-export interface ItemMetodoPresupuesto {
-  id: number
-  idMetodo: number
-  nombre: string
-  descripcion: string | null
-  area: string
-}
-
 export interface PresupuestoDetalle {
   idPresupuesto: number
   codigoRpo: string | null
@@ -61,7 +53,6 @@ export interface PresupuestoDetalle {
   fecha: string
   items: ItemPresupuesto[]
   paquetes: ItemPaquetePresupuesto[]
-  metodos: ItemMetodoPresupuesto[]
 }
 
 export interface ConsultaDetalle {
@@ -99,13 +90,6 @@ export interface PaqueteCatalogo {
   cantidadMuestra: string | null
   precioUsd: number
   analisis: { idAnalisis: number; codigo: string; nombre: string; area: string; precioUsd: number }[]
-}
-
-export interface MetodoCatalogo {
-  idMetodo: number
-  nombre: string
-  descripcion: string | null
-  area: string
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -277,10 +261,8 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
 }) {
   const [grupos, setGrupos] = useState<GrupoAnalisis[]>([])
   const [paquetes, setPaquetes] = useState<PaqueteCatalogo[]>([])
-  const [metodosCatalogo, setMetodosCatalogo] = useState<MetodoCatalogo[]>([])
   const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
   const [paquetesSeleccionados, setPaquetesSeleccionados] = useState<Set<number>>(new Set())
-  const [metodosSeleccionados, setMetodosSeleccionados] = useState<Set<number>>(new Set())
   // Se guardan como texto y arrancan vacíos (no en "0") para que el usuario pueda
   // escribir libremente sin que un cero inicial quede pegado a lo que va tipeando.
   const [cotizacion, setCotizacion] = useState(String(consulta.presupuesto?.cotizacion ?? 1300))
@@ -292,20 +274,18 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [filtroArea, setFiltroArea] = useState<'todos' | 'MIC' | 'FQ'>('todos')
+  const [busqueda, setBusqueda] = useState('')
 
   useEffect(() => {
     Promise.all([
       apiFetch('/api/analisis').then(r => r.json()),
       apiFetch('/api/analisis/paquetes').then(r => r.json()),
-      apiFetch('/api/analisis/metodos').then(r => r.json()),
-    ]).then(([gruposData, paquetesData, metodosData]: [GrupoAnalisis[], PaqueteCatalogo[], MetodoCatalogo[]]) => {
+    ]).then(([gruposData, paquetesData]: [GrupoAnalisis[], PaqueteCatalogo[]]) => {
       setGrupos(gruposData)
       setPaquetes(paquetesData)
-      setMetodosCatalogo(metodosData)
       if (consulta.presupuesto) {
         setSeleccionados(new Set(consulta.presupuesto.items.map(i => i.idAnalisis)))
         setPaquetesSeleccionados(new Set(consulta.presupuesto.paquetes.map(p => p.idPaquete)))
-        setMetodosSeleccionados(new Set(consulta.presupuesto.metodos.map(m => m.idMetodo)))
       }
       setCargando(false)
     })
@@ -329,15 +309,6 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
     })
   }
 
-  function toggleMetodo(idMetodo: number) {
-    setMetodosSeleccionados(prev => {
-      const next = new Set(prev)
-      if (next.has(idMetodo)) next.delete(idMetodo)
-      else next.add(idMetodo)
-      return next
-    })
-  }
-
   const analisisMap = grupos.flatMap(g => g.items).reduce<Record<number, GrupoAnalisis['items'][0]>>((acc, a) => {
     acc[a.idAnalisis] = a
     return acc
@@ -353,8 +324,19 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
   const totalUsd = subtotalAnalisis + subtotalPaquetes + adicionalNum
   const totalArs = totalUsd * cotizacionNum
 
-  const gruposFiltrados = grupos.filter(g => filtroArea === 'todos' || g.area === filtroArea)
-  const paquetesFiltrados = paquetes.filter(p => filtroArea === 'todos' || p.area === filtroArea)
+  const texto = busqueda.trim().toLowerCase()
+
+  const gruposFiltrados = grupos
+    .filter(g => filtroArea === 'todos' || g.area === filtroArea)
+    .map(g => ({
+      ...g,
+      items: texto ? g.items.filter(i => `${i.codigo} ${i.nombre}`.toLowerCase().includes(texto)) : g.items,
+    }))
+    .filter(g => g.items.length > 0)
+
+  const paquetesFiltrados = paquetes
+    .filter(p => filtroArea === 'todos' || p.area === filtroArea)
+    .filter(p => !texto || `${p.nombre} ${p.analisis.map(a => `${a.codigo} ${a.nombre}`).join(' ')}`.toLowerCase().includes(texto))
 
   async function guardar() {
     setGuardando(true)
@@ -369,7 +351,6 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
           adicionalAsesoramiento: adicionalNum,
           tipoAsesoramiento: adicionalNum > 0 ? tipoAsesoramiento : null,
           mostrarMoneda,
-          metodos: Array.from(metodosSeleccionados).map(id => ({ idMetodo: id }))
         })
       })
       if (res.ok) onGuardado()
@@ -404,6 +385,12 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
                   {a === 'todos' ? 'Todos' : a}
                 </button>
               ))}
+              <input
+                className={styles.buscadorAnalisis}
+                placeholder="Buscar por código o nombre..."
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+              />
             </div>
 
             {cargando ? (
@@ -447,14 +434,19 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
                           checked={seleccionados.has(item.idAnalisis)}
                           onChange={() => toggleAnalisis(item.idAnalisis)}
                         />
-                        <span className={styles.checkNombre}>{item.nombre}</span>
+                        <span className={styles.checkNombre}>
+                          <span className={styles.checkCodigo}>{item.codigo}</span>
+                          {' '}{item.nombre}
+                        </span>
                         <span className={styles.checkPrecio}>USD {item.precioUsd.toFixed(2)}</span>
                       </label>
                     ))}
                   </div>
                 ))}
-                {gruposFiltrados.length === 0 && (
-                  <p className={styles.vacio}>Sin análisis cargados en el sistema.</p>
+                {gruposFiltrados.length === 0 && paquetesFiltrados.length === 0 && (
+                  <p className={styles.vacio}>
+                    {texto ? `Sin resultados para "${busqueda.trim()}".` : 'Sin análisis cargados en el sistema.'}
+                  </p>
                 )}
               </div>
             )}
@@ -462,141 +454,132 @@ export function PresupuestoModal({ consulta, onGuardado, onCerrar }: {
 
           {/* Resumen y cotización */}
           <div className={styles.resumenPanel}>
-            <h3 className={styles.sectionTitulo}>Resumen</h3>
-
-            <div className={styles.seleccionadosList}>
-              {seleccionados.size === 0 && paquetesSeleccionados.size === 0 ? (
-                <p className={styles.sinCliente}>Seleccioná análisis o paquetes de la lista</p>
-              ) : (
-                <>
-                  {Array.from(paquetesSeleccionados).map(id => {
-                    const p = paquetesMap[id]
-                    if (!p) return null
-                    return (
-                      <div key={`paquete-${id}`} className={styles.seleccionadoItem}>
-                        <button className={styles.btnRemover} onClick={() => togglePaquete(id)}>✕</button>
-                        <span className={styles.checkNombre}>{p.nombre} <em style={{ fontStyle: 'normal', color: 'var(--texto-suave)', fontSize: 13 }}>(paquete)</em></span>
-                        <span className={styles.analisisPrecio}>USD {p.precioUsd.toFixed(2)}</span>
-                      </div>
-                    )
-                  })}
-                  {Array.from(seleccionados).map(id => {
-                    const a = analisisMap[id]
-                    if (!a) return null
-                    return (
-                      <div key={id} className={styles.seleccionadoItem}>
-                        <button className={styles.btnRemover} onClick={() => toggleAnalisis(id)}>✕</button>
-                        <span className={styles.checkNombre}>{a.nombre}</span>
-                        <span className={styles.analisisPrecio}>USD {a.precioUsd.toFixed(2)}</span>
-                      </div>
-                    )
-                  })}
-                </>
-              )}
+            <div className={styles.resumenBloque}>
+              <h3 className={styles.sectionTitulo}>Seleccionados</h3>
+              <div className={styles.seleccionadosList}>
+                {seleccionados.size === 0 && paquetesSeleccionados.size === 0 ? (
+                  <p className={styles.sinCliente}>Seleccioná análisis o paquetes de la lista</p>
+                ) : (
+                  <>
+                    {Array.from(paquetesSeleccionados).map(id => {
+                      const p = paquetesMap[id]
+                      if (!p) return null
+                      return (
+                        <div key={`paquete-${id}`} className={styles.seleccionadoItem}>
+                          <button className={styles.btnRemover} onClick={() => togglePaquete(id)}>✕</button>
+                          <span className={styles.checkNombre}>{p.nombre} <em style={{ fontStyle: 'normal', color: 'var(--texto-suave)', fontSize: 13 }}>(paquete)</em></span>
+                          <span className={styles.analisisPrecio}>USD {p.precioUsd.toFixed(2)}</span>
+                        </div>
+                      )
+                    })}
+                    {Array.from(seleccionados).map(id => {
+                      const a = analisisMap[id]
+                      if (!a) return null
+                      return (
+                        <div key={id} className={styles.seleccionadoItem}>
+                          <button className={styles.btnRemover} onClick={() => toggleAnalisis(id)}>✕</button>
+                          <span className={styles.checkNombre}>{a.nombre}</span>
+                          <span className={styles.analisisPrecio}>USD {a.precioUsd.toFixed(2)}</span>
+                        </div>
+                      )
+                    })}
+                  </>
+                )}
+              </div>
             </div>
 
-            <div className={styles.cotizacionForm}>
-              <label className={styles.formLabel}>Adicional asesoramiento (USD)</label>
-              <input
-                type="number"
-                className={styles.formInput}
-                value={adicional}
-                min={0}
-                step={0.01}
-                placeholder="0.00"
-                onChange={e => setAdicional(e.target.value)}
-              />
+            <div className={styles.resumenBloque}>
+              <h3 className={styles.sectionTitulo}>Cotización y condiciones</h3>
+              <div className={styles.cotizacionForm}>
+                <div className={styles.fila2}>
+                  <div>
+                    <label className={styles.formLabel}>Adicional asesoramiento (USD)</label>
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      value={adicional}
+                      min={0}
+                      step={0.01}
+                      placeholder="0.00"
+                      onChange={e => setAdicional(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className={styles.formLabel}>Cotización USD → ARS</label>
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      value={cotizacion}
+                      min={1}
+                      step={1}
+                      onChange={e => setCotizacion(e.target.value)}
+                    />
+                  </div>
+                </div>
 
-              {adicionalNum > 0 && (
-                <>
-                  <label className={styles.formLabel}>Tipo de asesoramiento</label>
+                {adicionalNum > 0 && (
+                  <div>
+                    <label className={styles.formLabel}>Tipo de asesoramiento</label>
+                    <select
+                      className={styles.formInput}
+                      value={tipoAsesoramiento}
+                      onChange={e => setTipoAsesoramiento(e.target.value)}
+                    >
+                      {TIPOS_ASESORAMIENTO.map(t => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label className={styles.formLabel}>Valor a mostrar en el PDF</label>
                   <select
                     className={styles.formInput}
-                    value={tipoAsesoramiento}
-                    onChange={e => setTipoAsesoramiento(e.target.value)}
+                    value={mostrarMoneda}
+                    onChange={e => setMostrarMoneda(e.target.value)}
                   >
-                    {TIPOS_ASESORAMIENTO.map(t => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
+                    <option value="ambos">Pesos y dólares</option>
+                    <option value="usd">Solo dólares</option>
+                    <option value="ars">Solo pesos</option>
                   </select>
-                </>
-              )}
-
-              <label className={styles.formLabel}>Cotización USD → ARS</label>
-              <input
-                type="number"
-                className={styles.formInput}
-                value={cotizacion}
-                min={1}
-                step={1}
-                onChange={e => setCotizacion(e.target.value)}
-              />
-
-              <label className={styles.formLabel}>Valor a mostrar en el PDF</label>
-              <select
-                className={styles.formInput}
-                value={mostrarMoneda}
-                onChange={e => setMostrarMoneda(e.target.value)}
-              >
-                <option value="ambos">Pesos y dólares</option>
-                <option value="usd">Solo dólares</option>
-                <option value="ars">Solo pesos</option>
-              </select>
-
-              <label className={styles.formLabel}>Métodos aplicados</label>
-              {metodosCatalogo.length === 0 ? (
-                <p className={styles.inputHint}>No hay métodos cargados todavía — se crean desde el catálogo de Análisis.</p>
-              ) : (
-                <div style={{ border: '1px solid var(--borde)', borderRadius: 6, maxHeight: 160, overflowY: 'auto' }}>
-                  {metodosCatalogo.map(m => (
-                    <label key={m.idMetodo} className={styles.checkItem}>
-                      <input
-                        type="checkbox"
-                        checked={metodosSeleccionados.has(m.idMetodo)}
-                        onChange={() => toggleMetodo(m.idMetodo)}
-                      />
-                      <span className={styles.checkNombre}>
-                        <span className={`${styles.areaTag} ${m.area === 'MIC' ? styles.areaMic : m.area === 'FQ' ? styles.areaFq : ''}`}>
-                          {m.area}
-                        </span>
-                        {' '}{m.nombre}
-                      </span>
-                    </label>
-                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
-            <div className={styles.totalesBox}>
-              {subtotalPaquetes > 0 && (
+            <div className={styles.resumenBloque}>
+              <h3 className={styles.sectionTitulo}>Totales</h3>
+              <div className={styles.totalesBox}>
+                {subtotalPaquetes > 0 && (
+                  <div className={styles.totalRow}>
+                    <span>Subtotal paquetes</span>
+                    <strong>USD {subtotalPaquetes.toFixed(2)}</strong>
+                  </div>
+                )}
                 <div className={styles.totalRow}>
-                  <span>Subtotal paquetes</span>
-                  <strong>USD {subtotalPaquetes.toFixed(2)}</strong>
+                  <span>Subtotal análisis sueltos</span>
+                  <strong>USD {subtotalAnalisis.toFixed(2)}</strong>
                 </div>
-              )}
-              <div className={styles.totalRow}>
-                <span>Subtotal análisis sueltos</span>
-                <strong>USD {subtotalAnalisis.toFixed(2)}</strong>
-              </div>
-              {adicionalNum > 0 && (
-                <div className={styles.totalRow}>
-                  <span>Asesoramiento · {TIPO_ASESORAMIENTO_LABEL[tipoAsesoramiento] ?? tipoAsesoramiento}</span>
-                  <strong>USD {adicionalNum.toFixed(2)}</strong>
+                {adicionalNum > 0 && (
+                  <div className={styles.totalRow}>
+                    <span>Asesoramiento · {TIPO_ASESORAMIENTO_LABEL[tipoAsesoramiento] ?? tipoAsesoramiento}</span>
+                    <strong>USD {adicionalNum.toFixed(2)}</strong>
+                  </div>
+                )}
+                <div className={`${styles.totalRow} ${styles.totalDestacado}`}>
+                  <span>Total USD</span>
+                  <strong>USD {totalUsd.toFixed(2)}</strong>
                 </div>
-              )}
-              <div className={`${styles.totalRow} ${styles.totalDestacado}`}>
-                <span>Total USD</span>
-                <strong>USD {totalUsd.toFixed(2)}</strong>
-              </div>
-              <div className={`${styles.totalRow} ${styles.totalDestacado}`}>
-                <span>Total ARS</span>
-                <strong>$ {totalArs.toFixed(2)}</strong>
+                <div className={`${styles.totalRow} ${styles.totalDestacado}`}>
+                  <span>Total ARS</span>
+                  <strong>$ {totalArs.toFixed(2)}</strong>
+                </div>
               </div>
             </div>
 
             <button
               className={styles.btnPrimario}
-              style={{ width: '100%', marginTop: '16px' }}
+              style={{ width: '100%' }}
               onClick={guardar}
               disabled={guardando || (seleccionados.size === 0 && paquetesSeleccionados.size === 0)}
             >

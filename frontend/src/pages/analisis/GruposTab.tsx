@@ -34,7 +34,7 @@ export default function GruposTab() {
       const res = await apiFetch('/api/analisis/grupos')
       if (!res.ok) {
         setGrupos([])
-        setErrorCarga(`No se pudieron cargar las categorías (error ${res.status}).`)
+        setErrorCarga(`No se pudieron cargar las matrices (error ${res.status}).`)
         return
       }
       setGrupos(await res.json())
@@ -61,7 +61,7 @@ export default function GruposTab() {
   }
 
   async function guardarNueva() {
-    if (!formNueva.codigoAgrupador.trim()) { setErrorNueva('El nombre de la categoría es obligatorio.'); return }
+    if (!formNueva.codigoAgrupador.trim()) { setErrorNueva('El nombre de la matriz es obligatorio.'); return }
     setErrorNueva('')
     setGuardandoNueva(true)
     try {
@@ -77,7 +77,7 @@ export default function GruposTab() {
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        setErrorNueva(data.error ?? 'Error al crear la categoría.')
+        setErrorNueva(data.error ?? 'Error al crear la matriz.')
         return
       }
       setCreando(false)
@@ -116,12 +116,12 @@ export default function GruposTab() {
     <div>
       <div className={styles.cabecera}>
         <div>
-          <h1 className={styles.titulo}>Categorías de análisis</h1>
+          <h1 className={styles.titulo}>Matrices de análisis</h1>
           <p className={styles.subtitulo}>
             Agrupan análisis relacionados (ej. "Microbiológicos de agua"). Acá se completa qué norma rigen, el tipo de muestra y la cantidad requerida.
           </p>
         </div>
-        <button className={styles.btnPrimario} onClick={abrirNueva}>+ Nueva categoría</button>
+        <button className={styles.btnPrimario} onClick={abrirNueva}>+ Nueva matriz</button>
       </div>
 
       {errorCarga && <p className={styles.errorModal}>{errorCarga}</p>}
@@ -129,13 +129,13 @@ export default function GruposTab() {
       {cargando ? (
         <div className={styles.cargando}>Cargando…</div>
       ) : grupos.length === 0 ? (
-        <div className={styles.vacio}>Todavía no hay categorías cargadas.</div>
+        <div className={styles.vacio}>Todavía no hay matrices cargadas.</div>
       ) : (
         <div className={styles.tablaWrap}>
           <table className={styles.tabla}>
             <thead>
               <tr>
-                <th>Categoría</th>
+                <th>Matriz</th>
                 <th>Área</th>
                 <th>Tipo de muestra</th>
                 <th>Norma</th>
@@ -169,12 +169,12 @@ export default function GruposTab() {
         <div className={styles.overlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitulo}>Nueva categoría</h2>
+              <h2 className={styles.modalTitulo}>Nueva matriz</h2>
               <button className={styles.btnCerrar} onClick={() => setCreando(false)}>✕</button>
             </div>
             <div className={styles.modalBody}>
               <div className={styles.campo}>
-                <label>Categoría *</label>
+                <label>Matriz *</label>
                 <input
                   placeholder="Ej: Composición proximal"
                   value={formNueva.codigoAgrupador}
@@ -220,7 +220,7 @@ export default function GruposTab() {
             <div className={styles.modalFooter}>
               <button className={styles.btnSecundario} onClick={() => setCreando(false)}>Cancelar</button>
               <button className={styles.btnPrimario} onClick={guardarNueva} disabled={guardandoNueva}>
-                {guardandoNueva ? 'Creando...' : 'Crear categoría'}
+                {guardandoNueva ? 'Creando...' : 'Crear matriz'}
               </button>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function GruposTab() {
         <div className={styles.overlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitulo}>Editar categoría — {editando.codigoAgrupador}</h2>
+              <h2 className={styles.modalTitulo}>Editar matriz — {editando.codigoAgrupador}</h2>
               <button className={styles.btnCerrar} onClick={() => setEditando(null)}>✕</button>
             </div>
             <div className={styles.modalBody}>

@@ -35,6 +35,7 @@ public class ResultadoRepository(SsalDbContext db) : IResultadoRepository
         db.Muestras
             .Include(x => x.RotuloInterno).ThenInclude(r => r.Sse).ThenInclude(s => s.Cliente!.Empresa)
             .Include(x => x.Resultados).ThenInclude(r => r.Analisis).ThenInclude(a => a.Grupo)
+            .Include(x => x.Resultados).ThenInclude(r => r.Analisis).ThenInclude(a => a.Metodo)
             .Include(x => x.Resultados).ThenInclude(r => r.CargadoPorUsuario)
             .Include(x => x.Resultados).ThenInclude(r => r.ValidadoPorUsuario)
             .Include(x => x.Informe)
@@ -57,6 +58,7 @@ public class ResultadoRepository(SsalDbContext db) : IResultadoRepository
             .Include(i => i.Muestra).ThenInclude(m => m.RotuloInterno).ThenInclude(r => r.Sse).ThenInclude(s => s.Cliente!.Empresa)
             .Include(i => i.Muestra).ThenInclude(m => m.RotuloInterno).ThenInclude(r => r.Sse).ThenInclude(s => s.Presupuesto).ThenInclude(p => p!.Consulta).ThenInclude(c => c.Empresa)
             .Include(i => i.Muestra).ThenInclude(m => m.Resultados).ThenInclude(r => r.Analisis).ThenInclude(a => a.Grupo)
+            .Include(i => i.Muestra).ThenInclude(m => m.Resultados).ThenInclude(r => r.Analisis).ThenInclude(a => a.Metodo)
             .Include(i => i.GeneradoPorUsuario)
             .FirstOrDefaultAsync(i => i.IdInforme == id);
 

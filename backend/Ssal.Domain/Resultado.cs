@@ -32,6 +32,11 @@ public class Resultado
     [Column("fecha_carga")]
     public DateTime? FechaCarga { get; set; }
 
+    // Fecha del resultado (F.R.) que el laboratorio imprime en el informe — cuándo se obtuvo el
+    // resultado del análisis, no cuándo se cargó en el sistema (pueden diferir).
+    [Column("fecha_resultado")]
+    public DateTime? FechaResultado { get; set; }
+
     [Column("validado_por")]
     public int? ValidadoPor { get; set; }
 

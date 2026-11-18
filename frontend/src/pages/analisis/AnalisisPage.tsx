@@ -19,6 +19,9 @@ interface AnalisisItem {
   tercerizado: boolean
   activo: boolean
   grupo: { idGrupo: number; codigoAgrupador: string; area: string }
+  limiteDeteccion: string | null
+  referenciaNormativa: string | null
+  criterioAceptacion: string | null
 }
 
 interface GrupoOpcion {
@@ -50,7 +53,7 @@ export default function AnalisisPage() {
           Paquetes
         </button>
         <button className={`${styles.pestana} ${pestana === 'categorias' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('categorias')}>
-          Categorías
+          Matriz
         </button>
         <button className={`${styles.pestana} ${pestana === 'metodos' ? styles.pestanaActiva : ''}`} onClick={() => setPestana('metodos')}>
           Métodos
@@ -93,6 +96,9 @@ function CatalogoAnalisisTab() {
     valorEsperado: '',
     idMetodo: 0,
     tercerizado: false,
+    limiteDeteccion: '',
+    referenciaNormativa: '',
+    criterioAceptacion: '',
   })
   const [tipoReferencia, setTipoReferencia] = useState<'ninguno' | 'rango' | 'esperado'>('ninguno')
 
@@ -139,7 +145,7 @@ function CatalogoAnalisisTab() {
   }, [analisis, busqueda, filtroArea, filtroEstado])
 
   function abrirCrear() {
-    setForm({ idGrupo: 0, nuevoGrupo: '', codigo: '', nombre: '', area: 'MIC', precioUsd: '', unidad: '', rangoMin: '', rangoMax: '', valorEsperado: '', idMetodo: 0, tercerizado: false })
+    setForm({ idGrupo: 0, nuevoGrupo: '', codigo: '', nombre: '', area: 'MIC', precioUsd: '', unidad: '', rangoMin: '', rangoMax: '', valorEsperado: '', idMetodo: 0, tercerizado: false, limiteDeteccion: '', referenciaNormativa: '', criterioAceptacion: '' })
     setTipoReferencia('ninguno')
     setError('')
     setModal({ tipo: 'crear' })
@@ -159,6 +165,9 @@ function CatalogoAnalisisTab() {
       valorEsperado: item.valorEsperado ?? '',
       idMetodo: item.metodo?.idMetodo ?? 0,
       tercerizado: item.tercerizado,
+      limiteDeteccion: item.limiteDeteccion ?? '',
+      referenciaNormativa: item.referenciaNormativa ?? '',
+      criterioAceptacion: item.criterioAceptacion ?? '',
     })
     setTipoReferencia(item.valorEsperado ? 'esperado' : (item.rangoMin != null || item.rangoMax != null) ? 'rango' : 'ninguno')
     setError('')
@@ -172,7 +181,7 @@ function CatalogoAnalisisTab() {
       return
     }
     if (form.idGrupo === 0 && !form.nuevoGrupo.trim()) {
-      setError('Seleccioná un grupo o escribí el nombre del nuevo grupo.')
+      setError('Seleccioná una matriz o escribí el nombre de la nueva.')
       return
     }
     setGuardando(true)
@@ -190,6 +199,9 @@ function CatalogoAnalisisTab() {
         valorEsperado: tipoReferencia === 'esperado' ? form.valorEsperado.trim() || null : null,
         idMetodo: form.idMetodo || null,
         tercerizado: form.tercerizado,
+        limiteDeteccion: form.limiteDeteccion.trim() || null,
+        referenciaNormativa: form.referenciaNormativa.trim() || null,
+        criterioAceptacion: form.criterioAceptacion.trim() || null,
       }
       const isEditar = modal?.tipo === 'editar'
       const res = await apiFetch(
@@ -287,7 +299,7 @@ function CatalogoAnalisisTab() {
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Área</th>
-                <th>Grupo</th>
+                <th>Matriz</th>
                 <th>Precio USD</th>
                 <th>Referencia</th>
                 <th>Estado</th>
@@ -358,12 +370,12 @@ function CatalogoAnalisisTab() {
               </div>
 
               <div className={styles.campo}>
-                <label>Grupo *</label>
+                <label>Matriz *</label>
                 <select
                   value={form.idGrupo}
                   onChange={e => setForm(f => ({ ...f, idGrupo: Number(e.target.value), nuevoGrupo: '' }))}
                 >
-                  <option value={0}>— Nuevo grupo —</option>
+                  <option value={0}>— Nueva matriz —</option>
                   {gruposFiltrados.map(g => (
                     <option key={g.idGrupo} value={g.idGrupo}>{g.codigoAgrupador}</option>
                   ))}
@@ -372,9 +384,9 @@ function CatalogoAnalisisTab() {
 
               {form.idGrupo === 0 && (
                 <div className={styles.campo}>
-                  <label>Nombre del nuevo grupo *</label>
+                  <label>Nombre de la nueva matriz *</label>
                   <input
-                    placeholder="Ej: Vitaminas"
+                    placeholder="Ej: Agua mineral"
                     value={form.nuevoGrupo}
                     onChange={e => setForm(f => ({ ...f, nuevoGrupo: e.target.value }))}
                   />
@@ -432,6 +444,36 @@ function CatalogoAnalisisTab() {
                   ))}
                 </select>
                 <p className={styles.ayuda}>Los métodos se cargan desde la pestaña "Métodos" de este catálogo.</p>
+              </div>
+
+              <div className={styles.campo}>
+                <label>Límite de detección del método</label>
+                <input
+                  placeholder='Ej: 1 ufc/mL'
+                  value={form.limiteDeteccion}
+                  onChange={e => setForm(f => ({ ...f, limiteDeteccion: e.target.value }))}
+                />
+              </div>
+
+              <div className={styles.campo}>
+                <label>Referencia normativa (artículo / resolución)</label>
+                <textarea
+                  rows={2}
+                  placeholder='Ej: Artículo 982: Agua Potable seg. CAA - Resolución Conjunta SCS y SAByDR N° 22/2021'
+                  value={form.referenciaNormativa}
+                  onChange={e => setForm(f => ({ ...f, referenciaNormativa: e.target.value }))}
+                />
+              </div>
+
+              <div className={styles.campo}>
+                <label>Criterio de aceptación</label>
+                <textarea
+                  rows={2}
+                  placeholder='Ej: n=1, c=0, m=500UFC/ml. En caso de superar el límite, se exige higienización y nuevo recuento.'
+                  value={form.criterioAceptacion}
+                  onChange={e => setForm(f => ({ ...f, criterioAceptacion: e.target.value }))}
+                />
+                <p className={styles.ayuda}>Esta información se imprime tal cual en el informe de resultados, debajo de cada análisis.</p>
               </div>
 
               <div className={styles.campo}>

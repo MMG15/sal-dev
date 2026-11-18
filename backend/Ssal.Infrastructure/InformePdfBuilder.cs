@@ -64,41 +64,8 @@ public static class InformePdfBuilder
                         });
                     });
 
-                    col.Item().Table(table =>
-                    {
-                        table.ColumnsDefinition(c =>
-                        {
-                            c.ConstantColumn(34);
-                            c.RelativeColumn(3);
-                            c.RelativeColumn(1.4f);
-                            c.RelativeColumn(1);
-                            c.RelativeColumn(1.8f);
-                        });
-
-                        table.Header(header =>
-                        {
-                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Área");
-                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Análisis");
-                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Resultado");
-                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Unidad");
-                            header.Cell().Element(PdfEstilo.CeldaEncabezadoTabla).Text("Referencia");
-                        });
-
-                        foreach (var r in resultados)
-                        {
-                            var referencia = r.Analisis.ValorEsperado is not null
-                                ? $"Esperado: {r.Analisis.ValorEsperado}"
-                                : (r.Analisis.RangoMin is not null || r.Analisis.RangoMax is not null)
-                                    ? $"{r.Analisis.RangoMin?.ToString() ?? "—"} a {r.Analisis.RangoMax?.ToString() ?? "—"}"
-                                    : "—";
-
-                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(r.Analisis.Area);
-                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(r.Analisis.Nombre).FontSize(9);
-                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(r.Valor ?? "—").FontSize(9);
-                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(r.Analisis.Unidad ?? "—").FontSize(9);
-                            table.Cell().Element(PdfEstilo.CeldaTabla).Text(referencia).FontSize(8.5f);
-                        }
-                    });
+                    foreach (var r in resultados)
+                        col.Item().Element(c => BloqueAnalisis(c, r));
 
                     col.Item().Text(
                         "Todos los análisis listados fueron validados por el Responsable de Área correspondiente antes de la emisión de este informe."
@@ -113,5 +80,86 @@ public static class InformePdfBuilder
         });
 
         return documento.GeneratePdf();
+    }
+
+    // Un bloque detallado por análisis (resultado, método + límite de detección, referencia
+    // normativa y criterio de aceptación), siguiendo el nivel de detalle del informe en papel del
+    // laboratorio, con los colores/estilo propios del sistema.
+    private static void BloqueAnalisis(IContainer container, Resultado r)
+    {
+        var fueraDeRango = EvaluadorDeRango.FueraDeRango(r.Valor, r.Analisis) ?? false;
+        var a = r.Analisis;
+
+        var referenciaSimple = a.ValorEsperado is not null
+            ? $"Esperado: {a.ValorEsperado}"
+            : (a.RangoMin is not null || a.RangoMax is not null)
+                ? $"Rango: {a.RangoMin?.ToString() ?? "—"} a {a.RangoMax?.ToString() ?? "—"} {a.Unidad ?? ""}".TrimEnd()
+                : null;
+
+        container.Border(1).BorderColor(PdfEstilo.GrisBorde).Padding(8).Column(col =>
+        {
+            col.Spacing(3);
+
+            col.Item().Row(row =>
+            {
+                row.RelativeItem().Text(t =>
+                {
+                    t.Span($"{a.Area} · ").FontColor(PdfEstilo.Teal).SemiBold().FontSize(8.5f);
+                    t.Span(a.Nombre).SemiBold().FontSize(10).FontColor(PdfEstilo.VerdeOscuro);
+                });
+                if (r.FechaResultado is not null)
+                    row.AutoItem().Text($"F.R. {r.FechaResultado:dd/MM/yyyy}").FontSize(8).FontColor(Colors.Grey.Darken1);
+            });
+
+            // Para resultados cualitativos (ValorEsperado tipo "Ausencia") la unidad del análisis
+            // suele describir el formato de reporte (ej. "Ausencia/Presencia en 100 mL"), que ya
+            // queda implícito en el valor — no se repite para no duplicar el texto.
+            var textoResultado = string.IsNullOrWhiteSpace(r.Valor)
+                ? "—"
+                : a.ValorEsperado is not null
+                    ? r.Valor
+                    : $"{r.Valor} {a.Unidad}".Trim();
+
+            col.Item().Text(t =>
+            {
+                t.Span("Resultado: ").SemiBold().FontSize(9.5f);
+                if (fueraDeRango)
+                    t.Span(textoResultado).SemiBold().FontSize(9.5f).FontColor(Colors.Red.Darken2);
+                else
+                    t.Span(textoResultado).FontSize(9.5f);
+            });
+
+            if (fueraDeRango)
+                col.Item().Text("Resultado fuera del valor/rango de referencia establecido.")
+                    .FontSize(8).SemiBold().FontColor(Colors.Red.Darken2);
+
+            if (a.Metodo is not null || !string.IsNullOrWhiteSpace(a.LimiteDeteccion))
+            {
+                col.Item().Text(t =>
+                {
+                    t.Span("Método: ").SemiBold().FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+                    t.Span(a.Metodo?.Nombre ?? "—").FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+                    if (!string.IsNullOrWhiteSpace(a.LimiteDeteccion))
+                        t.Span($" — Límite de detección del método: {a.LimiteDeteccion}.").FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(a.ReferenciaNormativa))
+                col.Item().Text(a.ReferenciaNormativa).FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+
+            if (!string.IsNullOrWhiteSpace(a.CriterioAceptacion))
+            {
+                col.Item().Text(t =>
+                {
+                    t.Span("Criterio de aceptación: ").SemiBold().FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+                    t.Span(a.CriterioAceptacion).FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+                });
+            }
+
+            // Si no se cargó ningún dato normativo detallado, al menos se muestra la referencia
+            // simple (rango/valor esperado) que ya tenía el sistema, para no perder información.
+            if (a.Metodo is null && string.IsNullOrWhiteSpace(a.ReferenciaNormativa) && string.IsNullOrWhiteSpace(a.CriterioAceptacion) && referenciaSimple is not null)
+                col.Item().Text(referenciaSimple).FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+        });
     }
 }

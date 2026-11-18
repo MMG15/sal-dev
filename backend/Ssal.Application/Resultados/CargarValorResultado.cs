@@ -15,6 +15,9 @@ public class CargarValorResultado(IResultadoRepository repo)
         r.Estado = "cargado";
         r.CargadoPor = idUsuario;
         r.FechaCarga = DateTime.UtcNow;
+        // El frontend manda una fecha "pura" (sin hora) que .NET deserializa con Kind=Unspecified;
+        // Npgsql exige UTC para timestamptz, así que se fuerza el Kind sin correr la fecha.
+        r.FechaResultado = cmd.FechaResultado is { } f ? DateTime.SpecifyKind(f, DateTimeKind.Utc) : DateTime.UtcNow.Date;
         // Al recargar un resultado (ej. tras rechazo), se limpia la validación anterior.
         r.ValidadoPor = null;
         r.FechaValidacion = null;

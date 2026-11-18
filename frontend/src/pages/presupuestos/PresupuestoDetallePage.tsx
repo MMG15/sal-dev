@@ -349,23 +349,6 @@ export default function PresupuestoDetallePage() {
               <Text size="sm" ff="monospace" fw={600}>{fmtUsd(subtotalAnalisis)}</Text>
             </Group>
           </Paper>
-
-          {presupuesto.metodos.length > 0 && (
-            <Paper withBorder radius="md" p="lg" mt="lg">
-              <Text fw={600} mb="md">Métodos aplicados</Text>
-              <Stack gap="sm">
-                {presupuesto.metodos.map(m => (
-                  <Group key={m.id} align="flex-start" wrap="nowrap" gap="sm">
-                    <Badge color={m.area === 'MIC' ? 'blue' : m.area === 'FQ' ? 'violet' : 'grape'} variant="light" radius="sm">{m.area}</Badge>
-                    <div>
-                      <Text size="sm" fw={500}>{m.nombre}</Text>
-                      {m.descripcion && <Text size="xs" c="dimmed">{m.descripcion}</Text>}
-                    </div>
-                  </Group>
-                ))}
-              </Stack>
-            </Paper>
-          )}
         </Tabs.Panel>
 
         <Tabs.Panel value="consulta" pt="lg">

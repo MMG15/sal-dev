@@ -86,8 +86,7 @@ public class AnalisisRepository(SsalDbContext db) : IAnalisisRepository
     public void AgregarMetodo(Metodo metodo) => db.Metodos.Add(metodo);
 
     public async Task<bool> TieneMetodoUsoAsync(int idMetodo) =>
-        await db.Analisis.AnyAsync(a => a.IdMetodo == idMetodo) ||
-        await db.PresupuestosMetodos.AnyAsync(p => p.IdMetodo == idMetodo);
+        await db.Analisis.AnyAsync(a => a.IdMetodo == idMetodo);
 
     public void EliminarMetodo(Metodo metodo) => db.Metodos.Remove(metodo);
 

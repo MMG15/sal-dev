@@ -24,7 +24,10 @@ public record AnalisisDetalleDto(
     MetodoResumenDto? Metodo,
     bool Tercerizado,
     bool Activo,
-    GrupoResumenDto Grupo);
+    GrupoResumenDto Grupo,
+    string? LimiteDeteccion,
+    string? ReferenciaNormativa,
+    string? CriterioAceptacion);
 
 public record MetodoResumenDto(int IdMetodo, string Nombre, string Area);
 
@@ -47,7 +50,10 @@ public record GuardarAnalisisCommand(
     decimal? RangoMax,
     string? ValorEsperado,
     int? IdMetodo,
-    bool Tercerizado);
+    bool Tercerizado,
+    string? LimiteDeteccion,
+    string? ReferenciaNormativa,
+    string? CriterioAceptacion);
 
 // CodigoAgrupador/Area solo se usan al crear (ActualizarGrupo no los toca — el nombre y el
 // área de una categoría ya existente no se editan desde acá).

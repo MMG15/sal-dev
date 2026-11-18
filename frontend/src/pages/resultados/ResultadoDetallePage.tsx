@@ -9,6 +9,7 @@ interface ResultadoDetalle {
   valor: string | null
   estado: 'pendiente' | 'cargado' | 'validado' | 'rechazado'
   fechaCarga: string | null
+  fechaResultado: string | null
   motivoRechazo: string | null
   cargadoPor: { nombre: string; apellido: string } | null
   validadoPor: { nombre: string; apellido: string } | null
@@ -23,6 +24,10 @@ interface ResultadoDetalle {
     rangoMax: number | null
     valorEsperado: string | null
     grupoNombre: string
+    metodoNombre: string | null
+    limiteDeteccion: string | null
+    referenciaNormativa: string | null
+    criterioAceptacion: string | null
   }
   fueraDeRango: boolean | null
 }
@@ -287,6 +292,7 @@ function FilaResultado({ resultado, onCargar, onValidar, onRechazar }: {
               : resultado.cargadoPor
                 ? `Cargado por ${resultado.cargadoPor.nombre} ${resultado.cargadoPor.apellido}`
                 : null}
+            {resultado.fechaResultado && ` · F.R. ${new Date(resultado.fechaResultado).toLocaleDateString('es-AR', { timeZone: 'UTC' })}`}
           </Text>
         )}
       </Table.Td>
@@ -321,8 +327,12 @@ function ModalCargarValor({ resultado, onCerrar, onGuardado }: {
   onGuardado: () => void
 }) {
   const [valor, setValor] = useState(resultado.valor ?? '')
+  const [fechaResultado, setFechaResultado] = useState(
+    resultado.fechaResultado ? resultado.fechaResultado.slice(0, 10) : new Date().toISOString().slice(0, 10)
+  )
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const a = resultado.analisis
 
   async function guardar() {
     if (!valor.trim()) return setError('Ingresá un valor.')
@@ -331,7 +341,7 @@ function ModalCargarValor({ resultado, onCerrar, onGuardado }: {
     try {
       const res = await apiFetch(`/api/resultados/${resultado.idResultado}`, {
         method: 'PUT',
-        body: JSON.stringify({ valor: valor.trim() }),
+        body: JSON.stringify({ valor: valor.trim(), fechaResultado: fechaResultado || null }),
       })
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
@@ -347,17 +357,28 @@ function ModalCargarValor({ resultado, onCerrar, onGuardado }: {
   return (
     <Modal opened onClose={onCerrar} title={resultado.analisis.nombre} centered>
       <Stack gap="md">
-        {referenciaTexto(resultado.analisis) && (
-          <Text size="sm" c="dimmed">{referenciaTexto(resultado.analisis)}</Text>
+        {referenciaTexto(a) && <Text size="sm" c="dimmed">{referenciaTexto(a)}</Text>}
+        {a.metodoNombre && (
+          <Text size="xs" c="dimmed">
+            Método: {a.metodoNombre}{a.limiteDeteccion && ` — Límite de detección: ${a.limiteDeteccion}`}
+          </Text>
         )}
+        {a.criterioAceptacion && <Text size="xs" c="dimmed">Criterio de aceptación: {a.criterioAceptacion}</Text>}
+
         <TextInput
           label="Valor obtenido"
-          placeholder={resultado.analisis.unidad ? `Valor en ${resultado.analisis.unidad}` : 'Valor'}
+          placeholder={a.unidad ? `Valor en ${a.unidad}` : 'Valor'}
           value={valor}
           onChange={e => setValor(e.currentTarget.value)}
           onKeyDown={e => { if (e.key === 'Enter') guardar() }}
           data-autofocus
           error={error || undefined}
+        />
+        <TextInput
+          type="date"
+          label="Fecha de resultado (F.R.)"
+          value={fechaResultado}
+          onChange={e => setFechaResultado(e.currentTarget.value)}
         />
         <Group justify="flex-end">
           <Button variant="default" onClick={onCerrar} disabled={guardando}>Cancelar</Button>
